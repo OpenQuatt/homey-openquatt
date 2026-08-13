@@ -6,6 +6,14 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* De widget mag zelf nooit scrollen; verticale veeggebaren moeten
+       doorlopen naar het dashboard van de Homey-app. */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+
     :root {
       --oq-navy: #204b96;
       --oq-blue: #3989f3;
@@ -83,7 +91,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-top: 12px;
+      margin-top: 10px;
       font-size: 13px;
       color: var(--homey-text-color-light, #6b7a8c);
     }
