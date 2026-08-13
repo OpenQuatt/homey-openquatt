@@ -1,47 +1,97 @@
-# OpenQuatt for Homey
+<p align="center">
+  <img src=".github/openquatt-logo.svg" alt="OpenQuatt" width="420">
+</p>
 
-Homey Pro app that connects to an [OpenQuatt](https://github.com/OpenQuatt/OpenQuatt) heat pump controller on the local network.
+<h1 align="center">OpenQuatt for Homey</h1>
 
-## How it works
+<p align="center">
+  Monitor and control your <a href="https://github.com/OpenQuatt/OpenQuatt">OpenQuatt</a> heat pump controller from Homey Pro — fully local, real-time, zero cloud.
+</p>
 
-The app talks to the ESPHome web server that OpenQuatt already runs on port 80:
+<p align="center">
+  <img alt="Homey Pro" src="https://img.shields.io/badge/Homey%20Pro-%E2%89%A512.3.0-blue">
+  <img alt="SDK" src="https://img.shields.io/badge/Homey%20SDK-v3-blue">
+  <img alt="Dependencies" src="https://img.shields.io/badge/runtime%20dependencies-0-brightgreen">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
+</p>
 
-- **State**: a persistent Server-Sent Events stream on `GET /events`. Every entity state is pushed on connect and again on every change, so updates are real-time without polling.
-- **Commands**: the REST routes, addressed by URL-encoded *display name* (`POST /switch/Manual%20Cooling%20Enable/turn_on`). POSTs need an explicit `Content-Length: 0` header. These routes also reach `internal: true` entities such as the aux relay function select.
+---
 
-No API encryption key is required and there are **zero runtime npm dependencies**.
+## ✨ Features
 
-## Current feature set (v0.1)
+### Device
 
-Device (paired via mDNS discovery of `_esphomelib._tcp`, with a manual IP override in the device settings):
+Pair your Heatpump Controller Q-edition in seconds — it is discovered automatically on your network via mDNS (with a manual IP override if you need it).
 
-| Capability | OpenQuatt entity |
+| Capability | Source |
 |---|---|
-| Supply / outside / room temperature | `*_(selected)` sensors |
-| Power | `Total Power Input` |
-| Control mode | `Control Mode (label)` |
-| Manual cooling enable (toggle) | `Manual Cooling Enable` |
-| Aux relay R2 (toggle) | `Aux relay (R2)` — only effective in External control |
+| Supply / outside / room temperature | live, pushed by the controller |
+| Power consumption | live |
+| Control mode (CM0…CM100) | live |
+| Aux relay (R2) function picker | all five firmware modes, switchable from Homey |
+| Aux relay status | live status text from the control loop |
+| Manual cooling enable & R2 relay toggles | direct control |
 
-Flow cards:
+### Flow cards
 
-- **Triggers**: control mode changed (token: mode code), cooling started, cooling stopped
-- **Conditions**: is cooling, is heating (CM2/CM3/CM4)
-- **Actions**: set manual cooling enable, set aux relay function, set aux relay (R2)
+- **Triggers** — control mode changed (with mode token), cooling started, cooling stopped
+- **Conditions** — is cooling, is heating, aux relay function is …
+- **Actions** — set manual cooling enable, set aux relay function, switch the R2 relay (external control mode)
 
-## Development
+### Dashboard widget
+
+A branded, glanceable status card for your phone:
+
+<p align="center">
+  <img src="widgets/openquatt-status/preview-light.png" alt="Widget (light)" width="380">
+  <img src="widgets/openquatt-status/preview-dark.png" alt="Widget (dark)" width="380">
+</p>
+
+- Mode badge that follows the controller: standby, heating, cooling, anti-freeze, offline
+- Six live stats: supply / outside / room temperature, power in, thermal power out, today's COP (or EER while cooling)
+- Smart status line: **active faults** (heat pump failures, low-flow protection, flow mismatch, OpenTherm link issues) take priority in red; otherwise today's delivered energy and consumption
+
+## 🔌 How it works
+
+The app talks to the ESPHome web server that OpenQuatt already runs on port 80 — the same interface the OpenQuatt web app uses:
+
+- **State**: one persistent Server-Sent Events stream on `GET /events`. Every entity state arrives on connect and is pushed on every change — real-time, no polling.
+- **Commands**: the REST routes, addressed by URL-encoded display name (`POST /switch/Manual%20Cooling%20Enable/turn_on`). These also reach `internal: true` entities such as the aux relay configuration.
+
+Unlike the Home Assistant integration (which uses the ESPHome native API on port 6053), no API encryption key or pairing window is needed. The load on the ESP equals a single open browser tab of the web UI, and there are **zero runtime npm dependencies**.
+
+## 🚀 Installation
+
+Until the app is published in the Homey App Store, install it in developer mode:
 
 ```bash
-npm i -g homey        # Athom CLI
+git clone https://github.com/Cannonb4ll/homey-openquatt.git
+cd homey-openquatt
+npm i -g homey     # Athom CLI (once)
 homey login
-homey app validate
-homey app run         # pick your Homey Pro, live-reloads on save
+homey app install  # or `homey app run` for live development
 ```
 
-`homey app run` installs the app in development mode on the Homey you select and streams its log output to the terminal.
+Requires a **Homey Pro (2023 or newer)** — widgets and local apps need firmware ≥ 12.3.0.
 
-## Extending
+## 🛠 Development
 
-- Entity → capability wiring lives in `drivers/openquatt/device.js` (`ENTITY_CAPABILITIES`). Add a line + the capability in `driver.compose.json` and it shows up.
-- The transport lives in `lib/OpenQuattClient.js`. A native-API transport (port 6053) could be added later behind the same interface.
-- Keep the connection count low: OpenQuatt is heap-constrained on the ESP32; one persistent SSE client is fine, several are not.
+```bash
+homey app validate   # manifest + assets check
+homey app run        # live install with log streaming and widget hot-reload
+```
+
+- Entity → capability wiring lives in `drivers/openquatt/device.js` (`ENTITY_CAPABILITIES`); widget-only telemetry in `TELEMETRY_ENTITIES`.
+- The transport is `lib/OpenQuattClient.js` — a native-API transport could be added later behind the same interface.
+- `.homeycompose/` is the source of truth; `app.json` is generated by the CLI.
+- Keep the connection count low: OpenQuatt is heap-constrained on the ESP32. One persistent SSE client is fine; several are not.
+
+## 🙏 Credits
+
+- **[OpenQuatt](https://github.com/OpenQuatt/OpenQuatt)** — the open firmware for Quatt heat pumps that makes all of this possible. Built by **leejoow** and contributors.
+- The OpenQuatt name and logo are used with kind permission of the OpenQuatt maintainer.
+- This app is a community project and is not affiliated with Quatt B.V.
+
+## 📄 License
+
+[MIT](LICENSE) — the OpenQuatt name and logo remain property of the OpenQuatt project.
