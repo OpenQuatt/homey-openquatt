@@ -65,7 +65,7 @@ Unlike the Home Assistant integration (which uses the ESPHome native API on port
 Until the app is published in the Homey App Store, install it in developer mode:
 
 ```bash
-git clone https://github.com/Cannonb4ll/homey-openquatt.git
+git clone https://github.com/OpenQuatt/homey-openquatt.git
 cd homey-openquatt
 npm i -g homey     # Athom CLI (once)
 homey login
