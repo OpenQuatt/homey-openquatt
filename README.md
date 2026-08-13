@@ -43,8 +43,8 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 A branded, glanceable status card for your phone:
 
 <p align="center">
-  <img src="widgets/openquatt-status/preview-light.png" alt="Widget (light)" width="380">
-  <img src="widgets/openquatt-status/preview-dark.png" alt="Widget (dark)" width="380">
+  <img src=".github/widget-light.png" alt="Widget (light)" width="380">
+  <img src=".github/widget-dark.png" alt="Widget (dark)" width="380">
 </p>
 
 - Mode badge that follows the controller: standby, heating, cooling, anti-freeze, offline
