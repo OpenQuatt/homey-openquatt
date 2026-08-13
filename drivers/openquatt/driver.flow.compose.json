@@ -1,0 +1,232 @@
+{
+  "triggers": [
+    {
+      "id": "control_mode_changed",
+      "title": {
+        "en": "The control mode changed",
+        "nl": "De regelmodus is veranderd"
+      },
+      "tokens": [
+        {
+          "name": "mode",
+          "type": "string",
+          "title": {
+            "en": "Mode",
+            "nl": "Modus"
+          },
+          "example": "CM5"
+        }
+      ]
+    },
+    {
+      "id": "cooling_started",
+      "title": {
+        "en": "Cooling started",
+        "nl": "Koelen is gestart"
+      }
+    },
+    {
+      "id": "cooling_stopped",
+      "title": {
+        "en": "Cooling stopped",
+        "nl": "Koelen is gestopt"
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "id": "is_cooling",
+      "title": {
+        "en": "Is !{{cooling|not cooling}}",
+        "nl": "Is !{{aan het koelen|niet aan het koelen}}"
+      }
+    },
+    {
+      "id": "is_heating",
+      "title": {
+        "en": "Is !{{heating|not heating}}",
+        "nl": "Is !{{aan het verwarmen|niet aan het verwarmen}}"
+      }
+    },
+    {
+      "id": "aux_function_is",
+      "title": {
+        "en": "Aux relay function !{{is|is not}}",
+        "nl": "Hulprelais-functie !{{is|is niet}}"
+      },
+      "titleFormatted": {
+        "en": "Aux relay function !{{is|is not}} [[mode]]",
+        "nl": "Hulprelais-functie !{{is|is niet}} [[mode]]"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "disabled",
+              "label": {
+                "en": "Disabled",
+                "nl": "Uitgeschakeld"
+              }
+            },
+            {
+              "id": "heating",
+              "label": {
+                "en": "Heating demand",
+                "nl": "Warmtevraag"
+              }
+            },
+            {
+              "id": "cooling",
+              "label": {
+                "en": "Cooling demand",
+                "nl": "Koelvraag"
+              }
+            },
+            {
+              "id": "heating_or_cooling",
+              "label": {
+                "en": "Heating or cooling demand",
+                "nl": "Warmte- of koelvraag"
+              }
+            },
+            {
+              "id": "external",
+              "label": {
+                "en": "External control",
+                "nl": "Externe besturing"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "set_manual_cooling",
+      "title": {
+        "en": "Set manual cooling enable",
+        "nl": "Zet handmatige koelvrijgave"
+      },
+      "titleFormatted": {
+        "en": "Set manual cooling enable [[state]]",
+        "nl": "Zet handmatige koelvrijgave [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "On",
+                "nl": "Aan"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_aux_function",
+      "title": {
+        "en": "Set aux relay function",
+        "nl": "Zet hulprelais-functie"
+      },
+      "titleFormatted": {
+        "en": "Set aux relay function to [[mode]]",
+        "nl": "Zet hulprelais-functie op [[mode]]"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "disabled",
+              "label": {
+                "en": "Disabled",
+                "nl": "Uitgeschakeld"
+              }
+            },
+            {
+              "id": "heating",
+              "label": {
+                "en": "Heating demand",
+                "nl": "Warmtevraag"
+              }
+            },
+            {
+              "id": "cooling",
+              "label": {
+                "en": "Cooling demand",
+                "nl": "Koelvraag"
+              }
+            },
+            {
+              "id": "heating_or_cooling",
+              "label": {
+                "en": "Heating or cooling demand",
+                "nl": "Warmte- of koelvraag"
+              }
+            },
+            {
+              "id": "external",
+              "label": {
+                "en": "External control",
+                "nl": "Externe besturing"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_aux_relay",
+      "title": {
+        "en": "Set aux relay (R2)",
+        "nl": "Zet hulprelais (R2)"
+      },
+      "titleFormatted": {
+        "en": "Set aux relay (R2) [[state]]",
+        "nl": "Zet hulprelais (R2) [[state]]"
+      },
+      "hint": {
+        "en": "Only works while the aux relay function is set to External control.",
+        "nl": "Werkt alleen als de hulprelais-functie op Externe besturing staat."
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "On",
+                "nl": "Aan"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

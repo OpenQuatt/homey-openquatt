@@ -1,0 +1,11 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Aux relay status",
+    "nl": "Hulprelais-status"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/icon.svg"
+}

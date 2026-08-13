@@ -1,0 +1,525 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.dennissmink.openquatt",
+  "version": "0.1.0",
+  "compatibility": ">=12.3.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "OpenQuatt",
+    "nl": "OpenQuatt"
+  },
+  "description": {
+    "en": "Monitor and control your OpenQuatt heat pump controller",
+    "nl": "Bekijk en bestuur je OpenQuatt warmtepomp-controller"
+  },
+  "category": [
+    "climate"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png"
+  },
+  "author": {
+    "name": "Dennis Smink",
+    "email": "dennissmink@gmail.com"
+  },
+  "brandColor": "#204b96",
+  "flow": {
+    "triggers": [
+      {
+        "id": "control_mode_changed",
+        "title": {
+          "en": "The control mode changed",
+          "nl": "De regelmodus is veranderd"
+        },
+        "tokens": [
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Mode",
+              "nl": "Modus"
+            },
+            "example": "CM5"
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "cooling_started",
+        "title": {
+          "en": "Cooling started",
+          "nl": "Koelen is gestart"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "cooling_stopped",
+        "title": {
+          "en": "Cooling stopped",
+          "nl": "Koelen is gestopt"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "is_cooling",
+        "title": {
+          "en": "Is !{{cooling|not cooling}}",
+          "nl": "Is !{{aan het koelen|niet aan het koelen}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "is_heating",
+        "title": {
+          "en": "Is !{{heating|not heating}}",
+          "nl": "Is !{{aan het verwarmen|niet aan het verwarmen}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "aux_function_is",
+        "title": {
+          "en": "Aux relay function !{{is|is not}}",
+          "nl": "Hulprelais-functie !{{is|is niet}}"
+        },
+        "titleFormatted": {
+          "en": "Aux relay function !{{is|is not}} [[mode]]",
+          "nl": "Hulprelais-functie !{{is|is niet}} [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "disabled",
+                "label": {
+                  "en": "Disabled",
+                  "nl": "Uitgeschakeld"
+                }
+              },
+              {
+                "id": "heating",
+                "label": {
+                  "en": "Heating demand",
+                  "nl": "Warmtevraag"
+                }
+              },
+              {
+                "id": "cooling",
+                "label": {
+                  "en": "Cooling demand",
+                  "nl": "Koelvraag"
+                }
+              },
+              {
+                "id": "heating_or_cooling",
+                "label": {
+                  "en": "Heating or cooling demand",
+                  "nl": "Warmte- of koelvraag"
+                }
+              },
+              {
+                "id": "external",
+                "label": {
+                  "en": "External control",
+                  "nl": "Externe besturing"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "set_manual_cooling",
+        "title": {
+          "en": "Set manual cooling enable",
+          "nl": "Zet handmatige koelvrijgave"
+        },
+        "titleFormatted": {
+          "en": "Set manual cooling enable [[state]]",
+          "nl": "Zet handmatige koelvrijgave [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_aux_function",
+        "title": {
+          "en": "Set aux relay function",
+          "nl": "Zet hulprelais-functie"
+        },
+        "titleFormatted": {
+          "en": "Set aux relay function to [[mode]]",
+          "nl": "Zet hulprelais-functie op [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "disabled",
+                "label": {
+                  "en": "Disabled",
+                  "nl": "Uitgeschakeld"
+                }
+              },
+              {
+                "id": "heating",
+                "label": {
+                  "en": "Heating demand",
+                  "nl": "Warmtevraag"
+                }
+              },
+              {
+                "id": "cooling",
+                "label": {
+                  "en": "Cooling demand",
+                  "nl": "Koelvraag"
+                }
+              },
+              {
+                "id": "heating_or_cooling",
+                "label": {
+                  "en": "Heating or cooling demand",
+                  "nl": "Warmte- of koelvraag"
+                }
+              },
+              {
+                "id": "external",
+                "label": {
+                  "en": "External control",
+                  "nl": "Externe besturing"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_aux_relay",
+        "title": {
+          "en": "Set aux relay (R2)",
+          "nl": "Zet hulprelais (R2)"
+        },
+        "titleFormatted": {
+          "en": "Set aux relay (R2) [[state]]",
+          "nl": "Zet hulprelais (R2) [[state]]"
+        },
+        "hint": {
+          "en": "Only works while the aux relay function is set to External control.",
+          "nl": "Werkt alleen als de hulprelais-functie op Externe besturing staat."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "OpenQuatt Controller",
+        "nl": "OpenQuatt Controller"
+      },
+      "class": "thermostat",
+      "capabilities": [
+        "measure_temperature.supply",
+        "measure_temperature.outside",
+        "measure_temperature.room",
+        "measure_power",
+        "oq_control_mode",
+        "oq_aux_function",
+        "oq_aux_status",
+        "onoff.cooling",
+        "onoff.aux_relay"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature.supply": {
+          "title": {
+            "en": "Supply temperature",
+            "nl": "Aanvoertemperatuur"
+          }
+        },
+        "measure_temperature.outside": {
+          "title": {
+            "en": "Outside temperature",
+            "nl": "Buitentemperatuur"
+          }
+        },
+        "measure_temperature.room": {
+          "title": {
+            "en": "Room temperature",
+            "nl": "Kamertemperatuur"
+          }
+        },
+        "onoff.cooling": {
+          "title": {
+            "en": "Manual cooling enable",
+            "nl": "Handmatige koelvrijgave"
+          },
+          "insightsTitleTrue": {
+            "en": "Cooling enabled",
+            "nl": "Koelvrijgave aan"
+          },
+          "insightsTitleFalse": {
+            "en": "Cooling disabled",
+            "nl": "Koelvrijgave uit"
+          }
+        },
+        "onoff.aux_relay": {
+          "title": {
+            "en": "Aux relay (R2)",
+            "nl": "Hulprelais (R2)"
+          },
+          "insightsTitleTrue": {
+            "en": "Aux relay on",
+            "nl": "Hulprelais aan"
+          },
+          "insightsTitleFalse": {
+            "en": "Aux relay off",
+            "nl": "Hulprelais uit"
+          }
+        }
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan"
+      ],
+      "discovery": "esphome",
+      "images": {
+        "small": "/drivers/openquatt/assets/images/small.png",
+        "large": "/drivers/openquatt/assets/images/large.png"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "address",
+          "type": "text",
+          "label": {
+            "en": "Host / IP override",
+            "nl": "Host / IP-adres (handmatig)"
+          },
+          "value": "",
+          "hint": {
+            "en": "Leave empty to use the address found via network discovery.",
+            "nl": "Laat leeg om het adres van de netwerk-discovery te gebruiken."
+          }
+        }
+      ],
+      "id": "openquatt"
+    }
+  ],
+  "widgets": {
+    "openquatt-status": {
+      "name": {
+        "en": "OpenQuatt status",
+        "nl": "OpenQuatt status"
+      },
+      "height": 200,
+      "transparent": false,
+      "api": {
+        "getStatus": {
+          "method": "GET",
+          "path": "/status"
+        }
+      },
+      "id": "openquatt-status",
+      "settings": []
+    }
+  },
+  "capabilities": {
+    "oq_aux_function": {
+      "type": "enum",
+      "title": {
+        "en": "Aux relay (R2) function",
+        "nl": "Hulprelais (R2) functie"
+      },
+      "values": [
+        {
+          "id": "disabled",
+          "title": {
+            "en": "R2: disabled",
+            "nl": "R2: uitgeschakeld"
+          }
+        },
+        {
+          "id": "heating",
+          "title": {
+            "en": "R2: follow heating demand",
+            "nl": "R2: volgt warmtevraag"
+          }
+        },
+        {
+          "id": "cooling",
+          "title": {
+            "en": "R2: follow cooling demand",
+            "nl": "R2: volgt koelvraag"
+          }
+        },
+        {
+          "id": "heating_or_cooling",
+          "title": {
+            "en": "R2: follow heating or cooling",
+            "nl": "R2: volgt warmte- of koelvraag"
+          }
+        },
+        {
+          "id": "external",
+          "title": {
+            "en": "R2: external control",
+            "nl": "R2: externe besturing"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker"
+    },
+    "oq_aux_status": {
+      "type": "string",
+      "title": {
+        "en": "Aux relay status",
+        "nl": "Hulprelais-status"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/icon.svg"
+    },
+    "oq_control_mode": {
+      "type": "string",
+      "title": {
+        "en": "Control mode",
+        "nl": "Regelmodus"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/icon.svg"
+    }
+  },
+  "discovery": {
+    "esphome": {
+      "type": "mdns-sd",
+      "mdns-sd": {
+        "name": "esphomelib",
+        "protocol": "tcp"
+      },
+      "id": "{{name}}"
+    }
+  }
+}

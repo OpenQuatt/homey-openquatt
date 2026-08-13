@@ -1,0 +1,47 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Aux relay (R2) function",
+    "nl": "Hulprelais (R2) functie"
+  },
+  "values": [
+    {
+      "id": "disabled",
+      "title": {
+        "en": "R2: disabled",
+        "nl": "R2: uitgeschakeld"
+      }
+    },
+    {
+      "id": "heating",
+      "title": {
+        "en": "R2: follow heating demand",
+        "nl": "R2: volgt warmtevraag"
+      }
+    },
+    {
+      "id": "cooling",
+      "title": {
+        "en": "R2: follow cooling demand",
+        "nl": "R2: volgt koelvraag"
+      }
+    },
+    {
+      "id": "heating_or_cooling",
+      "title": {
+        "en": "R2: follow heating or cooling",
+        "nl": "R2: volgt warmte- of koelvraag"
+      }
+    },
+    {
+      "id": "external",
+      "title": {
+        "en": "R2: external control",
+        "nl": "R2: externe besturing"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker"
+}

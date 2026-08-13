@@ -1,0 +1,14 @@
+{
+  "name": {
+    "en": "OpenQuatt status",
+    "nl": "OpenQuatt status"
+  },
+  "height": 200,
+  "transparent": false,
+  "api": {
+    "getStatus": {
+      "method": "GET",
+      "path": "/status"
+    }
+  }
+}

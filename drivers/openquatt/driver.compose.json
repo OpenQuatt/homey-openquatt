@@ -1,0 +1,105 @@
+{
+  "name": {
+    "en": "OpenQuatt Controller",
+    "nl": "OpenQuatt Controller"
+  },
+  "class": "thermostat",
+  "capabilities": [
+    "measure_temperature.supply",
+    "measure_temperature.outside",
+    "measure_temperature.room",
+    "measure_power",
+    "oq_control_mode",
+    "oq_aux_function",
+    "oq_aux_status",
+    "onoff.cooling",
+    "onoff.aux_relay"
+  ],
+  "capabilitiesOptions": {
+    "measure_temperature.supply": {
+      "title": {
+        "en": "Supply temperature",
+        "nl": "Aanvoertemperatuur"
+      }
+    },
+    "measure_temperature.outside": {
+      "title": {
+        "en": "Outside temperature",
+        "nl": "Buitentemperatuur"
+      }
+    },
+    "measure_temperature.room": {
+      "title": {
+        "en": "Room temperature",
+        "nl": "Kamertemperatuur"
+      }
+    },
+    "onoff.cooling": {
+      "title": {
+        "en": "Manual cooling enable",
+        "nl": "Handmatige koelvrijgave"
+      },
+      "insightsTitleTrue": {
+        "en": "Cooling enabled",
+        "nl": "Koelvrijgave aan"
+      },
+      "insightsTitleFalse": {
+        "en": "Cooling disabled",
+        "nl": "Koelvrijgave uit"
+      }
+    },
+    "onoff.aux_relay": {
+      "title": {
+        "en": "Aux relay (R2)",
+        "nl": "Hulprelais (R2)"
+      },
+      "insightsTitleTrue": {
+        "en": "Aux relay on",
+        "nl": "Hulprelais aan"
+      },
+      "insightsTitleFalse": {
+        "en": "Aux relay off",
+        "nl": "Hulprelais uit"
+      }
+    }
+  },
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
+  "discovery": "esphome",
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "id": "address",
+      "type": "text",
+      "label": {
+        "en": "Host / IP override",
+        "nl": "Host / IP-adres (handmatig)"
+      },
+      "value": "",
+      "hint": {
+        "en": "Leave empty to use the address found via network discovery.",
+        "nl": "Laat leeg om het adres van de netwerk-discovery te gebruiken."
+      }
+    }
+  ]
+}

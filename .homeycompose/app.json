@@ -1,0 +1,30 @@
+{
+  "id": "com.dennissmink.openquatt",
+  "version": "0.1.0",
+  "compatibility": ">=12.3.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "OpenQuatt",
+    "nl": "OpenQuatt"
+  },
+  "description": {
+    "en": "Monitor and control your OpenQuatt heat pump controller",
+    "nl": "Bekijk en bestuur je OpenQuatt warmtepomp-controller"
+  },
+  "category": [
+    "climate"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png"
+  },
+  "author": {
+    "name": "Dennis Smink",
+    "email": "dennissmink@gmail.com"
+  },
+  "brandColor": "#204b96"
+}

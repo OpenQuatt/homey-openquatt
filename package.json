@@ -1,0 +1,13 @@
+{
+  "name": "com.dennissmink.openquatt",
+  "version": "0.1.0",
+  "description": "OpenQuatt heat pump controller integration for Homey Pro",
+  "main": "app.js",
+  "license": "MIT",
+  "author": "Dennis Smink <dennissmink@gmail.com>",
+  "scripts": {
+    "validate": "homey app validate --level debug",
+    "run": "homey app run"
+  },
+  "devDependencies": {}
+}
