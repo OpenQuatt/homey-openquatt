@@ -1,5 +1,5 @@
 {
-  "name": "com.dennissmink.openquatt",
+  "name": "nl.openquatt",
   "version": "0.1.0",
   "description": "OpenQuatt heat pump controller integration for Homey Pro",
   "main": "app.js",

@@ -1,6 +1,6 @@
 {
-  "id": "com.dennissmink.openquatt",
-  "version": "0.1.0",
+  "id": "nl.openquatt",
+  "version": "1.0.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
