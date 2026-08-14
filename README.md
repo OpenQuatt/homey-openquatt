@@ -92,6 +92,7 @@ homey app run        # live install with log streaming and widget hot-reload
 
 - **[OpenQuatt](https://github.com/OpenQuatt/OpenQuatt)** — the open firmware for Quatt heat pumps that makes all of this possible. Built by **jj85** ([jeroen85](https://github.com/jeroen85)), **[leejoow](https://github.com/leejoow)** and the OpenQuatt community.
 - **[Electropaultje](https://electropaultje.nl/product/heatpump-controller-q-edition/)** — the ready-made Heatpump Controller Q-edition hardware, purpose-built for OpenQuatt.
+- Questions or experiences to share? Join the [OpenQuatt topic on the Tweakers forum](https://gathering.tweakers.net/forum/list_messages/2325776).
 - The OpenQuatt name and logo are used with kind permission of the OpenQuatt maintainer.
 - This app is a community project and is not affiliated with Quatt B.V.
 

@@ -22,6 +22,10 @@ VEREISTEN
 
 Heb je de hardware nog niet? De kant-en-klare Heatpump Controller Q-edition, speciaal gemaakt voor OpenQuatt, is verkrijgbaar via https://electropaultje.nl/product/heatpump-controller-q-edition/
 
+COMMUNITY
+
+Vragen, ervaringen en discussie: praat mee in het OpenQuatt-topic op het Tweakers-forum via https://gathering.tweakers.net/forum/list_messages/2325776
+
 CREDITS
 
 OpenQuatt is gebouwd door jj85, leejoow en de OpenQuatt-community. Deze app is een community-project en is niet gelieerd aan Quatt B.V. De naam en het logo van OpenQuatt worden gebruikt met toestemming van de OpenQuatt-maintainers.
