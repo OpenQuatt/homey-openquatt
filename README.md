@@ -74,6 +74,8 @@ homey app install  # or `homey app run` for live development
 
 Requires a **Homey Pro (2023 or newer)** — widgets and local apps need firmware ≥ 12.3.0.
 
+Don't have the hardware yet? The ready-made [Heatpump Controller Q-edition](https://electropaultje.nl/product/heatpump-controller-q-edition/) is available at Electropaultje.
+
 ## 🛠 Development
 
 ```bash
@@ -88,7 +90,8 @@ homey app run        # live install with log streaming and widget hot-reload
 
 ## 🙏 Credits
 
-- **[OpenQuatt](https://github.com/OpenQuatt/OpenQuatt)** — the open firmware for Quatt heat pumps that makes all of this possible. Built by **leejoow** and contributors.
+- **[OpenQuatt](https://github.com/OpenQuatt/OpenQuatt)** — the open firmware for Quatt heat pumps that makes all of this possible. Built by **jj85** ([jeroen85](https://github.com/jeroen85)), **[leejoow](https://github.com/leejoow)** and the OpenQuatt community.
+- **[Electropaultje](https://electropaultje.nl/product/heatpump-controller-q-edition/)** — the ready-made Heatpump Controller Q-edition hardware, purpose-built for OpenQuatt.
 - The OpenQuatt name and logo are used with kind permission of the OpenQuatt maintainer.
 - This app is a community project and is not affiliated with Quatt B.V.
 
