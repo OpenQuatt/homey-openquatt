@@ -27,6 +27,11 @@
     "name": "Dennis Smink",
     "email": "dennissmink@gmail.com"
   },
+  "source": "https://github.com/OpenQuatt/homey-openquatt",
+  "support": "https://github.com/OpenQuatt/homey-openquatt/issues",
+  "bugs": {
+    "url": "https://github.com/OpenQuatt/homey-openquatt/issues"
+  },
   "brandColor": "#204b96",
   "flow": {
     "triggers": [
