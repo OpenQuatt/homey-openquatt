@@ -18,6 +18,22 @@ const ENTITY_CAPABILITIES = {
 
 const HEATING_MODES = ['CM2', 'CM3', 'CM4'];
 
+// Binary entities that fire started/stopped flow triggers on state edges.
+// HP2 entities only exist on duo installations; absent ids simply never fire.
+const BINARY_TRIGGERS = {
+  'binary_sensor-hp1_-_defrost': { on: 'defrost_started', off: 'defrost_stopped', tokens: { heatpump: 'HP1' } },
+  'binary_sensor-hp2_-_defrost': { on: 'defrost_started', off: 'defrost_stopped', tokens: { heatpump: 'HP2' } },
+  'binary_sensor-boiler_active': { on: 'boiler_started', off: 'boiler_stopped' },
+  'binary_sensor-silent_active': { on: 'silent_started', off: 'silent_stopped' },
+};
+
+// Telemetry keys that feed the aggregated fault state.
+const FAULT_KEYS = ['hp1Failures', 'hp2Failures', 'lowflowFault', 'flowMismatch', 'otLinkProblem'];
+
+// The SSE stream replays every entity right after connect; wait for that burst
+// to finish before treating fault changes as real transitions.
+const FAULT_SETTLE_MS = 15000;
+
 // Extra entities kept in memory for the status widget — not exposed as
 // capabilities to avoid cluttering the device page.
 const TELEMETRY_ENTITIES = {
@@ -45,6 +61,8 @@ class OpenQuattDevice extends Homey.Device {
   async onInit() {
     this._controlModeCode = null;
     this._telemetry = {};
+    this._binary = {};
+    this._faultActive = null;
 
     await this._migrateCapabilities();
 
@@ -61,6 +79,14 @@ class OpenQuattDevice extends Homey.Device {
     this.client = new OpenQuattClient(this._address());
     this.client.on('connected', () => {
       this.setAvailable().catch(this.error);
+      // Establish the fault baseline once, after the initial state burst, so a
+      // fault that already exists at app start does not fire a trigger.
+      if (this._faultActive === null && !this._faultSettleTimer) {
+        this._faultSettleTimer = this.homey.setTimeout(() => {
+          this._faultSettleTimer = null;
+          if (this._faultActive === null) this._faultActive = this.getFaults().length > 0;
+        }, FAULT_SETTLE_MS);
+      }
       // Eager refresh with short retries so the picker populates right after
       // (re)connect instead of waiting for the next poll tick.
       this._refreshAuxFunction();
@@ -112,10 +138,42 @@ class OpenQuattDevice extends Homey.Device {
     return HEATING_MODES.includes(this._controlModeCode);
   }
 
+  isDefrosting() {
+    return this._binary['binary_sensor-hp1_-_defrost'] === true
+      || this._binary['binary_sensor-hp2_-_defrost'] === true;
+  }
+
+  isBoilerActive() {
+    return this._binary['binary_sensor-boiler_active'] === true;
+  }
+
+  isSilentActive() {
+    return this._binary['binary_sensor-silent_active'] === true;
+  }
+
+  hasFault() {
+    return this.getFaults().length > 0;
+  }
+
+  getFaults() {
+    const t = this._telemetry;
+    const faults = [];
+    if (t.hp1Failures && t.hp1Failures !== 'None') faults.push(`HP1: ${t.hp1Failures}`);
+    if (t.hp2Failures && t.hp2Failures !== 'None') faults.push(`HP2: ${t.hp2Failures}`);
+    if (t.lowflowFault) faults.push(this.homey.__('fault.lowflow'));
+    if (t.flowMismatch) faults.push(this.homey.__('fault.flow_mismatch'));
+    if (t.otLinkProblem) faults.push(this.homey.__('fault.ot_link'));
+    return faults;
+  }
+
   _teardown() {
     if (this._auxPollTimer) {
       this.homey.clearInterval(this._auxPollTimer);
       this._auxPollTimer = null;
+    }
+    if (this._faultSettleTimer) {
+      this.homey.clearTimeout(this._faultSettleTimer);
+      this._faultSettleTimer = null;
     }
     if (this.client) this.client.close();
   }
@@ -173,12 +231,19 @@ class OpenQuattDevice extends Homey.Device {
       } else {
         this._telemetry[telemetryKey] = typeof state.state === 'string' ? state.state : null;
       }
+      if (FAULT_KEYS.includes(telemetryKey)) this._evaluateFaults();
       return;
     }
 
     // The raw control mode code drives the flow triggers.
     if (state.id === 'text_sensor-control_mode') {
       this._onControlMode(state.state);
+      return;
+    }
+
+    const binaryTrigger = BINARY_TRIGGERS[state.id];
+    if (binaryTrigger) {
+      this._onBinaryTrigger(state.id, binaryTrigger, state.value === true || state.state === 'ON');
       return;
     }
 
@@ -218,6 +283,47 @@ class OpenQuattDevice extends Homey.Device {
         .catch(this.error);
     } else if (previous === 'CM5') {
       this.homey.flow.getDeviceTriggerCard('cooling_stopped')
+        .trigger(this)
+        .catch(this.error);
+    }
+
+    // Heating spans multiple modes, so only fire on entering/leaving the set.
+    const wasHeating = HEATING_MODES.includes(previous);
+    const nowHeating = HEATING_MODES.includes(code);
+    if (nowHeating && !wasHeating) {
+      this.homey.flow.getDeviceTriggerCard('heating_started')
+        .trigger(this)
+        .catch(this.error);
+    } else if (wasHeating && !nowHeating) {
+      this.homey.flow.getDeviceTriggerCard('heating_stopped')
+        .trigger(this)
+        .catch(this.error);
+    }
+  }
+
+  // The first value per entity only records state, so the replay burst after
+  // (re)connect never fires a trigger for an unchanged value.
+  _onBinaryTrigger(id, card, value) {
+    const previous = this._binary[id];
+    this._binary[id] = value;
+    if (previous === undefined || previous === value) return;
+    this.homey.flow.getDeviceTriggerCard(value ? card.on : card.off)
+      .trigger(this, card.tokens || {})
+      .catch(this.error);
+  }
+
+  _evaluateFaults() {
+    if (this._faultActive === null) return;
+    const faults = this.getFaults();
+    const active = faults.length > 0;
+    if (active === this._faultActive) return;
+    this._faultActive = active;
+    if (active) {
+      this.homey.flow.getDeviceTriggerCard('fault_detected')
+        .trigger(this, { fault: faults.join('; ') })
+        .catch(this.error);
+    } else {
+      this.homey.flow.getDeviceTriggerCard('fault_resolved')
         .trigger(this)
         .catch(this.error);
     }

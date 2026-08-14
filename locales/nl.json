@@ -1,5 +1,10 @@
 {
   "device": {
     "unreachable": "De OpenQuatt-controller is niet bereikbaar"
+  },
+  "fault": {
+    "lowflow": "Lage doorstroming — beveiliging actief",
+    "flow_mismatch": "Flow-verschil tussen HP1 en HP2",
+    "ot_link": "OpenTherm-verbinding verstoord"
   }
 }

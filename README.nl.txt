@@ -8,9 +8,9 @@ Apparaat
 Je Heatpump Controller Q-edition wordt automatisch gevonden in je netwerk, met een handmatige IP-optie als dat nodig is. Het apparaat toont live de aanvoer-, buiten- en kamertemperatuur, het stroomverbruik, de actieve control mode en de functie en status van het hulprelais (R2). Handmatige koeling en het hulprelais bedien je rechtstreeks vanuit Homey.
 
 Flow-kaarten
-Triggers: control mode veranderd (met mode-token), koelen gestart, koelen gestopt.
-Condities: is aan het koelen, is aan het verwarmen, hulprelais-functie is.
-Acties: handmatige koeling in- of uitschakelen, hulprelais-functie instellen, het R2-relais schakelen (externe besturing).
+Triggers: regelmodus veranderd (met mode-token), verwarmen gestart/gestopt, koelen gestart/gestopt, storing gedetecteerd/opgelost (met storingsomschrijving als token), ontdooien gestart/gestopt (per warmtepomp), CV-ketel in-/uitgeschakeld, stille modus in-/uitgeschakeld.
+Condities: is aan het verwarmen, is aan het koelen, er is een storing actief, is aan het ontdooien, de CV-ketel is actief, stille modus is actief, hulprelais-functie is.
+Acties: handmatige koeling in- of uitschakelen, regelmodus forceren (standby, doorstromen, antivries of automatisch), stille-modus-override instellen, CV-ketel-assist in- of uitschakelen, OpenQuatt-regeling aan/uit, hulprelais-functie instellen, het R2-relais schakelen (externe besturing).
 
 Dashboard-widget
 Een overzichtelijke statuskaart voor je dashboard: een mode-badge (stand-by, verwarmen, koelen, antivries, offline), zes live waarden (aanvoer-, buiten- en kamertemperatuur, opgenomen vermogen, thermisch vermogen en de COP van vandaag — of EER tijdens het koelen), plus een slimme statusregel die actieve storingen in rood toont en anders de geleverde energie en het verbruik van vandaag.

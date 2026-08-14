@@ -1,5 +1,10 @@
 {
   "device": {
     "unreachable": "The OpenQuatt controller is unreachable"
+  },
+  "fault": {
+    "lowflow": "Low flow — protection active",
+    "flow_mismatch": "Flow mismatch between HP1 and HP2",
+    "ot_link": "OpenTherm link problem"
   }
 }

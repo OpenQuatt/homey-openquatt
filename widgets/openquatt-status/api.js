@@ -12,16 +12,8 @@ module.exports = {
     const cap = id => (device.hasCapability(id) ? device.getCapabilityValue(id) : null);
     const telemetry = device.getTelemetry();
 
-    const problems = [];
-    if (telemetry.hp1Failures && telemetry.hp1Failures !== 'None') {
-      problems.push(`HP1: ${telemetry.hp1Failures}`);
-    }
-    if (telemetry.hp2Failures && telemetry.hp2Failures !== 'None') {
-      problems.push(`HP2: ${telemetry.hp2Failures}`);
-    }
-    if (telemetry.lowflowFault) problems.push('Lage doorstroming — beveiliging actief');
-    if (telemetry.flowMismatch) problems.push('Flow-verschil tussen HP1 en HP2');
-    if (telemetry.otLinkProblem) problems.push('OpenTherm-verbinding verstoord');
+    // Same aggregation (and translations) as the fault flow cards.
+    const problems = device.getFaults();
 
     return {
       paired: true,

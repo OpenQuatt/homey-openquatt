@@ -34,9 +34,9 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 
 ### Flow cards
 
-- **Triggers** — control mode changed (with mode token), cooling started, cooling stopped
-- **Conditions** — is cooling, is heating, aux relay function is …
-- **Actions** — set manual cooling enable, set aux relay function, switch the R2 relay (external control mode)
+- **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off
+- **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …
+- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode)
 
 ### Dashboard widget
 
