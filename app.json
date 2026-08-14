@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "nl.openquatt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -88,6 +88,182 @@
             "filter": "driver_id=openquatt"
           }
         ]
+      },
+      {
+        "id": "heating_started",
+        "title": {
+          "en": "Heating started",
+          "nl": "Verwarmen is gestart"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "heating_stopped",
+        "title": {
+          "en": "Heating stopped",
+          "nl": "Verwarmen is gestopt"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "fault_detected",
+        "title": {
+          "en": "A fault was detected",
+          "nl": "Er is een storing gedetecteerd"
+        },
+        "tokens": [
+          {
+            "name": "fault",
+            "type": "string",
+            "title": {
+              "en": "Fault",
+              "nl": "Storing"
+            },
+            "example": {
+              "en": "Low flow — protection active",
+              "nl": "Lage doorstroming — beveiliging actief"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "fault_resolved",
+        "title": {
+          "en": "The fault was resolved",
+          "nl": "De storing is opgelost"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "defrost_started",
+        "title": {
+          "en": "Defrosting started",
+          "nl": "Ontdooien is gestart"
+        },
+        "tokens": [
+          {
+            "name": "heatpump",
+            "type": "string",
+            "title": {
+              "en": "Heat pump",
+              "nl": "Warmtepomp"
+            },
+            "example": "HP1"
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "defrost_stopped",
+        "title": {
+          "en": "Defrosting stopped",
+          "nl": "Ontdooien is gestopt"
+        },
+        "tokens": [
+          {
+            "name": "heatpump",
+            "type": "string",
+            "title": {
+              "en": "Heat pump",
+              "nl": "Warmtepomp"
+            },
+            "example": "HP1"
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "boiler_started",
+        "title": {
+          "en": "The boiler turned on",
+          "nl": "De CV-ketel is ingeschakeld"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "boiler_stopped",
+        "title": {
+          "en": "The boiler turned off",
+          "nl": "De CV-ketel is uitgeschakeld"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "silent_started",
+        "title": {
+          "en": "Silent mode turned on",
+          "nl": "Stille modus is ingeschakeld"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "silent_stopped",
+        "title": {
+          "en": "Silent mode turned off",
+          "nl": "Stille modus is uitgeschakeld"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
       }
     ],
     "conditions": [
@@ -110,6 +286,62 @@
         "title": {
           "en": "Is !{{heating|not heating}}",
           "nl": "Is !{{aan het verwarmen|niet aan het verwarmen}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "has_fault",
+        "title": {
+          "en": "A fault is !{{active|not active}}",
+          "nl": "Er is !{{een storing|geen storing}} actief"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "is_defrosting",
+        "title": {
+          "en": "Is !{{defrosting|not defrosting}}",
+          "nl": "Is !{{aan het ontdooien|niet aan het ontdooien}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "boiler_is_active",
+        "title": {
+          "en": "The boiler is !{{active|not active}}",
+          "nl": "De CV-ketel is !{{actief|niet actief}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          }
+        ]
+      },
+      {
+        "id": "silent_is_active",
+        "title": {
+          "en": "Silent mode is !{{active|not active}}",
+          "nl": "Stille modus is !{{actief|niet actief}}"
         },
         "args": [
           {
@@ -180,6 +412,191 @@
       }
     ],
     "actions": [
+      {
+        "id": "set_silent_override",
+        "title": {
+          "en": "Set silent mode override",
+          "nl": "Zet stille-modus-override"
+        },
+        "titleFormatted": {
+          "en": "Set silent mode override to [[mode]]",
+          "nl": "Zet stille-modus-override op [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "schedule",
+                "label": {
+                  "en": "Follow schedule",
+                  "nl": "Volgens schema"
+                }
+              },
+              {
+                "id": "on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "force_control_mode",
+        "title": {
+          "en": "Force control mode",
+          "nl": "Forceer regelmodus"
+        },
+        "titleFormatted": {
+          "en": "Force control mode [[mode]]",
+          "nl": "Forceer regelmodus [[mode]]"
+        },
+        "hint": {
+          "en": "A forced mode blocks normal heating and cooling until you switch back to Automatic.",
+          "nl": "Een geforceerde modus blokkeert normaal verwarmen en koelen totdat je terugschakelt naar Automatisch."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "auto",
+                "label": {
+                  "en": "Automatic",
+                  "nl": "Automatisch"
+                }
+              },
+              {
+                "id": "cm0",
+                "label": {
+                  "en": "Standby (CM0)",
+                  "nl": "Standby (CM0)"
+                }
+              },
+              {
+                "id": "cm1",
+                "label": {
+                  "en": "Circulate (CM1)",
+                  "nl": "Doorstromen (CM1)"
+                }
+              },
+              {
+                "id": "cm98",
+                "label": {
+                  "en": "Anti-freeze (CM98)",
+                  "nl": "Antivries (CM98)"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_boiler_assist",
+        "title": {
+          "en": "Set boiler assist",
+          "nl": "Zet CV-ketel-assist"
+        },
+        "titleFormatted": {
+          "en": "Set boiler assist [[state]]",
+          "nl": "Zet CV-ketel-assist [[state]]"
+        },
+        "hint": {
+          "en": "Turning this off also disables the boiler fallback on heat-pump faults.",
+          "nl": "Uitschakelen zet ook de ketel-fallback bij warmtepompstoringen uit."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_openquatt_enabled",
+        "title": {
+          "en": "Set OpenQuatt control",
+          "nl": "Zet OpenQuatt-regeling"
+        },
+        "titleFormatted": {
+          "en": "Set OpenQuatt control [[state]]",
+          "nl": "Zet OpenQuatt-regeling [[state]]"
+        },
+        "hint": {
+          "en": "Off disables the entire OpenQuatt control loop.",
+          "nl": "Uit schakelt de volledige OpenQuatt-regeling uit."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
       {
         "id": "set_manual_cooling",
         "title": {
