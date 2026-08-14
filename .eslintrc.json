@@ -1,0 +1,17 @@
+{
+  "extends": "athom",
+  "ignorePatterns": [".homeybuild/"],
+  "rules": {
+    "arrow-parens": ["error", "as-needed"],
+    "brace-style": ["error", "1tbs", { "allowSingleLine": true }],
+    "no-cond-assign": ["error", "except-parens"]
+  },
+  "overrides": [
+    {
+      "files": ["test/**/*.js"],
+      "rules": {
+        "max-classes-per-file": "off"
+      }
+    }
+  ]
+}
