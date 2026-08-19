@@ -5,7 +5,7 @@ module.exports = {
   async getStatus({ homey }) {
     const driver = homey.drivers.getDriver('openquatt');
     const devices = driver.getDevices();
-    if (!devices.length) return { paired: false };
+    if (!devices.length) return { paired: false, language: homey.i18n.getLanguage() };
 
     // Single-controller households are the norm; take the first device.
     const device = devices[0];
@@ -17,6 +17,7 @@ module.exports = {
 
     return {
       paired: true,
+      language: homey.i18n.getLanguage(),
       available: device.getAvailable(),
       name: device.getName(),
       controlMode: cap('oq_control_mode'),

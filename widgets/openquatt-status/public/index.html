@@ -6,8 +6,8 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* De widget mag zelf nooit scrollen; verticale veeggebaren moeten
-       doorlopen naar het dashboard van de Homey-app. */
+    /* The widget itself must never scroll; vertical swipe gestures should
+       pass through to the Homey app's dashboard. */
     html, body {
       height: 100%;
       overflow: hidden;
@@ -124,7 +124,7 @@
 <body>
 
   <div class="header">
-    <!-- OpenQuatt druppel-merk -->
+    <!-- OpenQuatt droplet mark -->
     <svg width="22" height="26" viewBox="40 10 660 860" aria-hidden="true"><path d="M342.5 34.5a250 250 0 0 0 9 30q3.989 10.461 8 21 .486 7.441 5 13a939 939 0 0 0 52.5 110 2240 2240 0 0 0 60 96 5301 5301 0 0 1 69 102 417.3 417.3 0 0 1 33.5 64q.078 4.27 3 7 20.139 43.56 22.5 92a483 483 0 0 1-.5 49q-1.838 7.185-2 15-2.427 4.007-2 9l-2 11q-2.361 2.403-2 6v2q-3.93 5.764-5 13a361.4 361.4 0 0 1-25 51q-4.657 4.162-7 10-68.629 88.06-179 104a852 852 0 0 0-35 3q-16.507.25-33-.5-2.822-.297-5-1.5-9.157-2.244-19-2h-2q-7.544-2.872-16-3-113.521-21.405-172.5-121-43.368-84.229-27-178 7.821-43.96 27-84a586 586 0 0 1 33-56 5116 5116 0 0 0 130-196q21.751-40.5 42-82a2875 2875 0 0 1 20-49 273 273 0 0 0 11-35 59 59 0 0 1 5-9 29.8 29.8 0 0 1 3.5 9" fill="#204b96"/><path d="M342.5 119.5a571 571 0 0 1 14 40q.764 7.805 5 14v1q-.135 3.978 2 7a31.7 31.7 0 0 1 2 6q-.135 3.978 2 7-.135 3.978 2 7-.135 3.978 2 7-.135 3.978 2 7 8.966 31.83 13 65a1521 1521 0 0 0 4.5 49q.75 18.493.5 37v3q-1.152 1.144-1.5 3a919 919 0 0 0-3.5 30 85.4 85.4 0 0 0-1.5 13q26.267-39.549 29.5-87 .999-7.984 1-16.5.29-12.09-2-23.5a12.9 12.9 0 0 1 .5-5 56.1 56.1 0 0 1 10.5 17q-.11 2.29 2 3a1350 1350 0 0 1 17 37q-.501 4.486 3 7 4.654 9.453 7 20-.135 3.978 2 7-.135 3.978 2 7 3.267 9.564 4 20-.367 8.376 2 16 2.406 100.067-83 152-1.393-1.783-1-4 2.31-6.847 2-14.5.012-12.645-3-24.5.31-4.493-2-8-7.76-31.019-27.5-56-35.843 63.187-56 133l-3 5q-31.104 11.837-64.5 15.5a356 356 0 0 1-31 2.5q-18.405-58.648-2.5-118a202.4 202.4 0 0 1 17-39q45.29-69.55 83-144 28.532-61.85 40.5-129 6.37-24.912 7-51a167 167 0 0 0 3-18" fill="#ed8933"/><path d="M557.5 586.5q.837 1.935 3 2.5-56.438-5.331-112 6a1117 1117 0 0 0-43 12 2536 2536 0 0 1-107 37 412 412 0 0 1-76 13q-47.99 3.102-91-18a620 620 0 0 1-24-16.5q-3.118-9.6-2.5-20a345 345 0 0 0 36.5 21.5 194.3 194.3 0 0 0 42 9.5q44.101 4.2 87-7a550 550 0 0 0 32-7.5 1150 1150 0 0 1 96-31 342 342 0 0 1 82.5-11.5q39.153-1.598 76.5 10" fill="#81cbf2"/><path d="M557.5 586.5a248 248 0 0 0 15 4q-12.054 137.357-138 193.5-104.056 39.986-207-2-100.8-48.767-120-159.5a620 620 0 0 0 24 16.5q43.01 21.102 91 18a412 412 0 0 0 76-13 2536 2536 0 0 0 107-37 1117 1117 0 0 1 43-12q55.562-11.331 112-6-2.163-.565-3-2.5" fill="#3989f3"/></svg>
     <div class="wordmark"><span class="open">OPEN</span><span class="quatt">QUATT</span></div>
     <div class="badge idle" id="badge">…</div>
@@ -133,12 +133,12 @@
   <div class="brandline"></div>
 
   <div class="grid">
-    <div class="stat"><div class="label">Aanvoer</div><div class="value" id="supply">—</div></div>
-    <div class="stat"><div class="label">Buiten</div><div class="value" id="outside">—</div></div>
-    <div class="stat"><div class="label">Kamer</div><div class="value" id="room">—</div></div>
-    <div class="stat"><div class="label">Opname</div><div class="value" id="power">—</div></div>
-    <div class="stat"><div class="label">Afgifte</div><div class="value" id="output">—</div></div>
-    <div class="stat"><div class="label" id="efflabel">COP vandaag</div><div class="value" id="eff">—</div></div>
+    <div class="stat"><div class="label" id="l-supply">Supply</div><div class="value" id="supply">—</div></div>
+    <div class="stat"><div class="label" id="l-outside">Outside</div><div class="value" id="outside">—</div></div>
+    <div class="stat"><div class="label" id="l-room">Room</div><div class="value" id="room">—</div></div>
+    <div class="stat"><div class="label" id="l-power">Power in</div><div class="value" id="power">—</div></div>
+    <div class="stat"><div class="label" id="l-output">Output</div><div class="value" id="output">—</div></div>
+    <div class="stat"><div class="label" id="efflabel">COP today</div><div class="value" id="eff">—</div></div>
   </div>
 
   <div class="footer" id="footer">
@@ -147,19 +147,66 @@
     <div class="time" id="time"></div>
   </div>
 
-  <div class="empty" id="empty">Geen OpenQuatt-controller gekoppeld</div>
+  <div class="empty" id="empty">No OpenQuatt controller paired</div>
 
   <script type="text/javascript">
-    const MODES = {
-      CM0: { label: 'Standby', cls: 'idle' },
-      CM1: { label: 'Doorstromen', cls: 'idle' },
-      CM2: { label: 'Verwarmen', cls: 'heat' },
-      CM3: { label: 'Verwarmen', cls: 'heat' },
-      CM4: { label: 'Verwarmen', cls: 'heat' },
-      CM5: { label: 'Koelen', cls: 'cool' },
-      CM98: { label: 'Antivries', cls: 'frost' },
-      CM100: { label: 'Inregelen', cls: 'idle' },
+    // UI strings; English is the default, Dutch follows the Homey language.
+    const I18N = {
+      en: {
+        supply: 'Supply',
+        outside: 'Outside',
+        room: 'Room',
+        power: 'Power in',
+        output: 'Output',
+        copToday: 'COP today',
+        eerToday: 'EER today',
+        standby: 'Standby',
+        circulate: 'Circulate',
+        heating: 'Heating',
+        cooling: 'Cooling',
+        antifreeze: 'Anti-freeze',
+        calibrating: 'Calibrating',
+        unknown: 'Unknown',
+        offline: 'Offline',
+        empty: 'No OpenQuatt controller paired',
+        today: (delivered, electric) => `Today: ${delivered} kWh delivered`
+          + (electric !== null ? ` · ${electric} kWh used` : ''),
+      },
+      nl: {
+        supply: 'Aanvoer',
+        outside: 'Buiten',
+        room: 'Kamer',
+        power: 'Opname',
+        output: 'Afgifte',
+        copToday: 'COP vandaag',
+        eerToday: 'EER vandaag',
+        standby: 'Standby',
+        circulate: 'Doorstromen',
+        heating: 'Verwarmen',
+        cooling: 'Koelen',
+        antifreeze: 'Antivries',
+        calibrating: 'Inregelen',
+        unknown: 'Onbekend',
+        offline: 'Offline',
+        empty: 'Geen OpenQuatt-controller gekoppeld',
+        today: (delivered, electric) => `Vandaag: ${delivered} kWh geleverd`
+          + (electric !== null ? ` · ${electric} kWh stroom` : ''),
+      },
     };
+
+    // Control mode → badge label key and style.
+    const MODES = {
+      CM0: { key: 'standby', cls: 'idle' },
+      CM1: { key: 'circulate', cls: 'idle' },
+      CM2: { key: 'heating', cls: 'heat' },
+      CM3: { key: 'heating', cls: 'heat' },
+      CM4: { key: 'heating', cls: 'heat' },
+      CM5: { key: 'cooling', cls: 'cool' },
+      CM98: { key: 'antifreeze', cls: 'frost' },
+      CM100: { key: 'calibrating', cls: 'idle' },
+    };
+
+    let t9n = I18N.en;
 
     const $ = id => document.getElementById(id);
     const num = v => (typeof v === 'number' && isFinite(v) ? v : null);
@@ -176,7 +223,19 @@
       badge.className = `badge ${cls}`;
     }
 
+    function applyLanguage(language) {
+      t9n = I18N[language] || I18N.en;
+      $('l-supply').textContent = t9n.supply;
+      $('l-outside').textContent = t9n.outside;
+      $('l-room').textContent = t9n.room;
+      $('l-power').textContent = t9n.power;
+      $('l-output').textContent = t9n.output;
+      $('empty').textContent = t9n.empty;
+    }
+
     function render(status) {
+      applyLanguage(status.language);
+
       document.body.classList.toggle('is-empty', !status.paired);
       if (!status.paired) return;
 
@@ -184,10 +243,10 @@
       const code = String(status.controlMode || '').split(' ')[0];
 
       if (!status.available) {
-        setBadge('Offline', 'off');
+        setBadge(t9n.offline, 'off');
       } else {
         const mode = MODES[code];
-        setBadge(mode ? mode.label : (status.controlMode || 'Onbekend'), mode ? mode.cls : 'idle');
+        setBadge(mode ? t9n[mode.key] : (status.controlMode || t9n.unknown), mode ? mode.cls : 'idle');
       }
 
       $('supply').innerHTML = fmt(status.supply, '°C', 1);
@@ -195,22 +254,22 @@
       $('room').innerHTML = fmt(status.room, '°C', 1);
       $('power').innerHTML = fmt(status.power, 'W', 0);
 
-      // Afgifte: warmte of koude, wat er op dit moment geleverd wordt.
+      // Output: heat or cold, whichever is being delivered right now.
       const heat = num(t.heatPower) || 0;
       const cool = num(t.coolPower) || 0;
       $('output').innerHTML = fmt(Math.max(heat, cool), 'W', 0);
 
-      // Rendement van vandaag: EER tijdens koelseizoen, anders COP.
+      // Today's efficiency: EER during the cooling season, COP otherwise.
       let eff = num(t.copDaily);
-      let effLabel = 'COP vandaag';
+      let effLabel = t9n.copToday;
       if ((code === 'CM5' || eff === null) && num(t.eerDaily) !== null) {
         eff = num(t.eerDaily);
-        effLabel = 'EER vandaag';
+        effLabel = t9n.eerToday;
       }
       $('efflabel').textContent = effLabel;
       $('eff').innerHTML = fmt(eff, '', 1);
 
-      // Footer: problemen winnen van de dagproductie.
+      // Footer: active problems win over today's production numbers.
       const problems = status.problems || [];
       const footer = $('footer');
       if (problems.length) {
@@ -220,8 +279,10 @@
         footer.classList.remove('problem');
         const delivered = (num(t.thermalDaily) || 0) + (num(t.coolingDaily) || 0);
         const electric = num(t.electricDaily);
-        $('insight').textContent = `Vandaag: ${delivered.toFixed(1)} kWh geleverd`
-          + (electric !== null ? ` · ${electric.toFixed(1)} kWh stroom` : '');
+        $('insight').textContent = t9n.today(
+          delivered.toFixed(1),
+          electric !== null ? electric.toFixed(1) : null,
+        );
       }
       $('time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -236,7 +297,7 @@
         try {
           render(await Homey.api('GET', '/status', {}));
         } catch (err) {
-          setBadge('Offline', 'off');
+          setBadge(t9n.offline, 'off');
         } finally {
           busy = false;
         }

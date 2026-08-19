@@ -7,5 +7,9 @@
   },
   "1.0.2": {
     "en": "New triggers"
+  },
+  "1.0.3": {
+    "en": "New device icon and product images, widget now in English and Dutch",
+    "nl": "Nieuw apparaat-icoon en productfoto's, widget nu in het Engels en Nederlands"
   }
 }

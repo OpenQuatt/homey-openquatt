@@ -1,6 +1,6 @@
 {
   "id": "nl.openquatt",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -11,8 +11,8 @@
     "nl": "OpenQuatt"
   },
   "description": {
-    "en": "Monitor and control your OpenQuatt heat pump controller",
-    "nl": "Bekijk en bestuur je OpenQuatt warmtepomp-controller"
+    "en": "Your heat pump, live and local — no cloud required",
+    "nl": "Je warmtepomp, live en lokaal — zonder cloud"
   },
   "category": [
     "climate"
