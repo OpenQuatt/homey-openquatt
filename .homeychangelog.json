@@ -11,5 +11,9 @@
   "1.0.3": {
     "en": "New device icon and product images, widget now in English and Dutch",
     "nl": "Nieuw apparaat-icoon en productfoto's, widget nu in het Engels en Nederlands"
+  },
+  "1.1.0": {
+    "en": "Dew point support: see the controller's dew point, feed it from your own room sensors via MQTT, and new flow cards for cooling safety",
+    "nl": "Dauwpunt-ondersteuning: zie het dauwpunt van de controller, voed het vanuit je eigen kamersensoren via MQTT, en nieuwe flow-kaarten voor koelveiligheid"
   }
 }

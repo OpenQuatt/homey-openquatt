@@ -2,6 +2,7 @@
 
 const Homey = require('homey');
 const { ID_TO_OPTION } = require('../../lib/auxFunctions');
+const { dewPoint } = require('../../lib/dewPoint');
 
 // Flow dropdown id -> option string as the firmware select expects it.
 const SILENT_OVERRIDE_OPTIONS = { schedule: 'Schedule', on: 'On', off: 'Off' };
@@ -34,6 +35,12 @@ class OpenQuattDriver extends Homey.Driver {
       .registerRunListener(async ({ device, mode }) => (
         device.getCapabilityValue('oq_aux_function') === mode
       ));
+
+    this.homey.flow.getConditionCard('dew_point_is_available')
+      .registerRunListener(async ({ device }) => device.isDewPointAvailable());
+
+    this.homey.flow.getConditionCard('cooling_is_permitted')
+      .registerRunListener(async ({ device }) => device.isCoolingPermitted());
 
     this.homey.flow.getActionCard('set_manual_cooling')
       .registerRunListener(async ({ device, state }) => {
@@ -69,6 +76,21 @@ class OpenQuattDriver extends Homey.Driver {
     this.homey.flow.getActionCard('set_openquatt_enabled')
       .registerRunListener(async ({ device, state }) => {
         await device.client.setSwitch('OpenQuatt Enabled', state === 'on');
+      });
+
+    this.homey.flow.getActionCard('send_dew_point')
+      .registerRunListener(async ({ device, dewpoint }) => {
+        await device.setDewPoint('flow', dewpoint);
+      });
+
+    this.homey.flow.getActionCard('send_room_dew_point')
+      .registerRunListener(async ({
+        device, room, temperature, humidity,
+      }) => {
+        const value = dewPoint(temperature, humidity);
+        if (value === null) throw new Error(this.homey.__('mqtt.invalid_input'));
+        await device.setDewPoint(`room:${room.trim().toLowerCase()}`, value);
+        return { dewpoint: Math.round(value * 100) / 100 };
       });
   }
 

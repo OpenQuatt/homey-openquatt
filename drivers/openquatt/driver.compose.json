@@ -8,6 +8,7 @@
     "measure_temperature.supply",
     "measure_temperature.outside",
     "measure_temperature.room",
+    "measure_temperature.dew_point",
     "measure_power",
     "oq_control_mode",
     "oq_aux_function",
@@ -32,6 +33,12 @@
       "title": {
         "en": "Room temperature",
         "nl": "Kamertemperatuur"
+      }
+    },
+    "measure_temperature.dew_point": {
+      "title": {
+        "en": "Dew point",
+        "nl": "Dauwpunt"
       }
     },
     "onoff.cooling": {
@@ -101,6 +108,85 @@
         "en": "Leave empty to use the address found via network discovery.",
         "nl": "Laat leeg om het adres van de netwerk-discovery te gebruiken."
       }
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Dew point via MQTT",
+        "nl": "Dauwpunt via MQTT"
+      },
+      "children": [
+        {
+          "id": "mqtt_host",
+          "type": "text",
+          "label": {
+            "en": "MQTT broker host",
+            "nl": "MQTT-broker host"
+          },
+          "value": "",
+          "hint": {
+            "en": "The broker that is configured as MQTT input source in the OpenQuatt web app (Settings → Sources / integrations). Leave empty to disable dew point publishing.",
+            "nl": "De broker die als MQTT-inputbron is ingesteld in de OpenQuatt web-app (Instellingen → Bronnen / integraties). Laat leeg om dauwpunt versturen uit te schakelen."
+          }
+        },
+        {
+          "id": "mqtt_port",
+          "type": "number",
+          "label": {
+            "en": "MQTT broker port",
+            "nl": "MQTT-broker poort"
+          },
+          "value": 1883,
+          "min": 1,
+          "max": 65535
+        },
+        {
+          "id": "mqtt_username",
+          "type": "text",
+          "label": {
+            "en": "MQTT username",
+            "nl": "MQTT-gebruikersnaam"
+          },
+          "value": ""
+        },
+        {
+          "id": "mqtt_password",
+          "type": "password",
+          "label": {
+            "en": "MQTT password",
+            "nl": "MQTT-wachtwoord"
+          },
+          "value": ""
+        },
+        {
+          "id": "mqtt_device_name",
+          "type": "text",
+          "label": {
+            "en": "Controller device name",
+            "nl": "Apparaatnaam van de controller"
+          },
+          "value": "openquatt",
+          "hint": {
+            "en": "Used in the MQTT topic openquatt/<name>/input/cooling/dew_point. Check the exact topic under MQTT sensors → Details in the OpenQuatt web app.",
+            "nl": "Wordt gebruikt in het MQTT-topic openquatt/<naam>/input/cooling/dew_point. Controleer het exacte topic onder MQTT-sensoren → Details in de OpenQuatt web-app."
+          }
+        },
+        {
+          "id": "dew_point_max_age",
+          "type": "number",
+          "label": {
+            "en": "Maximum sensor value age (minutes)",
+            "nl": "Maximale leeftijd sensorwaarde (minuten)"
+          },
+          "value": 60,
+          "min": 5,
+          "max": 180,
+          "hint": {
+            "en": "Rooms whose flow has not sent a new value within this window no longer count towards the dew point sent to the controller.",
+            "nl": "Ruimtes waarvan de flow binnen deze periode geen nieuwe waarde heeft gestuurd, tellen niet meer mee in het dauwpunt dat naar de controller gaat."
+          }
+        }
+      ]
     }
   ]
 }

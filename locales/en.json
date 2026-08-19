@@ -6,5 +6,10 @@
     "lowflow": "Low flow — protection active",
     "flow_mismatch": "Flow mismatch between HP1 and HP2",
     "ot_link": "OpenTherm link problem"
+  },
+  "mqtt": {
+    "not_configured": "Set up the MQTT broker in the device settings first",
+    "invalid_dew_point": "Dew point out of range (-20…35 °C)",
+    "invalid_input": "Invalid temperature or humidity"
   }
 }

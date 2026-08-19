@@ -26,6 +26,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | Capability | Source |
 |---|---|
 | Supply / outside / room temperature | live, pushed by the controller |
+| Dew point (as selected by the controller) | live |
 | Power consumption | live |
 | Control mode (CM0…CM100) | live |
 | Aux relay (R2) function picker | all five firmware modes, switchable from Homey |
@@ -34,9 +35,19 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 
 ### Flow cards
 
-- **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off
-- **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …
-- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode)
+- **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off, the dew point became available / was lost
+- **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …, a dew point is available, cooling is permitted
+- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity
+
+### Dew point & cooling safety
+
+OpenQuatt only cools when it knows the indoor dew point: the supply water must stay above it (plus a safety margin), or condensation would form on your floor and pipes. This app can feed that dew point straight from the sensors you already have in Homey — the same role the Home Assistant dynamic-cooling package plays, including the identical Magnus formula and highest-room-wins aggregation.
+
+1. **Broker** — the controller receives external dew points over MQTT. Enable *MQTT input sources* in the OpenQuatt web app (*Settings → Sources / integrations*) and point it at any broker on your network (the community [MQTT Broker](https://homey.app/a/nl.scanno.mqttbroker/) app on Homey Pro works fine).
+2. **Device settings** — fill in the same broker under *Dew point via MQTT* on the OpenQuatt device in Homey.
+3. **Flows** — for each room you cool, add a flow: *when* temperature or humidity of the room sensor changes → *then* **Update the dew point for [room] from temperature and humidity**, using the sensor tags. Rooms are aggregated with highest-wins; values expire automatically (configurable, 60 min default) and the last aggregate is re-published every minute so the controller's 15-minute staleness check keeps passing.
+
+Already have a computed dew point? Use the simpler **Send dew point to the controller** card instead. The device also shows the dew point the controller actually selected, and the *dew point available / lost* triggers plus the *cooling is permitted* condition let you alert on a broken sensor before a hot day does it for you.
 
 ### Dashboard widget
 

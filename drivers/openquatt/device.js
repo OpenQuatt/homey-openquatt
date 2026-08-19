@@ -2,6 +2,8 @@
 
 const Homey = require('homey');
 const OpenQuattClient = require('../../lib/OpenQuattClient');
+const { MqttPublisher } = require('../../lib/MqttPublisher');
+const { DewPointSources } = require('../../lib/dewPoint');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 
 // Entity id (as seen on the /events stream) -> Homey capability.
@@ -9,6 +11,7 @@ const ENTITY_CAPABILITIES = {
   'sensor-water_supply_temp__selected_': 'measure_temperature.supply',
   'sensor-outside_temperature__selected_': 'measure_temperature.outside',
   'sensor-room_temperature__selected_': 'measure_temperature.room',
+  'sensor-cooling_dew_point__selected_': 'measure_temperature.dew_point',
   'sensor-total_power_input': 'measure_power',
   'switch-manual_cooling_enable': 'onoff.cooling',
   'switch-aux_relay__r2_': 'onoff.aux_relay',
@@ -25,6 +28,7 @@ const BINARY_TRIGGERS = {
   'binary_sensor-hp2_-_defrost': { on: 'defrost_started', off: 'defrost_stopped', tokens: { heatpump: 'HP2' } },
   'binary_sensor-boiler_active': { on: 'boiler_started', off: 'boiler_stopped' },
   'binary_sensor-silent_active': { on: 'silent_started', off: 'silent_stopped' },
+  'binary_sensor-cooling_dew_point_available': { on: 'dew_point_available', off: 'dew_point_lost' },
 };
 
 // Telemetry keys that feed the aggregated fault state.
@@ -50,11 +54,20 @@ const TELEMETRY_ENTITIES = {
   'sensor-electrical_energy_daily': 'electricDaily',
   'sensor-heatpump_cop_daily': 'copDaily',
   'sensor-heatpump_eer_daily': 'eerDaily',
+  'binary_sensor-cooling_permitted': 'coolingPermitted',
+  'sensor-cooling_effective_minimum_supply_temp': 'minSupplyTemp',
 };
 
 // The aux relay function select is `internal: true` in the firmware, so it is
 // absent from the event stream and has to be polled via REST.
 const AUX_FUNCTION_POLL_MS = 60000;
+
+// Dew point feeding over MQTT. The firmware marks the MQTT dew point stale
+// after 15 minutes, so a minute-cadence republish keeps a fresh value alive.
+// Values must stay inside the range the firmware accepts on the input topic.
+const DEW_POINT_PUBLISH_MS = 60000;
+const DEW_POINT_MIN_C = -20;
+const DEW_POINT_MAX_C = 35;
 
 class OpenQuattDevice extends Homey.Device {
 
@@ -104,6 +117,13 @@ class OpenQuattDevice extends Homey.Device {
       () => this._refreshAuxFunction(),
       AUX_FUNCTION_POLL_MS,
     );
+
+    this._dewPointSources = new DewPointSources();
+    this._setupDewPointPublisher(this.getSettings());
+    this._dewPointTimer = this.homey.setInterval(
+      () => this._publishDewPoint(),
+      DEW_POINT_PUBLISH_MS,
+    );
   }
 
   async onUninit() {
@@ -114,8 +134,11 @@ class OpenQuattDevice extends Homey.Device {
     this._teardown();
   }
 
-  async onSettings({ newSettings }) {
+  async onSettings({ newSettings, changedKeys }) {
     if (newSettings.address) this.client.setHost(newSettings.address);
+    if (changedKeys.some(key => key.startsWith('mqtt_'))) {
+      this._setupDewPointPublisher(newSettings);
+    }
   }
 
   onDiscoveryResult(discoveryResult) {
@@ -151,6 +174,30 @@ class OpenQuattDevice extends Homey.Device {
     return this._binary['binary_sensor-silent_active'] === true;
   }
 
+  isDewPointAvailable() {
+    return this._binary['binary_sensor-cooling_dew_point_available'] === true;
+  }
+
+  isCoolingPermitted() {
+    return this._telemetry.coolingPermitted === true;
+  }
+
+  /**
+   * Record a dew point value from a flow card and push the aggregate (the
+   * highest fresh source) to the controller's MQTT input topic.
+   */
+  async setDewPoint(source, value) {
+    if (!this._publisher) {
+      throw new Error(this.homey.__('mqtt.not_configured'));
+    }
+    if (typeof value !== 'number' || !Number.isFinite(value)
+      || value < DEW_POINT_MIN_C || value > DEW_POINT_MAX_C) {
+      throw new Error(this.homey.__('mqtt.invalid_dew_point'));
+    }
+    this._dewPointSources.update(source, value, Date.now());
+    this._publishDewPoint();
+  }
+
   hasFault() {
     return this.getFaults().length > 0;
   }
@@ -171,9 +218,17 @@ class OpenQuattDevice extends Homey.Device {
       this.homey.clearInterval(this._auxPollTimer);
       this._auxPollTimer = null;
     }
+    if (this._dewPointTimer) {
+      this.homey.clearInterval(this._dewPointTimer);
+      this._dewPointTimer = null;
+    }
     if (this._faultSettleTimer) {
       this.homey.clearTimeout(this._faultSettleTimer);
       this._faultSettleTimer = null;
+    }
+    if (this._publisher) {
+      this._publisher.close();
+      this._publisher = null;
     }
     if (this.client) this.client.close();
   }
@@ -181,11 +236,40 @@ class OpenQuattDevice extends Homey.Device {
   // Devices paired with an older app version keep their original capability
   // list; add capabilities introduced since.
   async _migrateCapabilities() {
-    for (const capability of ['oq_aux_function', 'oq_aux_status']) {
+    for (const capability of ['oq_aux_function', 'oq_aux_status', 'measure_temperature.dew_point']) {
       if (!this.hasCapability(capability)) {
         await this.addCapability(capability).catch(this.error);
       }
     }
+  }
+
+  _setupDewPointPublisher(settings) {
+    if (this._publisher) {
+      this._publisher.close();
+      this._publisher = null;
+    }
+    const host = (settings.mqtt_host || '').trim();
+    if (!host) return;
+
+    this._publisher = new MqttPublisher({
+      host,
+      port: Number(settings.mqtt_port) || 1883,
+      username: settings.mqtt_username || '',
+      password: settings.mqtt_password || '',
+      clientId: `homey-openquatt-${String(this.getData().id).replace(/[^a-zA-Z0-9_-]/g, '')}`.slice(0, 40),
+    });
+    this._dewPointTopic = `openquatt/${(settings.mqtt_device_name || '').trim() || 'openquatt'}/input/cooling/dew_point`;
+    this._publisher.on('connected', () => this.log('mqtt: connected'));
+    this._publisher.on('disconnected', err => this.log(`mqtt: disconnected (${err.message})`));
+    this._publisher.connect();
+  }
+
+  _publishDewPoint() {
+    if (!this._publisher) return;
+    const maxAgeMs = (Number(this.getSetting('dew_point_max_age')) || 60) * 60 * 1000;
+    const value = this._dewPointSources.aggregate(Date.now(), maxAgeMs);
+    if (value === null) return;
+    this._publisher.publish(this._dewPointTopic, value.toFixed(2));
   }
 
   async _refreshAuxFunction() {

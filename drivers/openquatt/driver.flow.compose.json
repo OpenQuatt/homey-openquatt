@@ -137,6 +137,24 @@
         "en": "Silent mode turned off",
         "nl": "Stille modus is uitgeschakeld"
       }
+    },
+    {
+      "id": "dew_point_available",
+      "title": {
+        "en": "The dew point became available",
+        "nl": "Het dauwpunt is beschikbaar gekomen"
+      }
+    },
+    {
+      "id": "dew_point_lost",
+      "title": {
+        "en": "The dew point was lost",
+        "nl": "Het dauwpunt is weggevallen"
+      },
+      "hint": {
+        "en": "Without a valid dew point the controller blocks or limits cooling, depending on its configuration.",
+        "nl": "Zonder geldig dauwpunt blokkeert of beperkt de controller het koelen, afhankelijk van de instellingen."
+      }
     }
   ],
   "conditions": [
@@ -180,6 +198,20 @@
       "title": {
         "en": "Silent mode is !{{active|not active}}",
         "nl": "Stille modus is !{{actief|niet actief}}"
+      }
+    },
+    {
+      "id": "dew_point_is_available",
+      "title": {
+        "en": "A dew point is !{{available|not available}}",
+        "nl": "Er is !{{een|geen}} dauwpunt beschikbaar"
+      }
+    },
+    {
+      "id": "cooling_is_permitted",
+      "title": {
+        "en": "Cooling is !{{permitted|not permitted}}",
+        "nl": "Koelen is !{{toegestaan|niet toegestaan}}"
       }
     },
     {
@@ -487,6 +519,92 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "send_dew_point",
+      "title": {
+        "en": "Send dew point to the controller",
+        "nl": "Stuur dauwpunt naar de controller"
+      },
+      "titleFormatted": {
+        "en": "Send dew point [[dewpoint]] °C to the controller",
+        "nl": "Stuur dauwpunt [[dewpoint]] °C naar de controller"
+      },
+      "hint": {
+        "en": "Requires the MQTT broker settings on the device. The last value is re-published every minute until it expires.",
+        "nl": "Vereist de MQTT-broker-instellingen op het apparaat. De laatste waarde wordt elke minuut opnieuw gepubliceerd totdat deze verloopt."
+      },
+      "args": [
+        {
+          "name": "dewpoint",
+          "type": "number",
+          "min": -20,
+          "max": 35,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Dew point (°C)",
+            "nl": "Dauwpunt (°C)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "send_room_dew_point",
+      "title": {
+        "en": "Update the dew point for a room",
+        "nl": "Werk het dauwpunt van een ruimte bij"
+      },
+      "titleFormatted": {
+        "en": "Update the dew point for [[room]] from temperature [[temperature]] °C and humidity [[humidity]] %",
+        "nl": "Werk het dauwpunt van [[room]] bij met temperatuur [[temperature]] °C en luchtvochtigheid [[humidity]] %"
+      },
+      "hint": {
+        "en": "Calculates the room's dew point from temperature and relative humidity; the highest recently updated room is sent to the controller. Requires the MQTT broker settings on the device.",
+        "nl": "Berekent het dauwpunt van de ruimte uit temperatuur en relatieve luchtvochtigheid; de hoogste recent bijgewerkte ruimte gaat naar de controller. Vereist de MQTT-broker-instellingen op het apparaat."
+      },
+      "args": [
+        {
+          "name": "room",
+          "type": "text",
+          "placeholder": {
+            "en": "Living room",
+            "nl": "Woonkamer"
+          }
+        },
+        {
+          "name": "temperature",
+          "type": "number",
+          "min": 0,
+          "max": 50,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Temperature (°C)",
+            "nl": "Temperatuur (°C)"
+          }
+        },
+        {
+          "name": "humidity",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Humidity (%)",
+            "nl": "Luchtvochtigheid (%)"
+          }
+        }
+      ],
+      "tokens": [
+        {
+          "name": "dewpoint",
+          "type": "number",
+          "title": {
+            "en": "Dew point",
+            "nl": "Dauwpunt"
+          },
+          "example": 12.5
         }
       ]
     },
