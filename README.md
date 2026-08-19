@@ -43,7 +43,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 
 OpenQuatt only cools when it knows the indoor dew point: the supply water must stay above it (plus a safety margin), or condensation would form on your floor and pipes. This app can feed that dew point straight from the sensors you already have in Homey — the same role the Home Assistant dynamic-cooling package plays, including the identical Magnus formula and highest-room-wins aggregation.
 
-1. **Broker** — the controller receives external dew points over MQTT. Enable *MQTT input sources* in the OpenQuatt web app (*Settings → Sources / integrations*) and point it at any broker on your network (the community [MQTT Broker](https://homey.app/a/nl.scanno.mqttbroker/) app on Homey Pro works fine).
+1. **Broker** — the controller receives external dew points over MQTT. Enable *MQTT input sources* in the OpenQuatt web app (*Settings → Sources / integrations*) and point it at any broker on your network. The [MQTT Server](https://homey.app/a/net.weejewel.mqttserver/) app turns your Homey Pro itself into that broker — use the username and password from its app settings on both sides, as it does not accept anonymous connections.
 2. **Device settings** — fill in the same broker under *Dew point via MQTT* on the OpenQuatt device in Homey.
 3. **Flows** — for each room you cool, add a flow: *when* temperature or humidity of the room sensor changes → *then* **Update the dew point for [room] from temperature and humidity**, using the sensor tags. Rooms are aggregated with highest-wins; values expire automatically (configurable, 60 min default) and the last aggregate is re-published every minute so the controller's 15-minute staleness check keeps passing.
 
