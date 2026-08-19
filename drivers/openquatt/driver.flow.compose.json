@@ -533,8 +533,8 @@
         "nl": "Stuur dauwpunt [[dewpoint]] °C naar de controller"
       },
       "hint": {
-        "en": "Requires the MQTT broker settings on the device. The last value is re-published every minute until it expires.",
-        "nl": "Vereist de MQTT-broker-instellingen op het apparaat. De laatste waarde wordt elke minuut opnieuw gepubliceerd totdat deze verloopt."
+        "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The last value is re-sent every minute until it expires.",
+        "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De laatste waarde wordt elke minuut opnieuw verstuurd totdat deze verloopt."
       },
       "args": [
         {
@@ -561,8 +561,8 @@
         "nl": "Werk het dauwpunt van [[room]] bij met temperatuur [[temperature]] °C en luchtvochtigheid [[humidity]] %"
       },
       "hint": {
-        "en": "Calculates the room's dew point from temperature and relative humidity; the highest recently updated room is sent to the controller. Requires the MQTT broker settings on the device.",
-        "nl": "Berekent het dauwpunt van de ruimte uit temperatuur en relatieve luchtvochtigheid; de hoogste recent bijgewerkte ruimte gaat naar de controller. Vereist de MQTT-broker-instellingen op het apparaat."
+        "en": "Calculates the room's dew point from temperature and relative humidity; the highest recently updated room is sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings).",
+        "nl": "Berekent het dauwpunt van de ruimte uit temperatuur en relatieve luchtvochtigheid; de hoogste recent bijgewerkte ruimte gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen)."
       },
       "args": [
         {

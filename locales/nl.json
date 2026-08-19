@@ -7,9 +7,9 @@
     "flow_mismatch": "Flow-verschil tussen HP1 en HP2",
     "ot_link": "OpenTherm-verbinding verstoord"
   },
-  "mqtt": {
-    "not_configured": "Stel eerst de MQTT-broker in bij de apparaatinstellingen",
-    "invalid_dew_point": "Dauwpunt buiten bereik (-20…35 °C)",
-    "invalid_input": "Ongeldige temperatuur of luchtvochtigheid"
+  "dew_point": {
+    "out_of_range": "Dauwpunt buiten bereik (-20…35 °C)",
+    "invalid_input": "Ongeldige temperatuur of luchtvochtigheid",
+    "delivery_failed": "Kan het dauwpunt niet afleveren: de controller is onbereikbaar, of de firmware heeft geen API-invoer (stel MQTT in bij de apparaatinstellingen als fallback)"
   }
 }

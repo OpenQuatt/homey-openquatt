@@ -62,12 +62,16 @@ const TELEMETRY_ENTITIES = {
 // absent from the event stream and has to be polled via REST.
 const AUX_FUNCTION_POLL_MS = 60000;
 
-// Dew point feeding over MQTT. The firmware marks the MQTT dew point stale
-// after 15 minutes, so a minute-cadence republish keeps a fresh value alive.
-// Values must stay inside the range the firmware accepts on the input topic.
+// Dew point feeding. The firmware marks an external dew point stale after
+// 15 minutes, so a minute-cadence republish keeps a fresh value alive.
+// Values must stay inside the range the firmware accepts on its inputs.
 const DEW_POINT_PUBLISH_MS = 60000;
 const DEW_POINT_MIN_C = -20;
 const DEW_POINT_MAX_C = 35;
+
+// The API input number on the ESPHome web server (OpenQuatt PR #470).
+// Older firmware answers 404, after which MQTT is the fallback route.
+const API_DEW_POINT_INPUT = 'api_input_cooling_dew_point';
 
 class OpenQuattDevice extends Homey.Device {
 
@@ -121,7 +125,7 @@ class OpenQuattDevice extends Homey.Device {
     this._dewPointSources = new DewPointSources();
     this._setupDewPointPublisher(this.getSettings());
     this._dewPointTimer = this.homey.setInterval(
-      () => this._publishDewPoint(),
+      () => this._publishDewPoint().catch(this.error),
       DEW_POINT_PUBLISH_MS,
     );
   }
@@ -184,18 +188,17 @@ class OpenQuattDevice extends Homey.Device {
 
   /**
    * Record a dew point value from a flow card and push the aggregate (the
-   * highest fresh source) to the controller's MQTT input topic.
+   * highest fresh source) to the controller.
    */
   async setDewPoint(source, value) {
-    if (!this._publisher) {
-      throw new Error(this.homey.__('mqtt.not_configured'));
-    }
     if (typeof value !== 'number' || !Number.isFinite(value)
       || value < DEW_POINT_MIN_C || value > DEW_POINT_MAX_C) {
-      throw new Error(this.homey.__('mqtt.invalid_dew_point'));
+      throw new Error(this.homey.__('dew_point.out_of_range'));
     }
     this._dewPointSources.update(source, value, Date.now());
-    this._publishDewPoint();
+    if (await this._publishDewPoint() === false) {
+      throw new Error(this.homey.__('dew_point.delivery_failed'));
+    }
   }
 
   hasFault() {
@@ -264,12 +267,42 @@ class OpenQuattDevice extends Homey.Device {
     this._publisher.connect();
   }
 
-  _publishDewPoint() {
-    if (!this._publisher) return;
+  // Returns null when there is nothing fresh to send, otherwise whether at
+  // least one route accepted the value.
+  async _publishDewPoint() {
     const maxAgeMs = (Number(this.getSetting('dew_point_max_age')) || 60) * 60 * 1000;
     const value = this._dewPointSources.aggregate(Date.now(), maxAgeMs);
-    if (value === null) return;
-    this._publisher.publish(this._dewPointTopic, value.toFixed(2));
+    if (value === null) return null;
+    return this._deliverDewPoint(value.toFixed(2));
+  }
+
+  /**
+   * Deliver a dew point to the controller: the API input first (zero
+   * configuration, needs firmware with API input support), then MQTT as
+   * fallback for older firmware. Both carry the same value, and the
+   * firmware's Auto source selection takes the highest valid one anyway.
+   */
+  async _deliverDewPoint(payload) {
+    let delivered = false;
+    try {
+      await this.client.setNumber(API_DEW_POINT_INPUT, payload);
+      delivered = true;
+    } catch (err) {
+      // Typically: firmware without the API input (404), or device offline.
+      this._logDeliveryState(`api input unavailable: ${err.message}`);
+    }
+    if (this._publisher) {
+      delivered = this._publisher.publish(this._dewPointTopic, payload) || delivered;
+    }
+    if (delivered) this._logDeliveryState(null);
+    return delivered;
+  }
+
+  // The republish loop runs every minute; only log state *changes*.
+  _logDeliveryState(problem) {
+    if (problem === this._lastDeliveryProblem) return;
+    this._lastDeliveryProblem = problem;
+    this.log(problem ? `dew point: ${problem}` : 'dew point: delivery ok');
   }
 
   async _refreshAuxFunction() {

@@ -15,5 +15,9 @@
   "1.1.0": {
     "en": "Dew point support: see the controller's dew point, feed it from your own room sensors via MQTT, and new flow cards for cooling safety",
     "nl": "Dauwpunt-ondersteuning: zie het dauwpunt van de controller, voed het vanuit je eigen kamersensoren via MQTT, en nieuwe flow-kaarten voor koelveiligheid"
+  },
+  "1.2.0": {
+    "en": "The dew point is now sent straight to the controller via its API input — no MQTT broker needed on recent firmware. MQTT remains available as fallback.",
+    "nl": "Het dauwpunt gaat nu rechtstreeks naar de controller via de API-invoer — geen MQTT-broker meer nodig op recente firmware. MQTT blijft beschikbaar als fallback."
   }
 }

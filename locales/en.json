@@ -7,9 +7,9 @@
     "flow_mismatch": "Flow mismatch between HP1 and HP2",
     "ot_link": "OpenTherm link problem"
   },
-  "mqtt": {
-    "not_configured": "Set up the MQTT broker in the device settings first",
-    "invalid_dew_point": "Dew point out of range (-20…35 °C)",
-    "invalid_input": "Invalid temperature or humidity"
+  "dew_point": {
+    "out_of_range": "Dew point out of range (-20…35 °C)",
+    "invalid_input": "Invalid temperature or humidity",
+    "delivery_failed": "Could not deliver the dew point: the controller is unreachable, or its firmware has no API input support (set up MQTT in the device settings as fallback)"
   }
 }

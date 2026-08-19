@@ -112,8 +112,8 @@
     {
       "type": "group",
       "label": {
-        "en": "Dew point via MQTT",
-        "nl": "Dauwpunt via MQTT"
+        "en": "Dew point — MQTT fallback",
+        "nl": "Dauwpunt — MQTT-fallback"
       },
       "children": [
         {
@@ -125,8 +125,8 @@
           },
           "value": "",
           "hint": {
-            "en": "The broker that is configured as MQTT input source in the OpenQuatt web app (Settings → Sources / integrations). Leave empty to disable dew point publishing.",
-            "nl": "De broker die als MQTT-inputbron is ingesteld in de OpenQuatt web-app (Instellingen → Bronnen / integraties). Laat leeg om dauwpunt versturen uit te schakelen."
+            "en": "Only needed on firmware without API input support: the dew point is normally sent straight to the controller. As fallback, fill in the broker that is configured as MQTT input source in the OpenQuatt web app (Settings → Sources / integrations).",
+            "nl": "Alleen nodig op firmware zonder API-invoer: het dauwpunt gaat normaal rechtstreeks naar de controller. Vul als fallback de broker in die als MQTT-inputbron is ingesteld in de OpenQuatt web-app (Instellingen → Bronnen / integraties)."
           }
         },
         {

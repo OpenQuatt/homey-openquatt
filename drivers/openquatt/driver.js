@@ -88,7 +88,7 @@ class OpenQuattDriver extends Homey.Driver {
         device, room, temperature, humidity,
       }) => {
         const value = dewPoint(temperature, humidity);
-        if (value === null) throw new Error(this.homey.__('mqtt.invalid_input'));
+        if (value === null) throw new Error(this.homey.__('dew_point.invalid_input'));
         await device.setDewPoint(`room:${room.trim().toLowerCase()}`, value);
         return { dewpoint: Math.round(value * 100) / 100 };
       });

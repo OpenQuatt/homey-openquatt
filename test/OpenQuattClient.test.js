@@ -111,12 +111,14 @@ test('commands POST to name-encoded routes with an explicit Content-Length', asy
     await client.setSwitch('Manual Cooling Enable', true);
     await client.setSwitch('Aux relay (R2)', false);
     await client.setSelect('Aux Relay Function', 'Heating demand');
+    await client.setNumber('api_input_cooling_dew_point', '15.60');
     await client.pressButton('Reset Energy');
 
     assert.deepEqual(requests.map(r => `${r.method} ${r.url}`), [
       'POST /switch/Manual%20Cooling%20Enable/turn_on',
       'POST /switch/Aux%20relay%20(R2)/turn_off',
       'POST /select/Aux%20Relay%20Function/set?option=Heating%20demand',
+      'POST /number/api_input_cooling_dew_point/set?value=15.60',
       'POST /button/Reset%20Energy/press',
     ]);
     // The ESPHome web server answers 411 without this header.

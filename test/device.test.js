@@ -175,3 +175,77 @@ test('getTelemetry exposes widget data including the control mode code', () => {
     copDaily: null,
   });
 });
+
+// --- Dew point delivery ---------------------------------------------------
+
+const { DewPointSources } = require('../lib/dewPoint');
+
+// Device with just enough wiring to exercise setDewPoint / _deliverDewPoint.
+function makeDewPointDevice({ apiFails = false, publisher = null } = {}) {
+  const device = makeDevice();
+  device._dewPointSources = new DewPointSources();
+  device.getSetting = () => 60;
+  device.apiCalls = [];
+  device.client = {
+    setNumber: (name, value) => {
+      device.apiCalls.push({ name, value });
+      return apiFails ? Promise.reject(new Error('HTTP 404 on /number')) : Promise.resolve();
+    },
+  };
+  device._publisher = publisher;
+  return device;
+}
+
+test('setDewPoint delivers via the API input', async () => {
+  const device = makeDewPointDevice();
+
+  await device.setDewPoint('flow', 16.77);
+
+  assert.deepEqual(device.apiCalls, [
+    { name: 'api_input_cooling_dew_point', value: '16.77' },
+  ]);
+});
+
+test('setDewPoint falls back to MQTT when the API input is missing', async () => {
+  const published = [];
+  const device = makeDewPointDevice({
+    apiFails: true,
+    publisher: {
+      publish: (topic, payload) => {
+        published.push({ topic, payload });
+        return true;
+      },
+    },
+  });
+  device._dewPointTopic = 'openquatt/openquatt/input/cooling/dew_point';
+
+  await device.setDewPoint('room:test', 12.3);
+
+  assert.deepEqual(published, [
+    { topic: 'openquatt/openquatt/input/cooling/dew_point', payload: '12.30' },
+  ]);
+});
+
+test('setDewPoint rejects when no route accepts the value', async () => {
+  const device = makeDewPointDevice({ apiFails: true });
+
+  await assert.rejects(device.setDewPoint('flow', 12.3), /delivery_failed/);
+});
+
+test('setDewPoint rejects out-of-range values without delivering', async () => {
+  const device = makeDewPointDevice();
+
+  await assert.rejects(device.setDewPoint('flow', 40), /out_of_range/);
+  await assert.rejects(device.setDewPoint('flow', NaN), /out_of_range/);
+  assert.equal(device.apiCalls.length, 0);
+});
+
+test('the highest fresh room wins the delivered aggregate', async () => {
+  const device = makeDewPointDevice();
+
+  await device.setDewPoint('room:a', 12);
+  await device.setDewPoint('room:b', 15.5);
+  await device.setDewPoint('room:a', 11);
+
+  assert.equal(device.apiCalls[device.apiCalls.length - 1].value, '15.50');
+});
