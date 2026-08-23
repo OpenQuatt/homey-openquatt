@@ -217,12 +217,12 @@
     {
       "id": "aux_function_is",
       "title": {
-        "en": "Aux relay function !{{is|is not}}",
-        "nl": "Hulprelais-functie !{{is|is niet}}"
+        "en": "The aux relay (R2) function !{{is|is not}}",
+        "nl": "De hulprelais-functie (R2) !{{is|is niet}}"
       },
       "titleFormatted": {
-        "en": "Aux relay function !{{is|is not}} [[mode]]",
-        "nl": "Hulprelais-functie !{{is|is niet}} [[mode]]"
+        "en": "The aux relay (R2) function !{{is|is not}} [[mode]]",
+        "nl": "De hulprelais-functie (R2) !{{is|is niet}} [[mode]]"
       },
       "args": [
         {
@@ -471,12 +471,12 @@
     {
       "id": "set_aux_function",
       "title": {
-        "en": "Set aux relay function",
-        "nl": "Zet hulprelais-functie"
+        "en": "Set the aux relay (R2) function",
+        "nl": "Zet de hulprelais-functie (R2)"
       },
       "titleFormatted": {
-        "en": "Set aux relay function to [[mode]]",
-        "nl": "Zet hulprelais-functie op [[mode]]"
+        "en": "Set the aux relay (R2) function to [[mode]]",
+        "nl": "Zet de hulprelais-functie (R2) op [[mode]]"
       },
       "args": [
         {
@@ -520,7 +520,11 @@
             }
           ]
         }
-      ]
+      ],
+      "hint": {
+        "en": "Chooses what the R2 relay follows. Pick External control to switch it yourself with the Switch the aux relay (R2) card.",
+        "nl": "Bepaalt wat het R2-relais volgt. Kies Externe besturing om het zelf te schakelen met de kaart Schakel het hulprelais (R2)."
+      }
     },
     {
       "id": "send_dew_point",
@@ -609,18 +613,139 @@
       ]
     },
     {
-      "id": "set_aux_relay",
+      "id": "send_outside_temperature",
       "title": {
-        "en": "Set aux relay (R2)",
-        "nl": "Zet hulprelais (R2)"
+        "en": "Send the outside temperature to the controller",
+        "nl": "Stuur de buitentemperatuur naar de controller"
       },
       "titleFormatted": {
-        "en": "Set aux relay (R2) [[state]]",
-        "nl": "Zet hulprelais (R2) [[state]]"
+        "en": "Send outside temperature [[temperature]] °C to the controller",
+        "nl": "Stuur buitentemperatuur [[temperature]] °C naar de controller"
       },
       "hint": {
-        "en": "Only works while the aux relay function is set to External control.",
-        "nl": "Werkt alleen als de hulprelais-functie op Externe besturing staat."
+        "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The last value is re-sent every minute until it expires. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+        "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De laatste waarde wordt elke minuut opnieuw verstuurd totdat deze verloopt. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "min": -40,
+          "max": 60,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Outside temperature (°C)",
+            "nl": "Buitentemperatuur (°C)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "send_room_temperature",
+      "title": {
+        "en": "Send the room temperature to the controller",
+        "nl": "Stuur de kamertemperatuur naar de controller"
+      },
+      "titleFormatted": {
+        "en": "Send room temperature [[temperature]] °C to the controller",
+        "nl": "Stuur kamertemperatuur [[temperature]] °C naar de controller"
+      },
+      "hint": {
+        "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The last value is re-sent every minute until it expires. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+        "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De laatste waarde wordt elke minuut opnieuw verstuurd totdat deze verloopt. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "min": 0,
+          "max": 50,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Room temperature (°C)",
+            "nl": "Kamertemperatuur (°C)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "send_room_setpoint",
+      "title": {
+        "en": "Send the room setpoint to the controller",
+        "nl": "Stuur het kamer-setpoint naar de controller"
+      },
+      "titleFormatted": {
+        "en": "Send room setpoint [[setpoint]] °C to the controller",
+        "nl": "Stuur kamer-setpoint [[setpoint]] °C naar de controller"
+      },
+      "hint": {
+        "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+        "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+      },
+      "args": [
+        {
+          "name": "setpoint",
+          "type": "number",
+          "min": 5,
+          "max": 35,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Setpoint (°C)",
+            "nl": "Setpoint (°C)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_heating_permission",
+      "title": {
+        "en": "Set heating permission",
+        "nl": "Zet warmtetoestemming"
+      },
+      "titleFormatted": {
+        "en": "Set heating permission [[state]]",
+        "nl": "Zet warmtetoestemming [[state]]"
+      },
+      "hint": {
+        "en": "Tells the controller whether heating is allowed at all. Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+        "nl": "Vertelt de controller of verwarmen überhaupt is toegestaan. Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "On",
+                "nl": "Aan"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_aux_relay",
+      "title": {
+        "en": "Switch the aux relay (R2)",
+        "nl": "Schakel het hulprelais (R2)"
+      },
+      "titleFormatted": {
+        "en": "Switch the aux relay (R2) [[state]]",
+        "nl": "Schakel het hulprelais (R2) [[state]]"
+      },
+      "hint": {
+        "en": "Switches the R2 contact itself. Only works while the aux relay function is set to External control.",
+        "nl": "Schakelt het R2-contact zelf. Werkt alleen als de hulprelais-functie op Externe besturing staat."
       },
       "args": [
         {

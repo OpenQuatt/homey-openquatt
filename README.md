@@ -26,18 +26,24 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | Capability | Source |
 |---|---|
 | Supply / outside / room temperature | live, pushed by the controller |
+| Room setpoint (as selected by the controller) | live |
 | Dew point (as selected by the controller) | live |
-| Power consumption | live |
-| Control mode (CM0…CM100) | live |
+| Power in, heat output, cooling output | live |
+| COP and EER | live |
+| Water flow | live, in L/h |
+| Control mode (CM0…CM100) | live, as label and as a number for Insights |
+| Heating and cooling permission | live |
 | Aux relay (R2) function picker | all five firmware modes, switchable from Homey |
 | Aux relay status | live status text from the control loop |
-| Manual cooling enable & R2 relay toggles | direct control |
+| OpenQuatt control, manual cooling enable & R2 relay toggles | direct control |
+
+Every number and switch above is a capability, so Homey logs it in **Insights** — the control mode included, charted as its bare CM code next to the readable label. Room humidity is the one thing that is missing: OpenQuatt itself has no room humidity value, it only works with the dew point, so chart the humidity sensor in Homey instead.
 
 ### Flow cards
 
 - **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off, the dew point became available / was lost
 - **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …, a dew point is available, cooling is permitted
-- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity
+- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, set the heating permission
 
 ### Dew point & cooling safety
 
@@ -48,9 +54,24 @@ On firmware with [API input support](https://github.com/OpenQuatt/OpenQuatt/blob
 - For each room you cool: *when* temperature or humidity of the room sensor changes → *then* **Update the dew point for [room] from temperature and humidity**, using the sensor tags. Rooms are aggregated with highest-wins, values expire automatically (configurable, 60 min default), and the last aggregate is re-sent every minute so the controller's 15-minute staleness check keeps passing.
 - Already have a computed dew point? Use the simpler **Send dew point to the controller** card instead.
 
-On older firmware without the API input, MQTT works as fallback: enable *MQTT input sources* in the OpenQuatt web app (*Settings → Sources / integrations*), point it at a broker on your network, and fill in the same broker under *Dew point — MQTT fallback* on the OpenQuatt device in Homey. The [MQTT Server](https://homey.app/a/net.weejewel.mqttserver/) app turns your Homey Pro itself into that broker — use the username and password from its app settings on both sides, as it does not accept anonymous connections.
+On older firmware without the API input, MQTT works as fallback: enable *MQTT input sources* in the OpenQuatt web app (*Settings → Sources / integrations*), point it at a broker on your network, and fill in the same broker under *External values — MQTT fallback* on the OpenQuatt device in Homey. The [MQTT Server](https://homey.app/a/net.weejewel.mqttserver/) app turns your Homey Pro itself into that broker — use the username and password from its app settings on both sides, as it does not accept anonymous connections.
 
 The device also shows the dew point the controller actually selected, and the *dew point available / lost* triggers plus the *cooling is permitted* condition let you alert on a broken sensor before a hot day does it for you.
+
+### Feeding the controller from Homey
+
+The dew point is not the only source value the controller accepts from outside. Each of these has its own flow card, and takes the same route: straight to the controller's API input, with MQTT as fallback:
+
+| Flow card | Range | Kept alive |
+|---|---|---|
+| Send the outside temperature to the controller | -40…60 °C | until your flow stops refreshing it |
+| Send the room temperature to the controller | 0…50 °C | until your flow stops refreshing it |
+| Send the room setpoint to the controller | 5…35 °C | until you send a new value |
+| Set heating permission (on/off) | — | until you send a new value |
+
+The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default) — the controller then falls back to its own source, rather than steering on a value from this morning. The setpoint and the heating permission are commands rather than measurements: they stand until you send a new value, and are re-asserted after an app restart.
+
+One thing to set on the controller side: in the OpenQuatt web app under *Settings → Sources / integrations → Sensor selection*, the signal has to be allowed to use API input (or MQTT) as its source — `Auto` covers that for most of them.
 
 ### Dashboard widget
 

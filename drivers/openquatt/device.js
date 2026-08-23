@@ -4,20 +4,50 @@ const Homey = require('homey');
 const OpenQuattClient = require('../../lib/OpenQuattClient');
 const { MqttPublisher } = require('../../lib/MqttPublisher');
 const { DewPointSources } = require('../../lib/dewPoint');
+const { API_INPUTS, formatInput } = require('../../lib/apiInputs');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 
-// Entity id (as seen on the /events stream) -> Homey capability.
+// Entity id (as seen on the /events stream) -> Homey capability. Every
+// capability here is also an Insights log, which is the point of exposing the
+// numbers and booleans below rather than keeping them widget-only telemetry.
 const ENTITY_CAPABILITIES = {
   'sensor-water_supply_temp__selected_': 'measure_temperature.supply',
   'sensor-outside_temperature__selected_': 'measure_temperature.outside',
   'sensor-room_temperature__selected_': 'measure_temperature.room',
+  'sensor-room_setpoint__selected_': 'measure_temperature.setpoint',
   'sensor-cooling_dew_point__selected_': 'measure_temperature.dew_point',
   'sensor-total_power_input': 'measure_power',
+  'sensor-total_heat_power': 'oq_heat_power',
+  'sensor-total_cooling_power': 'oq_cool_power',
+  'sensor-total_cop': 'oq_cop',
+  'sensor-total_eer': 'oq_eer',
+  'sensor-flow_average__selected_': 'oq_flow',
+  'binary_sensor-heating_enable__selected_': 'oq_heating_permitted',
+  'binary_sensor-cooling_enable__selected_': 'oq_cooling_permitted',
+  'switch-openquatt_enabled': 'onoff.openquatt',
   'switch-manual_cooling_enable': 'onoff.cooling',
   'switch-aux_relay__r2_': 'onoff.aux_relay',
   'text_sensor-control_mode__label_': 'oq_control_mode',
   'text_sensor-aux_relay_status': 'oq_aux_status',
 };
+
+// Capabilities added after the first release; devices paired earlier get them
+// on the next app start.
+const MIGRATED_CAPABILITIES = [
+  'oq_aux_function',
+  'oq_aux_status',
+  'measure_temperature.dew_point',
+  'measure_temperature.setpoint',
+  'oq_heat_power',
+  'oq_cool_power',
+  'oq_cop',
+  'oq_eer',
+  'oq_flow',
+  'oq_control_mode_number',
+  'oq_heating_permitted',
+  'oq_cooling_permitted',
+  'onoff.openquatt',
+];
 
 const HEATING_MODES = ['CM2', 'CM3', 'CM4'];
 
@@ -62,16 +92,30 @@ const TELEMETRY_ENTITIES = {
 // absent from the event stream and has to be polled via REST.
 const AUX_FUNCTION_POLL_MS = 60000;
 
-// Dew point feeding. The firmware marks an external dew point stale after
-// 15 minutes, so a minute-cadence republish keeps a fresh value alive.
-// Values must stay inside the range the firmware accepts on its inputs.
-const DEW_POINT_PUBLISH_MS = 60000;
-const DEW_POINT_MIN_C = -20;
-const DEW_POINT_MAX_C = 35;
+// Feeding external source values. The firmware expires them after 10 to 30
+// minutes depending on the signal, so a minute-cadence republish keeps every
+// fed value alive. What is fed, and over which routes, lives in lib/apiInputs.js.
+const INPUT_PUBLISH_MS = 60000;
 
-// The API input number on the ESPHome web server (OpenQuatt PR #470).
-// Older firmware answers 404, after which MQTT is the fallback route.
-const API_DEW_POINT_INPUT = 'api_input_cooling_dew_point';
+// Persisted commands (setpoint, heating permission) are re-asserted on start,
+// so a controller that restarted meanwhile gets the standing value back.
+const INPUT_STORE_KEY = 'inputs';
+
+/**
+ * The value behind a state frame, typed by the entity domain rather than by
+ * what it feeds: `sensor-` is numeric (the firmware sends "NA" when it has
+ * nothing to report), binary sensors and switches are booleans, and the
+ * remaining text entities carry their state as a string.
+ */
+function entityValue(state) {
+  if (state.id.startsWith('sensor-')) {
+    return typeof state.value === 'number' && Number.isFinite(state.value) ? state.value : null;
+  }
+  if (state.id.startsWith('binary_sensor-') || state.id.startsWith('switch-')) {
+    return state.value === true || state.state === 'ON';
+  }
+  return typeof state.state === 'string' ? state.state : null;
+}
 
 class OpenQuattDevice extends Homey.Device {
 
@@ -80,9 +124,13 @@ class OpenQuattDevice extends Homey.Device {
     this._telemetry = {};
     this._binary = {};
     this._faultActive = null;
+    this._deliveryProblems = {};
 
     await this._migrateCapabilities();
 
+    this.registerCapabilityListener('onoff.openquatt', async value => {
+      await this.client.setSwitch('OpenQuatt Enabled', value);
+    });
     this.registerCapabilityListener('onoff.cooling', async value => {
       await this.client.setSwitch('Manual Cooling Enable', value);
     });
@@ -123,10 +171,11 @@ class OpenQuattDevice extends Homey.Device {
     );
 
     this._dewPointSources = new DewPointSources();
-    this._setupDewPointPublisher(this.getSettings());
-    this._dewPointTimer = this.homey.setInterval(
-      () => this._publishDewPoint().catch(this.error),
-      DEW_POINT_PUBLISH_MS,
+    this._inputs = this._restoreInputs();
+    this._setupInputPublisher(this.getSettings());
+    this._inputTimer = this.homey.setInterval(
+      () => this._publishInputs().catch(this.error),
+      INPUT_PUBLISH_MS,
     );
   }
 
@@ -141,7 +190,7 @@ class OpenQuattDevice extends Homey.Device {
   async onSettings({ newSettings, changedKeys }) {
     if (newSettings.address) this.client.setHost(newSettings.address);
     if (changedKeys.some(key => key.startsWith('mqtt_'))) {
-      this._setupDewPointPublisher(newSettings);
+      this._setupInputPublisher(newSettings);
     }
   }
 
@@ -191,13 +240,28 @@ class OpenQuattDevice extends Homey.Device {
    * highest fresh source) to the controller.
    */
   async setDewPoint(source, value) {
-    if (typeof value !== 'number' || !Number.isFinite(value)
-      || value < DEW_POINT_MIN_C || value > DEW_POINT_MAX_C) {
-      throw new Error(this.homey.__('dew_point.out_of_range'));
-    }
+    if (formatInput('dew_point', value) === null) throw new Error(this._rangeError('dew_point'));
     this._dewPointSources.update(source, value, Date.now());
-    if (await this._publishDewPoint() === false) {
-      throw new Error(this.homey.__('dew_point.delivery_failed'));
+    const aggregate = this._dewPointSources.aggregate(Date.now(), this._maxAgeMs());
+    if (aggregate !== null && await this._deliver('dew_point', aggregate) === false) {
+      throw new Error(this.homey.__('input.delivery_failed'));
+    }
+  }
+
+  /**
+   * Record any other external source value from a flow card and push it to the
+   * controller straight away. Commands are remembered across restarts;
+   * measurements expire with the configured sensor age.
+   */
+  async setInput(key, value) {
+    if (formatInput(key, value) === null) throw new Error(this._rangeError(key));
+    const previous = this._inputs[key];
+    this._inputs[key] = { value, updatedAt: Date.now() };
+    // Only commands are stored, and only when they actually change: a flow may
+    // repeat the same setpoint all day.
+    if (API_INPUTS[key].persist && (!previous || previous.value !== value)) this._storeInputs();
+    if (await this._deliver(key, value) === false) {
+      throw new Error(this.homey.__('input.delivery_failed'));
     }
   }
 
@@ -221,9 +285,9 @@ class OpenQuattDevice extends Homey.Device {
       this.homey.clearInterval(this._auxPollTimer);
       this._auxPollTimer = null;
     }
-    if (this._dewPointTimer) {
-      this.homey.clearInterval(this._dewPointTimer);
-      this._dewPointTimer = null;
+    if (this._inputTimer) {
+      this.homey.clearInterval(this._inputTimer);
+      this._inputTimer = null;
     }
     if (this._faultSettleTimer) {
       this.homey.clearTimeout(this._faultSettleTimer);
@@ -239,14 +303,14 @@ class OpenQuattDevice extends Homey.Device {
   // Devices paired with an older app version keep their original capability
   // list; add capabilities introduced since.
   async _migrateCapabilities() {
-    for (const capability of ['oq_aux_function', 'oq_aux_status', 'measure_temperature.dew_point']) {
+    for (const capability of MIGRATED_CAPABILITIES) {
       if (!this.hasCapability(capability)) {
         await this.addCapability(capability).catch(this.error);
       }
     }
   }
 
-  _setupDewPointPublisher(settings) {
+  _setupInputPublisher(settings) {
     if (this._publisher) {
       this._publisher.close();
       this._publisher = null;
@@ -261,48 +325,101 @@ class OpenQuattDevice extends Homey.Device {
       password: settings.mqtt_password || '',
       clientId: `homey-openquatt-${String(this.getData().id).replace(/[^a-zA-Z0-9_-]/g, '')}`.slice(0, 40),
     });
-    this._dewPointTopic = `openquatt/${(settings.mqtt_device_name || '').trim() || 'openquatt'}/input/cooling/dew_point`;
+    this._topicPrefix = `openquatt/${(settings.mqtt_device_name || '').trim() || 'openquatt'}/`;
     this._publisher.on('connected', () => this.log('mqtt: connected'));
     this._publisher.on('disconnected', err => this.log(`mqtt: disconnected (${err.message})`));
     this._publisher.connect();
   }
 
-  // Returns null when there is nothing fresh to send, otherwise whether at
-  // least one route accepted the value.
-  async _publishDewPoint() {
-    const maxAgeMs = (Number(this.getSetting('dew_point_max_age')) || 60) * 60 * 1000;
-    const value = this._dewPointSources.aggregate(Date.now(), maxAgeMs);
-    if (value === null) return null;
-    return this._deliverDewPoint(value.toFixed(2));
+  // Re-assert everything the app currently feeds, so no source runs into the
+  // firmware's validity window while Homey still has a value for it.
+  async _publishInputs() {
+    const now = Date.now();
+    const pending = [];
+
+    const dewPoint = this._dewPointSources.aggregate(now, this._maxAgeMs());
+    if (dewPoint !== null) pending.push(['dew_point', dewPoint]);
+
+    for (const [key, entry] of Object.entries(this._inputs)) {
+      // A measurement nobody refreshed is no longer worth asserting: dropping
+      // it lets the controller fall back to its own source. Commands stand.
+      if (!API_INPUTS[key].persist && now - entry.updatedAt > this._maxAgeMs()) {
+        delete this._inputs[key];
+        delete this._deliveryProblems[key];
+        continue;
+      }
+      pending.push([key, entry.value]);
+    }
+
+    // Sequentially: the ESP is heap-constrained, so keep the connection count
+    // to one at a time.
+    for (const [key, value] of pending) {
+      await this._deliver(key, value);
+    }
   }
 
   /**
-   * Deliver a dew point to the controller: the API input first (zero
+   * Deliver one source value to the controller: the API input first (zero
    * configuration, needs firmware with API input support), then MQTT as
-   * fallback for older firmware. Both carry the same value, and the
-   * firmware's Auto source selection takes the highest valid one anyway.
+   * fallback for older firmware. Both carry the same value; the firmware
+   * ignores whichever route it is not configured to use.
    */
-  async _deliverDewPoint(payload) {
+  async _deliver(key, value) {
+    const input = API_INPUTS[key];
+    const payload = formatInput(key, value);
+    if (payload === null) return false;
+
     let delivered = false;
     try {
-      await this.client.setNumber(API_DEW_POINT_INPUT, payload);
+      if (input.boolean) await this.client.setSwitch(input.entity, value);
+      else await this.client.setNumber(input.entity, payload);
       delivered = true;
     } catch (err) {
       // Typically: firmware without the API input (404), or device offline.
-      this._logDeliveryState(`api input unavailable: ${err.message}`);
+      this._logDeliveryState(key, `api input unavailable: ${err.message}`);
     }
     if (this._publisher) {
-      delivered = this._publisher.publish(this._dewPointTopic, payload) || delivered;
+      delivered = this._publisher.publish(this._topicPrefix + input.topic, payload) || delivered;
     }
-    if (delivered) this._logDeliveryState(null);
+    if (delivered) this._logDeliveryState(key, null);
     return delivered;
   }
 
-  // The republish loop runs every minute; only log state *changes*.
-  _logDeliveryState(problem) {
-    if (problem === this._lastDeliveryProblem) return;
-    this._lastDeliveryProblem = problem;
-    this.log(problem ? `dew point: ${problem}` : 'dew point: delivery ok');
+  // The republish loop runs every minute; only log state *changes*, per input.
+  _logDeliveryState(key, problem) {
+    if (this._deliveryProblems[key] === problem) return;
+    this._deliveryProblems[key] = problem;
+    this.log(problem ? `${key}: ${problem}` : `${key}: delivery ok`);
+  }
+
+  _maxAgeMs() {
+    return (Number(this.getSetting('dew_point_max_age')) || 60) * 60 * 1000;
+  }
+
+  _rangeError(key) {
+    const input = API_INPUTS[key];
+    const range = input.boolean ? '' : ` (${input.min}…${input.max} °C)`;
+    return `${this.homey.__('input.out_of_range')}${range}`;
+  }
+
+  // Commands survive an app restart, so a controller that restarted meanwhile
+  // gets the standing value back on the next publish tick.
+  _restoreInputs() {
+    const stored = this.getStoreValue(INPUT_STORE_KEY) || {};
+    const now = Date.now();
+    const inputs = {};
+    for (const [key, value] of Object.entries(stored)) {
+      if (formatInput(key, value) !== null) inputs[key] = { value, updatedAt: now };
+    }
+    return inputs;
+  }
+
+  _storeInputs() {
+    const stored = {};
+    for (const [key, entry] of Object.entries(this._inputs)) {
+      if (API_INPUTS[key].persist) stored[key] = entry.value;
+    }
+    this.setStoreValue(INPUT_STORE_KEY, stored).catch(this.error);
   }
 
   async _refreshAuxFunction() {
@@ -339,17 +456,9 @@ class OpenQuattDevice extends Homey.Device {
   _onState(state) {
     const telemetryKey = TELEMETRY_ENTITIES[state.id];
     if (telemetryKey) {
-      if (state.id.startsWith('binary_sensor-')) {
-        this._telemetry[telemetryKey] = state.value === true || state.state === 'ON';
-      } else if (state.id.startsWith('sensor-')) {
-        this._telemetry[telemetryKey] = typeof state.value === 'number' && Number.isFinite(state.value)
-          ? state.value
-          : null;
-      } else {
-        this._telemetry[telemetryKey] = typeof state.state === 'string' ? state.state : null;
-      }
+      this._telemetry[telemetryKey] = entityValue(state);
       if (FAULT_KEYS.includes(telemetryKey)) this._evaluateFaults();
-      return;
+      // No early return: an entity may feed both the widget and a capability.
     }
 
     // The raw control mode code drives the flow triggers.
@@ -367,24 +476,14 @@ class OpenQuattDevice extends Homey.Device {
     const capability = ENTITY_CAPABILITIES[state.id];
     if (!capability || !this.hasCapability(capability)) return;
 
-    let value;
-    if (capability.startsWith('onoff')) {
-      value = state.value === true || state.state === 'ON';
-    } else if (capability.startsWith('oq_')) {
-      value = typeof state.state === 'string' ? state.state : null;
-    } else {
-      value = typeof state.value === 'number' && Number.isFinite(state.value)
-        ? state.value
-        : null;
-    }
-
-    this.setCapabilityValue(capability, value).catch(this.error);
+    this.setCapabilityValue(capability, entityValue(state)).catch(this.error);
   }
 
   _onControlMode(code) {
     if (typeof code !== 'string' || code === this._controlModeCode) return;
     const previous = this._controlModeCode;
     this._controlModeCode = code;
+    this._setControlModeNumber(code);
 
     // Skip triggers on the very first value after (re)connect.
     if (previous === null) return;
@@ -416,6 +515,15 @@ class OpenQuattDevice extends Homey.Device {
         .trigger(this)
         .catch(this.error);
     }
+  }
+
+  // Insights graphs numbers, not labels, so the mode is logged as its bare CM
+  // code next to the readable oq_control_mode text.
+  _setControlModeNumber(code) {
+    if (!this.hasCapability('oq_control_mode_number')) return;
+    const match = /^CM(\d+)$/i.exec(code);
+    this.setCapabilityValue('oq_control_mode_number', match ? Number(match[1]) : null)
+      .catch(this.error);
   }
 
   // The first value per entity only records state, so the replay burst after

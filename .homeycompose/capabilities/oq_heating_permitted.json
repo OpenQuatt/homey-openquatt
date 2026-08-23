@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Heating permission",
+    "nl": "Warmtetoestemming"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Heating permitted",
+    "nl": "Verwarmen toegestaan"
+  },
+  "insightsTitleFalse": {
+    "en": "Heating not permitted",
+    "nl": "Verwarmen niet toegestaan"
+  },
+  "icon": "/assets/icon.svg"
+}

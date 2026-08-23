@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "nl.openquatt",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -414,12 +414,12 @@
       {
         "id": "aux_function_is",
         "title": {
-          "en": "Aux relay function !{{is|is not}}",
-          "nl": "Hulprelais-functie !{{is|is niet}}"
+          "en": "The aux relay (R2) function !{{is|is not}}",
+          "nl": "De hulprelais-functie (R2) !{{is|is niet}}"
         },
         "titleFormatted": {
-          "en": "Aux relay function !{{is|is not}} [[mode]]",
-          "nl": "Hulprelais-functie !{{is|is niet}} [[mode]]"
+          "en": "The aux relay (R2) function !{{is|is not}} [[mode]]",
+          "nl": "De hulprelais-functie (R2) !{{is|is niet}} [[mode]]"
         },
         "args": [
           {
@@ -698,12 +698,12 @@
       {
         "id": "set_aux_function",
         "title": {
-          "en": "Set aux relay function",
-          "nl": "Zet hulprelais-functie"
+          "en": "Set the aux relay (R2) function",
+          "nl": "Zet de hulprelais-functie (R2)"
         },
         "titleFormatted": {
-          "en": "Set aux relay function to [[mode]]",
-          "nl": "Zet hulprelais-functie op [[mode]]"
+          "en": "Set the aux relay (R2) function to [[mode]]",
+          "nl": "Zet de hulprelais-functie (R2) op [[mode]]"
         },
         "args": [
           {
@@ -752,7 +752,11 @@
               }
             ]
           }
-        ]
+        ],
+        "hint": {
+          "en": "Chooses what the R2 relay follows. Pick External control to switch it yourself with the Switch the aux relay (R2) card.",
+          "nl": "Bepaalt wat het R2-relais volgt. Kies Externe besturing om het zelf te schakelen met de kaart Schakel het hulprelais (R2)."
+        }
       },
       {
         "id": "send_dew_point",
@@ -851,18 +855,159 @@
         ]
       },
       {
-        "id": "set_aux_relay",
+        "id": "send_outside_temperature",
         "title": {
-          "en": "Set aux relay (R2)",
-          "nl": "Zet hulprelais (R2)"
+          "en": "Send the outside temperature to the controller",
+          "nl": "Stuur de buitentemperatuur naar de controller"
         },
         "titleFormatted": {
-          "en": "Set aux relay (R2) [[state]]",
-          "nl": "Zet hulprelais (R2) [[state]]"
+          "en": "Send outside temperature [[temperature]] °C to the controller",
+          "nl": "Stuur buitentemperatuur [[temperature]] °C naar de controller"
         },
         "hint": {
-          "en": "Only works while the aux relay function is set to External control.",
-          "nl": "Werkt alleen als de hulprelais-functie op Externe besturing staat."
+          "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The last value is re-sent every minute until it expires. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+          "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De laatste waarde wordt elke minuut opnieuw verstuurd totdat deze verloopt. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": -40,
+            "max": 60,
+            "step": 0.1,
+            "placeholder": {
+              "en": "Outside temperature (°C)",
+              "nl": "Buitentemperatuur (°C)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "send_room_temperature",
+        "title": {
+          "en": "Send the room temperature to the controller",
+          "nl": "Stuur de kamertemperatuur naar de controller"
+        },
+        "titleFormatted": {
+          "en": "Send room temperature [[temperature]] °C to the controller",
+          "nl": "Stuur kamertemperatuur [[temperature]] °C naar de controller"
+        },
+        "hint": {
+          "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The last value is re-sent every minute until it expires. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+          "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De laatste waarde wordt elke minuut opnieuw verstuurd totdat deze verloopt. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": 0,
+            "max": 50,
+            "step": 0.1,
+            "placeholder": {
+              "en": "Room temperature (°C)",
+              "nl": "Kamertemperatuur (°C)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "send_room_setpoint",
+        "title": {
+          "en": "Send the room setpoint to the controller",
+          "nl": "Stuur het kamer-setpoint naar de controller"
+        },
+        "titleFormatted": {
+          "en": "Send room setpoint [[setpoint]] °C to the controller",
+          "nl": "Stuur kamer-setpoint [[setpoint]] °C naar de controller"
+        },
+        "hint": {
+          "en": "Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+          "nl": "Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "setpoint",
+            "type": "number",
+            "min": 5,
+            "max": 35,
+            "step": 0.1,
+            "placeholder": {
+              "en": "Setpoint (°C)",
+              "nl": "Setpoint (°C)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "set_heating_permission",
+        "title": {
+          "en": "Set heating permission",
+          "nl": "Zet warmtetoestemming"
+        },
+        "titleFormatted": {
+          "en": "Set heating permission [[state]]",
+          "nl": "Zet warmtetoestemming [[state]]"
+        },
+        "hint": {
+          "en": "Tells the controller whether heating is allowed at all. Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
+          "nl": "Vertelt de controller of verwarmen überhaupt is toegestaan. Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_aux_relay",
+        "title": {
+          "en": "Switch the aux relay (R2)",
+          "nl": "Schakel het hulprelais (R2)"
+        },
+        "titleFormatted": {
+          "en": "Switch the aux relay (R2) [[state]]",
+          "nl": "Schakel het hulprelais (R2) [[state]]"
+        },
+        "hint": {
+          "en": "Switches the R2 contact itself. Only works while the aux relay function is set to External control.",
+          "nl": "Schakelt het R2-contact zelf. Werkt alleen als de hulprelais-functie op Externe besturing staat."
         },
         "args": [
           {
@@ -905,11 +1050,21 @@
         "measure_temperature.supply",
         "measure_temperature.outside",
         "measure_temperature.room",
+        "measure_temperature.setpoint",
         "measure_temperature.dew_point",
         "measure_power",
+        "oq_heat_power",
+        "oq_cool_power",
+        "oq_cop",
+        "oq_eer",
+        "oq_flow",
         "oq_control_mode",
+        "oq_control_mode_number",
         "oq_aux_function",
         "oq_aux_status",
+        "oq_heating_permitted",
+        "oq_cooling_permitted",
+        "onoff.openquatt",
         "onoff.cooling",
         "onoff.aux_relay"
       ],
@@ -932,10 +1087,33 @@
             "nl": "Kamertemperatuur"
           }
         },
+        "measure_temperature.setpoint": {
+          "title": {
+            "en": "Room setpoint",
+            "nl": "Kamersetpoint"
+          }
+        },
         "measure_temperature.dew_point": {
           "title": {
             "en": "Dew point",
             "nl": "Dauwpunt"
+          }
+        },
+        "oq_control_mode_number": {
+          "uiComponent": null
+        },
+        "onoff.openquatt": {
+          "title": {
+            "en": "OpenQuatt control",
+            "nl": "OpenQuatt-regeling"
+          },
+          "insightsTitleTrue": {
+            "en": "OpenQuatt control on",
+            "nl": "OpenQuatt-regeling aan"
+          },
+          "insightsTitleFalse": {
+            "en": "OpenQuatt control off",
+            "nl": "OpenQuatt-regeling uit"
           }
         },
         "onoff.cooling": {
@@ -1009,8 +1187,32 @@
         {
           "type": "group",
           "label": {
-            "en": "Dew point — MQTT fallback",
-            "nl": "Dauwpunt — MQTT-fallback"
+            "en": "External values",
+            "nl": "Externe waarden"
+          },
+          "children": [
+            {
+              "id": "dew_point_max_age",
+              "type": "number",
+              "label": {
+                "en": "Maximum sensor value age (minutes)",
+                "nl": "Maximale leeftijd sensorwaarde (minuten)"
+              },
+              "value": 60,
+              "min": 5,
+              "max": 180,
+              "hint": {
+                "en": "Measurements the flows stop refreshing within this window are no longer sent to the controller, which then falls back to its own source. Applies to the dew point (per room) and to the outside and room temperature; the room setpoint and heating permission stand until you send a new value.",
+                "nl": "Meetwaarden die de flows binnen deze periode niet vernieuwen, gaan niet meer naar de controller; die valt dan terug op zijn eigen bron. Geldt voor het dauwpunt (per ruimte) en voor de buiten- en kamertemperatuur; het kamer-setpoint en de warmtetoestemming blijven staan tot je een nieuwe waarde stuurt."
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "External values — MQTT fallback",
+            "nl": "Externe waarden — MQTT-fallback"
           },
           "children": [
             {
@@ -1022,8 +1224,8 @@
               },
               "value": "",
               "hint": {
-                "en": "Only needed on firmware without API input support: the dew point is normally sent straight to the controller. As fallback, fill in the broker that is configured as MQTT input source in the OpenQuatt web app (Settings → Sources / integrations).",
-                "nl": "Alleen nodig op firmware zonder API-invoer: het dauwpunt gaat normaal rechtstreeks naar de controller. Vul als fallback de broker in die als MQTT-inputbron is ingesteld in de OpenQuatt web-app (Instellingen → Bronnen / integraties)."
+                "en": "Only needed on firmware without API input support: values are normally sent straight to the controller. As fallback, fill in the broker that is configured as MQTT input source in the OpenQuatt web app (Settings → Sources / integrations).",
+                "nl": "Alleen nodig op firmware zonder API-invoer: waarden gaan normaal rechtstreeks naar de controller. Vul als fallback de broker in die als MQTT-inputbron is ingesteld in de OpenQuatt web-app (Instellingen → Bronnen / integraties)."
               }
             },
             {
@@ -1064,23 +1266,8 @@
               },
               "value": "openquatt",
               "hint": {
-                "en": "Used in the MQTT topic openquatt/<name>/input/cooling/dew_point. Check the exact topic under MQTT sensors → Details in the OpenQuatt web app.",
-                "nl": "Wordt gebruikt in het MQTT-topic openquatt/<naam>/input/cooling/dew_point. Controleer het exacte topic onder MQTT-sensoren → Details in de OpenQuatt web-app."
-              }
-            },
-            {
-              "id": "dew_point_max_age",
-              "type": "number",
-              "label": {
-                "en": "Maximum sensor value age (minutes)",
-                "nl": "Maximale leeftijd sensorwaarde (minuten)"
-              },
-              "value": 60,
-              "min": 5,
-              "max": 180,
-              "hint": {
-                "en": "Rooms whose flow has not sent a new value within this window no longer count towards the dew point sent to the controller.",
-                "nl": "Ruimtes waarvan de flow binnen deze periode geen nieuwe waarde heeft gestuurd, tellen niet meer mee in het dauwpunt dat naar de controller gaat."
+                "en": "Used in the MQTT topics openquatt/<name>/input/…. Check the exact topics under MQTT sensors → Details in the OpenQuatt web app.",
+                "nl": "Wordt gebruikt in de MQTT-topics openquatt/<naam>/input/…. Controleer de exacte topics onder MQTT-sensoren → Details in de OpenQuatt web-app."
               }
             }
           ]
@@ -1175,6 +1362,136 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
+      "icon": "/assets/icon.svg"
+    },
+    "oq_control_mode_number": {
+      "type": "number",
+      "title": {
+        "en": "Control mode (code)",
+        "nl": "Regelmodus (code)"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg"
+    },
+    "oq_cool_power": {
+      "type": "number",
+      "title": {
+        "en": "Cooling output",
+        "nl": "Koelvermogen"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg",
+      "units": {
+        "en": "W",
+        "nl": "W"
+      }
+    },
+    "oq_cooling_permitted": {
+      "type": "boolean",
+      "title": {
+        "en": "Cooling permission",
+        "nl": "Koeltoestemming"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Cooling permitted",
+        "nl": "Koelen toegestaan"
+      },
+      "insightsTitleFalse": {
+        "en": "Cooling not permitted",
+        "nl": "Koelen niet toegestaan"
+      },
+      "icon": "/assets/icon.svg"
+    },
+    "oq_cop": {
+      "type": "number",
+      "title": {
+        "en": "COP",
+        "nl": "COP"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg"
+    },
+    "oq_eer": {
+      "type": "number",
+      "title": {
+        "en": "EER",
+        "nl": "EER"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg"
+    },
+    "oq_flow": {
+      "type": "number",
+      "title": {
+        "en": "Water flow",
+        "nl": "Flow"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg",
+      "units": {
+        "en": "L/h",
+        "nl": "L/u"
+      }
+    },
+    "oq_heat_power": {
+      "type": "number",
+      "title": {
+        "en": "Heat output",
+        "nl": "Warmtevermogen"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg",
+      "units": {
+        "en": "W",
+        "nl": "W"
+      }
+    },
+    "oq_heating_permitted": {
+      "type": "boolean",
+      "title": {
+        "en": "Heating permission",
+        "nl": "Warmtetoestemming"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Heating permitted",
+        "nl": "Verwarmen toegestaan"
+      },
+      "insightsTitleFalse": {
+        "en": "Heating not permitted",
+        "nl": "Verwarmen niet toegestaan"
+      },
       "icon": "/assets/icon.svg"
     }
   },

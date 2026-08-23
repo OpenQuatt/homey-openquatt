@@ -1,0 +1,13 @@
+{
+  "type": "number",
+  "title": {
+    "en": "COP",
+    "nl": "COP"
+  },
+  "decimals": 2,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/icon.svg"
+}

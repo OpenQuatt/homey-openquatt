@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Cooling permission",
+    "nl": "Koeltoestemming"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Cooling permitted",
+    "nl": "Koelen toegestaan"
+  },
+  "insightsTitleFalse": {
+    "en": "Cooling not permitted",
+    "nl": "Koelen niet toegestaan"
+  },
+  "icon": "/assets/icon.svg"
+}

@@ -1,0 +1,13 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Control mode (code)",
+    "nl": "Regelmodus (code)"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/icon.svg"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Water flow",
+    "nl": "Flow"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/icon.svg",
+  "units": {
+    "en": "L/h",
+    "nl": "L/u"
+  }
+}

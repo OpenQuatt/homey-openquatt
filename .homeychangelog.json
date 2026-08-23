@@ -19,5 +19,9 @@
   "1.2.0": {
     "en": "The dew point is now sent straight to the controller via its API input — no MQTT broker needed on recent firmware. MQTT remains available as fallback.",
     "nl": "Het dauwpunt gaat nu rechtstreeks naar de controller via de API-invoer — geen MQTT-broker meer nodig op recente firmware. MQTT blijft beschikbaar als fallback."
+  },
+  "1.3.0": {
+    "en": "Feed the controller from Homey: outside temperature, room temperature, room setpoint and heating permission now have their own flow cards. Plus much more in Insights: COP, EER, water flow, room setpoint, heat and cooling output, heating and cooling permission, control mode and the OpenQuatt control switch.",
+    "nl": "Voed de controller vanuit Homey: buitentemperatuur, kamertemperatuur, kamer-setpoint en warmtetoestemming hebben nu eigen flow-kaarten. En veel meer in Inzichten: COP, EER, flow, kamersetpoint, warmte- en koelvermogen, warmte- en koeltoestemming, regelmodus en de OpenQuatt-regeling."
   }
 }

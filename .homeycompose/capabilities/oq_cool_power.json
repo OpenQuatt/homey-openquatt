@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Cooling output",
+    "nl": "Koelvermogen"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/icon.svg",
+  "units": {
+    "en": "W",
+    "nl": "W"
+  }
+}

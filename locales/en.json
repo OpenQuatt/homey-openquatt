@@ -8,8 +8,10 @@
     "ot_link": "OpenTherm link problem"
   },
   "dew_point": {
-    "out_of_range": "Dew point out of range (-20…35 °C)",
-    "invalid_input": "Invalid temperature or humidity",
-    "delivery_failed": "Could not deliver the dew point: the controller is unreachable, or its firmware has no API input support (set up MQTT in the device settings as fallback)"
+    "invalid_input": "Invalid temperature or humidity"
+  },
+  "input": {
+    "out_of_range": "Value out of range",
+    "delivery_failed": "Could not deliver the value: the controller is unreachable, or its firmware has no API input support (set up MQTT in the device settings as fallback)"
   }
 }
