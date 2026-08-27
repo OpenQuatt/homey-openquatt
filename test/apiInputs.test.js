@@ -23,6 +23,9 @@ test('permissions are booleans, not numbers', () => {
   assert.equal(formatInput('heating_enable', true), 'true');
   assert.equal(formatInput('heating_enable', false), 'false');
   assert.equal(formatInput('heating_enable', 1), null);
+  assert.equal(formatInput('cooling_enable', true), 'true');
+  assert.equal(formatInput('cooling_enable', false), 'false');
+  assert.equal(formatInput('cooling_enable', 1), null);
 });
 
 test('every input carries both routes to the controller', () => {

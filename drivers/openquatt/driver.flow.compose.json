@@ -445,6 +445,10 @@
         "en": "Set manual cooling enable [[state]]",
         "nl": "Zet handmatige koelvrijgave [[state]]"
       },
+      "hint": {
+        "en": "OpenQuatt's manual cooling override, which forces cooling permission regardless of the selected source. To feed the regular permission signal from Homey, use “Set cooling permission” instead.",
+        "nl": "De handmatige koel-override van OpenQuatt, die koelen toestaat ongeacht de gekozen bron. Wil je het normale toestemmingssignaal vanuit Homey voeden, gebruik dan “Zet koeltoestemming”."
+      },
       "args": [
         {
           "name": "state",
@@ -709,6 +713,43 @@
       "hint": {
         "en": "Tells the controller whether heating is allowed at all. Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
         "nl": "Vertelt de controller of verwarmen überhaupt is toegestaan. Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "On",
+                "nl": "Aan"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_cooling_permission",
+      "title": {
+        "en": "Set cooling permission",
+        "nl": "Zet koeltoestemming"
+      },
+      "titleFormatted": {
+        "en": "Set cooling permission [[state]]",
+        "nl": "Zet koeltoestemming [[state]]"
+      },
+      "hint": {
+        "en": "Tells the controller whether cooling is allowed at all. Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection. This is the regular permission signal, not the manual cooling override.",
+        "nl": "Vertelt de controller of koelen überhaupt is toegestaan. Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie. Dit is het normale toestemmingssignaal, niet de handmatige koel-override."
       },
       "args": [
         {

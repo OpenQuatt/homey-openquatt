@@ -23,5 +23,9 @@
   "1.3.0": {
     "en": "Feed the controller from Homey: outside temperature, room temperature, room setpoint and heating permission now have their own flow cards. Plus much more in Insights: COP, EER, water flow, room setpoint, heat and cooling output, heating and cooling permission, control mode and the OpenQuatt control switch.",
     "nl": "Voed de controller vanuit Homey: buitentemperatuur, kamertemperatuur, kamer-setpoint en warmtetoestemming hebben nu eigen flow-kaarten. En veel meer in Inzichten: COP, EER, flow, kamersetpoint, warmte- en koelvermogen, warmte- en koeltoestemming, regelmodus en de OpenQuatt-regeling."
+  },
+  "1.3.1": {
+    "en": "New flow card: set the cooling permission. It goes to the controller's own cooling permission input, so you can select it as the source — the manual cooling enable card stays what it always was, an override.",
+    "nl": "Nieuwe flow-kaart: zet de koeltoestemming. Die gaat naar de eigen koeltoestemming-invoer van de controller, zodat je hem als bron kunt kiezen — de kaart voor handmatige koelvrijgave blijft wat hij was: een override."
   }
 }

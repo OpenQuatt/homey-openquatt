@@ -327,19 +327,22 @@ test('setInput sends temperatures to their own API input', async () => {
   ]);
 });
 
-test('the heating permission takes the switch route, MQTT as boolean', async () => {
+test('the permissions take the switch route, MQTT as boolean', async () => {
   const published = [];
   const device = makeFeedDevice({
     publisher: { publish: (topic, payload) => published.push({ topic, payload }) && true },
   });
 
   await device.setInput('heating_enable', false);
+  await device.setInput('cooling_enable', true);
 
   assert.deepEqual(device.apiCalls, [
     { route: 'switch', name: 'api_input_heating_enable', value: false },
+    { route: 'switch', name: 'api_input_cooling_enable', value: true },
   ]);
   assert.deepEqual(published, [
     { topic: 'openquatt/openquatt/input/thermostat/heating_enable', payload: 'false' },
+    { topic: 'openquatt/openquatt/input/thermostat/cooling_enable', payload: 'true' },
   ]);
 });
 
@@ -358,11 +361,15 @@ test('commands are stored and restored, measurements are not', async () => {
   await device.setInput('room_temperature', 20.5);
   await device.setInput('room_setpoint', 21);
   await device.setInput('heating_enable', true);
+  await device.setInput('cooling_enable', false);
 
-  assert.deepEqual(device.stored, { room_setpoint: 21, heating_enable: true });
+  assert.deepEqual(device.stored, {
+    room_setpoint: 21, heating_enable: true, cooling_enable: false,
+  });
   assert.deepEqual(device._restoreInputs(), {
     room_setpoint: { value: 21, updatedAt: device._inputs.room_setpoint.updatedAt },
     heating_enable: { value: true, updatedAt: device._inputs.heating_enable.updatedAt },
+    cooling_enable: { value: false, updatedAt: device._inputs.cooling_enable.updatedAt },
   });
 });
 

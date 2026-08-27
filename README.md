@@ -43,7 +43,7 @@ Every number and switch above is a capability, so Homey logs it in **Insights** 
 
 - **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off, the dew point became available / was lost
 - **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …, a dew point is available, cooling is permitted
-- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, set the heating permission
+- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, set the heating permission, set the cooling permission
 
 ### Dew point & cooling safety
 
@@ -68,8 +68,11 @@ The dew point is not the only source value the controller accepts from outside. 
 | Send the room temperature to the controller | 0…50 °C | until your flow stops refreshing it |
 | Send the room setpoint to the controller | 5…35 °C | until you send a new value |
 | Set heating permission (on/off) | — | until you send a new value |
+| Set cooling permission (on/off) | — | until you send a new value |
 
-The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default) — the controller then falls back to its own source, rather than steering on a value from this morning. The setpoint and the heating permission are commands rather than measurements: they stand until you send a new value, and are re-asserted after an app restart.
+The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default) — the controller then falls back to its own source, rather than steering on a value from this morning. The setpoint and the two permissions are commands rather than measurements: they stand until you send a new value, and are re-asserted after an app restart.
+
+The cooling permission is the regular permission signal, so the controller weighs it against the source you picked. *Set manual cooling enable* is a different card for a different thing: OpenQuatt's manual override, which permits cooling regardless of the selected source.
 
 One thing to set on the controller side: in the OpenQuatt web app under *Settings → Sources / integrations → Sensor selection*, the signal has to be allowed to use API input (or MQTT) as its source — `Auto` covers that for most of them.
 
