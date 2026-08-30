@@ -84,6 +84,46 @@ test('emits parsed state events and ignores pings and malformed frames', async (
   });
 });
 
+// ESPHome's web server v3 (shipped by OpenQuatt from v0.48 / ESPHome 2026.8)
+// identifies entities by display name instead of object_id. These frames are
+// verbatim from a v3 controller; the client must hand the device layer the same
+// ids a v2 controller produced, or nothing maps and every value stays empty.
+test('normalises web server v3 frame ids to the object_id form', async () => {
+  let stream;
+  await withServer(sseHandler(res => { stream = res; }), async host => {
+    const client = new OpenQuattClient(host);
+    try {
+      const states = [];
+      client.on('state', state => states.push(state));
+
+      client.connect();
+      await once(client, 'connected');
+
+      const frames = [
+        '{"id":"sensor/Water Supply Temp (Selected)","domain":"sensor","name":"Water Supply Temp (Selected)","value":null,"state":"NA","uom":"\u00b0C"}',
+        '{"id":"binary_sensor/HP1 - Defrost","domain":"binary_sensor","name":"HP1 - Defrost","value":false,"state":"OFF"}',
+        '{"id":"switch/OpenQuatt Enabled","domain":"switch","name":"OpenQuatt Enabled","value":true,"state":"ON"}',
+        '{"id":"text_sensor/Control Mode","domain":"text_sensor","name":"Control Mode","value":"CM98","state":"CM98"}',
+      ];
+      for (const frame of frames) stream.write(`event: state\r\ndata: ${frame}\r\n\r\n`);
+
+      while (states.length < frames.length) await once(client, 'state');
+
+      assert.deepEqual(states.map(state => state.id), [
+        'sensor-water_supply_temp__selected_',
+        'binary_sensor-hp1_-_defrost',
+        'switch-openquatt_enabled',
+        'text_sensor-control_mode',
+      ]);
+      // The rest of the frame is passed through untouched.
+      assert.equal(states[2].value, true);
+      assert.equal(states[3].state, 'CM98');
+    } finally {
+      client.close();
+    }
+  });
+});
+
 test('emits disconnected when the stream ends', async () => {
   let stream;
   await withServer(sseHandler(res => { stream = res; }), async host => {

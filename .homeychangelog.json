@@ -27,5 +27,9 @@
   "1.4.0": {
     "en": "New flow card: set the cooling permission. It goes to the controller's own cooling permission input, so you can select it as the source — the manual cooling enable card stays what it always was, an override.",
     "nl": "Nieuwe flow-kaart: zet de koeltoestemming. Die gaat naar de eigen koeltoestemming-invoer van de controller, zodat je hem als bron kunt kiezen — de kaart voor handmatige koelvrijgave blijft wat hij was: een override."
+  },
+  "1.4.1": {
+    "en": "Fixes empty values on recent controller firmware. The live update stream renamed its entities, so every reading in Homey stayed blank while the flow cards kept working. The app now understands both the old and the new naming.",
+    "nl": "Lost lege waarden op recente controller-firmware op. De live-updatestroom hernoemde zijn entiteiten, waardoor elke waarde in Homey leeg bleef terwijl de flow-kaarten gewoon werkten. De app begrijpt nu zowel de oude als de nieuwe naamgeving."
   }
 }
