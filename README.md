@@ -1,5 +1,8 @@
 <p align="center">
-  <img src=".github/openquatt-logo.svg" alt="OpenQuatt" width="420">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/openquatt-logo-dark.svg">
+    <img src=".github/openquatt-logo-light.svg" alt="OpenQuatt" width="420">
+  </picture>
 </p>
 
 <h1 align="center">OpenQuatt for Homey</h1>

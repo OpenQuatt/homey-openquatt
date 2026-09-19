@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 457 100">
+  <title>OpenQuatt horizontal logo for dark backgrounds</title>
+  <g transform="translate(2 5) scale(.9)">
+    <path d="M62.118 76.32 A37.25 37.25 0 1 1 77.32 61.118 L67.076 50.874 A23.75 23.75 0 1 0 51.874 66.076 Z" fill="#F8FAFC"/>
+    <path d="M53.5 52.5 L83 82" fill="none" stroke="#F97316" stroke-width="13.5" stroke-linecap="round"/>
+  </g>
+<g transform="translate(99 30.472) scale(0.46527999999999997)">
+<path transform="translate(0 0)" d="M50 0 A50 50 0 1 1 50 100 A50 50 0 1 1 50 0 Z M50 18 A32 32 0 1 0 50 82 A32 32 0 1 0 50 18 Z" fill="#F8FAFC" fill-rule="evenodd"/>
+<path transform="translate(110 0)" d="M0 30 H18 V37 C25 30 33 28 42 28 C63 28 76 43 76 65 C76 86 62 101 42 101 C32 101 25 98 18 92 V124 H0 Z M38 46 C26 46 18 53 18 65 C18 77 26 84 38 84 C50 84 58 77 58 65 C58 53 50 46 38 46 Z" fill="#F8FAFC" fill-rule="evenodd"/>
+<path transform="translate(192 0)" d="M71 72 H18 C21 82 28 86 38 86 C46 86 51 82 56 77 L69 89 C60 98 50 102 37 102 C14 102 0 87 0 65 C0 44 15 28 37 28 C59 28 72 43 72 65 Z M18 58 H54 C52 48 46 44 37 44 C28 44 21 49 18 58 Z" fill="#F8FAFC" fill-rule="evenodd"/>
+<path transform="translate(272 0)" d="M0 30 H18 V38 C25 31 33 28 43 28 C63 28 70 41 70 59 V100 H52 V62 C52 50 47 45 37 45 C25 45 18 53 18 65 V100 H0 Z" fill="#F8FAFC" fill-rule="evenodd"/>
+<path transform="translate(351 0)" d="M50 0 A50 50 0 1 1 50 100 A50 50 0 1 1 50 0 Z M50 18 A32 32 0 1 0 50 82 A32 32 0 1 0 50 18 Z" fill="#F97316" fill-rule="evenodd"/>
+<path transform="translate(351 0)" d="M49 64 L63 50 L104 91 L90 105 Z" fill="#F97316" fill-rule="evenodd"/>
+<path transform="translate(460 0)" d="M0 30 H18 V68 C18 80 23 85 33 85 C45 85 52 77 52 65 V30 H70 V100 H52 V92 C45 99 37 102 27 102 C7 102 0 89 0 71 Z" fill="#F97316" fill-rule="evenodd"/>
+<path transform="translate(538 0)" d="M4 42 C14 32 25 28 39 28 C60 28 70 39 70 58 V100 H53 V92 C47 99 38 102 27 102 C10 102 0 93 0 79 C0 65 11 57 31 57 H52 C52 48 47 44 37 44 C28 44 22 47 15 53 Z M52 71 H32 C22 71 18 74 18 79 C18 85 22 88 31 88 C43 88 52 81 52 73 Z" fill="#F97316" fill-rule="evenodd"/>
+<path transform="translate(612 0)" d="M13 13 H31 V30 H52 V47 H31 V73 C31 82 34 85 41 85 C45 85 48 84 52 83 V99 C47 101 42 102 36 102 C20 102 13 94 13 77 V47 H0 V30 H13 Z" fill="#F97316" fill-rule="evenodd"/>
+<path transform="translate(668 0)" d="M13 13 H31 V30 H52 V47 H31 V73 C31 82 34 85 41 85 C45 85 48 84 52 83 V99 C47 101 42 102 36 102 C20 102 13 94 13 77 V47 H0 V30 H13 Z" fill="#F97316" fill-rule="evenodd"/>
+</g>
+</svg>

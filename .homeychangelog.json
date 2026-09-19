@@ -31,5 +31,9 @@
   "1.4.1": {
     "en": "Fixes empty values on recent controller firmware. The live update stream renamed its entities, so every reading in Homey stayed blank while the flow cards kept working. The app now understands both the old and the new naming.",
     "nl": "Lost lege waarden op recente controller-firmware op. De live-updatestroom hernoemde zijn entiteiten, waardoor elke waarde in Homey leeg bleef terwijl de flow-kaarten gewoon werkten. De app begrijpt nu zowel de oude als de nieuwe naamgeving."
+  },
+  "1.5.0": {
+    "en": "A fresh look: the app now carries the new OpenQuatt branding, from the icon and the store images to the dashboard widget.",
+    "nl": "Een nieuwe look: de app draagt nu de nieuwe OpenQuatt-huisstijl, van het icoon en de store-afbeeldingen tot de dashboard-widget."
   }
 }

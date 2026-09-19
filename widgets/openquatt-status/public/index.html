@@ -14,11 +14,24 @@
       touch-action: pan-y;
     }
 
+    /* OpenQuatt brand palette: ink and orange on light backgrounds,
+       chalk and a brighter orange on dark ones. Homey flags dark mode with
+       the .homey-dark-mode class; .oq-dark is our own fallback (see syncTheme). */
     :root {
-      --oq-navy: #204b96;
-      --oq-blue: #3989f3;
-      --oq-blue-soft: #81cbf2;
-      --oq-orange: #ed8933;
+      --oq-primary: #0f1724;
+      --oq-accent: #ea580c;
+      --oq-accent-soft: rgba(234, 88, 12, 0.14);
+      --oq-cool: #0284c7;
+      --oq-cool-soft: rgba(14, 165, 233, 0.14);
+      --oq-line: rgba(128, 144, 168, 0.28);
+    }
+    .homey-dark-mode, .oq-dark {
+      --oq-primary: #f8fafc;
+      --oq-accent: #f97316;
+      --oq-accent-soft: rgba(249, 115, 22, 0.18);
+      --oq-cool: #38bdf8;
+      --oq-cool-soft: rgba(56, 189, 248, 0.16);
+      --oq-line: rgba(148, 163, 184, 0.22);
     }
 
     body {
@@ -34,14 +47,15 @@
       align-items: center;
       gap: 8px;
     }
-    .header svg { flex: 0 0 auto; }
-    .wordmark {
-      font-size: var(--homey-font-size-default, 17px);
-      font-weight: var(--homey-font-weight-bold, 700);
-      letter-spacing: 0.06em;
+    .logo {
+      flex: 0 0 auto;
+      display: block;
+      height: 24px;
+      width: auto;
     }
-    .wordmark .open { color: var(--oq-blue); }
-    .wordmark .quatt { color: var(--oq-orange); }
+    .logo .p { fill: var(--oq-primary); }
+    .logo .a { fill: var(--oq-accent); }
+    .logo .tail { fill: none; stroke: var(--oq-accent); }
 
     .badge {
       margin-left: auto;
@@ -52,16 +66,27 @@
       white-space: nowrap;
     }
     .badge.idle  { background: rgba(128, 144, 168, 0.18); color: var(--homey-text-color-light, #6b7a8c); }
-    .badge.heat  { background: rgba(237, 137, 51, 0.16);  color: var(--oq-orange); }
-    .badge.cool  { background: rgba(57, 137, 243, 0.16);  color: var(--oq-blue); }
-    .badge.frost { background: rgba(129, 203, 242, 0.20); color: #2d9bc7; }
+    .badge.heat  { background: var(--oq-accent-soft); color: var(--oq-accent); }
+    .badge.cool  { background: var(--oq-cool-soft);   color: var(--oq-cool); }
+    .badge.frost { background: var(--oq-cool-soft);   color: var(--homey-text-color-light, #6b7a8c); }
     .badge.off   { background: rgba(220, 68, 68, 0.14);   color: var(--homey-text-color-danger, #dc4444); }
 
     .brandline {
-      height: 3px;
-      border-radius: 2px;
+      position: relative;
+      height: 2px;
+      border-radius: 1px;
       margin: 10px 0 12px;
-      background: linear-gradient(90deg, var(--oq-navy), var(--oq-blue) 45%, var(--oq-blue-soft) 70%, var(--oq-orange));
+      background: var(--oq-line);
+    }
+    .brandline::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 44px;
+      border-radius: 1px;
+      background: var(--oq-accent);
     }
 
     .grid {
@@ -124,9 +149,25 @@
 <body>
 
   <div class="header">
-    <!-- OpenQuatt droplet mark -->
-    <svg width="22" height="26" viewBox="40 10 660 860" aria-hidden="true"><path d="M342.5 34.5a250 250 0 0 0 9 30q3.989 10.461 8 21 .486 7.441 5 13a939 939 0 0 0 52.5 110 2240 2240 0 0 0 60 96 5301 5301 0 0 1 69 102 417.3 417.3 0 0 1 33.5 64q.078 4.27 3 7 20.139 43.56 22.5 92a483 483 0 0 1-.5 49q-1.838 7.185-2 15-2.427 4.007-2 9l-2 11q-2.361 2.403-2 6v2q-3.93 5.764-5 13a361.4 361.4 0 0 1-25 51q-4.657 4.162-7 10-68.629 88.06-179 104a852 852 0 0 0-35 3q-16.507.25-33-.5-2.822-.297-5-1.5-9.157-2.244-19-2h-2q-7.544-2.872-16-3-113.521-21.405-172.5-121-43.368-84.229-27-178 7.821-43.96 27-84a586 586 0 0 1 33-56 5116 5116 0 0 0 130-196q21.751-40.5 42-82a2875 2875 0 0 1 20-49 273 273 0 0 0 11-35 59 59 0 0 1 5-9 29.8 29.8 0 0 1 3.5 9" fill="#204b96"/><path d="M342.5 119.5a571 571 0 0 1 14 40q.764 7.805 5 14v1q-.135 3.978 2 7a31.7 31.7 0 0 1 2 6q-.135 3.978 2 7-.135 3.978 2 7-.135 3.978 2 7-.135 3.978 2 7 8.966 31.83 13 65a1521 1521 0 0 0 4.5 49q.75 18.493.5 37v3q-1.152 1.144-1.5 3a919 919 0 0 0-3.5 30 85.4 85.4 0 0 0-1.5 13q26.267-39.549 29.5-87 .999-7.984 1-16.5.29-12.09-2-23.5a12.9 12.9 0 0 1 .5-5 56.1 56.1 0 0 1 10.5 17q-.11 2.29 2 3a1350 1350 0 0 1 17 37q-.501 4.486 3 7 4.654 9.453 7 20-.135 3.978 2 7-.135 3.978 2 7 3.267 9.564 4 20-.367 8.376 2 16 2.406 100.067-83 152-1.393-1.783-1-4 2.31-6.847 2-14.5.012-12.645-3-24.5.31-4.493-2-8-7.76-31.019-27.5-56-35.843 63.187-56 133l-3 5q-31.104 11.837-64.5 15.5a356 356 0 0 1-31 2.5q-18.405-58.648-2.5-118a202.4 202.4 0 0 1 17-39q45.29-69.55 83-144 28.532-61.85 40.5-129 6.37-24.912 7-51a167 167 0 0 0 3-18" fill="#ed8933"/><path d="M557.5 586.5q.837 1.935 3 2.5-56.438-5.331-112 6a1117 1117 0 0 0-43 12 2536 2536 0 0 1-107 37 412 412 0 0 1-76 13q-47.99 3.102-91-18a620 620 0 0 1-24-16.5q-3.118-9.6-2.5-20a345 345 0 0 0 36.5 21.5 194.3 194.3 0 0 0 42 9.5q44.101 4.2 87-7a550 550 0 0 0 32-7.5 1150 1150 0 0 1 96-31 342 342 0 0 1 82.5-11.5q39.153-1.598 76.5 10" fill="#81cbf2"/><path d="M557.5 586.5a248 248 0 0 0 15 4q-12.054 137.357-138 193.5-104.056 39.986-207-2-100.8-48.767-120-159.5a620 620 0 0 0 24 16.5q43.01 21.102 91 18a412 412 0 0 0 76-13 2536 2536 0 0 0 107-37 1117 1117 0 0 1 43-12q55.562-11.331 112-6-2.163-.565-3-2.5" fill="#3989f3"/></svg>
-    <div class="wordmark"><span class="open">OPEN</span><span class="quatt">QUATT</span></div>
+    <!-- OpenQuatt logo (mark + wordmark); colours follow the theme via CSS -->
+    <svg class="logo" viewBox="7.5 9.6 427.6 79.6" role="img" aria-label="OpenQuatt">
+      <g transform="translate(2 5) scale(.9)">
+        <path class="p" d="M62.118 76.32 A37.25 37.25 0 1 1 77.32 61.118 L67.076 50.874 A23.75 23.75 0 1 0 51.874 66.076 Z"/>
+        <path class="tail" d="M53.5 52.5 L83 82" stroke-width="13.5" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(99 30.472) scale(0.46528)" fill-rule="evenodd">
+        <path class="p" transform="translate(0 0)" d="M50 0 A50 50 0 1 1 50 100 A50 50 0 1 1 50 0 Z M50 18 A32 32 0 1 0 50 82 A32 32 0 1 0 50 18 Z"/>
+        <path class="p" transform="translate(110 0)" d="M0 30 H18 V37 C25 30 33 28 42 28 C63 28 76 43 76 65 C76 86 62 101 42 101 C32 101 25 98 18 92 V124 H0 Z M38 46 C26 46 18 53 18 65 C18 77 26 84 38 84 C50 84 58 77 58 65 C58 53 50 46 38 46 Z"/>
+        <path class="p" transform="translate(192 0)" d="M71 72 H18 C21 82 28 86 38 86 C46 86 51 82 56 77 L69 89 C60 98 50 102 37 102 C14 102 0 87 0 65 C0 44 15 28 37 28 C59 28 72 43 72 65 Z M18 58 H54 C52 48 46 44 37 44 C28 44 21 49 18 58 Z"/>
+        <path class="p" transform="translate(272 0)" d="M0 30 H18 V38 C25 31 33 28 43 28 C63 28 70 41 70 59 V100 H52 V62 C52 50 47 45 37 45 C25 45 18 53 18 65 V100 H0 Z"/>
+        <path class="a" transform="translate(351 0)" d="M50 0 A50 50 0 1 1 50 100 A50 50 0 1 1 50 0 Z M50 18 A32 32 0 1 0 50 82 A32 32 0 1 0 50 18 Z"/>
+        <path class="a" transform="translate(351 0)" d="M49 64 L63 50 L104 91 L90 105 Z"/>
+        <path class="a" transform="translate(460 0)" d="M0 30 H18 V68 C18 80 23 85 33 85 C45 85 52 77 52 65 V30 H70 V100 H52 V92 C45 99 37 102 27 102 C7 102 0 89 0 71 Z"/>
+        <path class="a" transform="translate(538 0)" d="M4 42 C14 32 25 28 39 28 C60 28 70 39 70 58 V100 H53 V92 C47 99 38 102 27 102 C10 102 0 93 0 79 C0 65 11 57 31 57 H52 C52 48 47 44 37 44 C28 44 22 47 15 53 Z M52 71 H32 C22 71 18 74 18 79 C18 85 22 88 31 88 C43 88 52 81 52 73 Z"/>
+        <path class="a" transform="translate(612 0)" d="M13 13 H31 V30 H52 V47 H31 V73 C31 82 34 85 41 85 C45 85 48 84 52 83 V99 C47 101 42 102 36 102 C20 102 13 94 13 77 V47 H0 V30 H13 Z"/>
+        <path class="a" transform="translate(668 0)" d="M13 13 H31 V30 H52 V47 H31 V73 C31 82 34 85 41 85 C45 85 48 84 52 83 V99 C47 101 42 102 36 102 C20 102 13 94 13 77 V47 H0 V30 H13 Z"/>
+      </g>
+    </svg>
     <div class="badge idle" id="badge">…</div>
   </div>
 
@@ -211,6 +252,16 @@
     const $ = id => document.getElementById(id);
     const num = v => (typeof v === 'number' && isFinite(v) ? v : null);
 
+    // Homey marks dark mode with the .homey-dark-mode class. As a fallback,
+    // derive the theme from the text colour Homey gives us, so the logo and
+    // accents follow the dashboard even when that class is not present.
+    function syncTheme() {
+      const rgb = (getComputedStyle(document.body).color.match(/\d+(\.\d+)?/g) || []).map(Number);
+      if (rgb.length < 3) return;
+      const luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+      document.documentElement.classList.toggle('oq-dark', luminance > 128);
+    }
+
     function fmt(value, unit, decimals) {
       const n = num(value);
       if (n === null) return '—';
@@ -294,6 +345,7 @@
       const refresh = async () => {
         if (busy) return;
         busy = true;
+        syncTheme();
         try {
           render(await Homey.api('GET', '/status', {}));
         } catch (err) {
