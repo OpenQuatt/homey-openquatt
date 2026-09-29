@@ -256,11 +256,16 @@ class OpenQuattDevice extends Homey.Device {
   async setInput(key, value) {
     if (formatInput(key, value) === null) throw new Error(this._rangeError(key));
     const previous = this._inputs[key];
-    this._inputs[key] = { value, updatedAt: Date.now() };
+    const entry = { value, updatedAt: Date.now() };
+    this._inputs[key] = entry;
     // Only commands are stored, and only when they actually change: a flow may
     // repeat the same setpoint all day.
     if (API_INPUTS[key].persist && (!previous || previous.value !== value)) this._storeInputs();
     if (await this._deliver(key, value) === false) {
+      // A failed offset Flow must not silently take effect after reconnecting.
+      if (API_INPUTS[key].retryOnFailure === false && this._inputs[key] === entry) {
+        delete this._inputs[key];
+      }
       throw new Error(this.homey.__('input.delivery_failed'));
     }
   }

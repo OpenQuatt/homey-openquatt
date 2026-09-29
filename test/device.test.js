@@ -327,6 +327,59 @@ test('setInput sends temperatures to their own API input', async () => {
   ]);
 });
 
+test('heating curve offset uses API and MQTT, then expires without being stored', async () => {
+  const published = [];
+  const device = makeFeedDevice({
+    publisher: {
+      publish: (topic, payload) => {
+        published.push({ topic, payload });
+        return true;
+      },
+    },
+  });
+
+  await device.setInput('heating_curve_offset', -1.5);
+  assert.deepEqual(device.apiCalls, [
+    { route: 'number', name: 'api_input_heating_curve_modifier', value: '-1.50' },
+  ]);
+  assert.deepEqual(published, [
+    { topic: 'openquatt/openquatt/input/heating/curve_modifier', payload: '-1.50' },
+  ]);
+  assert.equal(device.stored, null);
+
+  device._inputs.heating_curve_offset.updatedAt -= 61 * 60 * 1000;
+  await device._publishInputs();
+  assert.equal(device._inputs.heating_curve_offset, undefined);
+  assert.equal(device.apiCalls.length, 1);
+  assert.equal(published.length, 1);
+});
+
+test('a failed heating curve offset Flow is not retried after reconnecting', async () => {
+  const device = makeFeedDevice({ apiFails: true });
+
+  await assert.rejects(device.setInput('heating_curve_offset', 3), /delivery_failed/);
+  assert.equal(device._inputs.heating_curve_offset, undefined);
+
+  await device._publishInputs();
+  assert.equal(device.apiCalls.length, 1);
+});
+
+test('an older failed offset Flow does not erase a newer value', async () => {
+  const device = makeFeedDevice();
+  let failFirst;
+  const firstDelivery = new Promise((resolve, reject) => { failFirst = reject; });
+  device.client.setNumber = (name, value) => {
+    device.apiCalls.push({ route: 'number', name, value });
+    return value === '3.00' ? firstDelivery : Promise.resolve();
+  };
+
+  const firstFlow = device.setInput('heating_curve_offset', 3);
+  await device.setInput('heating_curve_offset', 4);
+  failFirst(new Error('connection lost'));
+  await assert.rejects(firstFlow, /delivery_failed/);
+  assert.equal(device._inputs.heating_curve_offset.value, 4);
+});
+
 test('the permissions take the switch route, MQTT as boolean', async () => {
   const published = [];
   const device = makeFeedDevice({

@@ -9,6 +9,9 @@ test('formats numbers with two decimals inside the accepted range', () => {
   assert.equal(formatInput('dew_point', 15.6), '15.60');
   assert.equal(formatInput('outside_temperature', -40), '-40.00');
   assert.equal(formatInput('room_setpoint', 21), '21.00');
+  assert.equal(formatInput('heating_curve_offset', -5), '-5.00');
+  assert.equal(formatInput('heating_curve_offset', 0), '0.00');
+  assert.equal(formatInput('heating_curve_offset', 5), '5.00');
 });
 
 test('rejects values the firmware would ignore', () => {
@@ -16,6 +19,8 @@ test('rejects values the firmware would ignore', () => {
   assert.equal(formatInput('outside_temperature', -41), null);
   assert.equal(formatInput('room_temperature', NaN), null);
   assert.equal(formatInput('room_setpoint', '21'), null);
+  assert.equal(formatInput('heating_curve_offset', -5.1), null);
+  assert.equal(formatInput('heating_curve_offset', 5.1), null);
   assert.equal(formatInput('unknown_input', 1), null);
 });
 

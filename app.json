@@ -958,6 +958,39 @@
         ]
       },
       {
+        "id": "send_heating_curve_offset",
+        "title": {
+          "en": "Send a heating curve offset to the controller",
+          "nl": "Stuur een stooklijn-offset naar de controller"
+        },
+        "titleFormatted": {
+          "en": "Send heating curve offset [[offset]] °C to the controller",
+          "nl": "Stuur stooklijn-offset [[offset]] °C naar de controller"
+        },
+        "hint": {
+          "en": "Requires OpenQuatt firmware with heating curve offset support. This adjusts the local heating curve, not the supply target. Sent via API input (or MQTT from the device settings), then re-sent every minute until Maximum sensor value age expires. Select API input or MQTT under Heating curve offset in the OpenQuatt web app.",
+          "nl": "Vereist OpenQuatt-firmware met stooklijn-offset. Dit corrigeert de lokale stooklijn en vervangt het aanvoertarget niet. Gaat via API-invoer (of MQTT uit de apparaatinstellingen) en wordt elke minuut herhaald tot Maximale leeftijd sensorwaarde is verstreken. Kies API-invoer of MQTT bij Stooklijn-offset in de OpenQuatt web-app."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "offset",
+            "type": "number",
+            "min": -5,
+            "max": 5,
+            "step": 0.1,
+            "placeholder": {
+              "en": "Heating curve offset (°C)",
+              "nl": "Stooklijn-offset (°C)"
+            }
+          }
+        ]
+      },
+      {
         "id": "set_heating_permission",
         "title": {
           "en": "Set heating permission",
