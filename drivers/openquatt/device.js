@@ -250,15 +250,16 @@ class OpenQuattDevice extends Homey.Device {
 
   /**
    * Record any other external source value from a flow card and push it to the
-   * controller straight away. Commands are remembered across restarts;
-   * measurements expire with the configured sensor age.
+   * controller straight away. Commands stand until a new value arrives (most
+   * are also remembered across restarts); measurements expire with the
+   * configured sensor age.
    */
   async setInput(key, value) {
     if (formatInput(key, value) === null) throw new Error(this._rangeError(key));
     const previous = this._inputs[key];
     this._inputs[key] = { value, updatedAt: Date.now() };
-    // Only commands are stored, and only when they actually change: a flow may
-    // repeat the same setpoint all day.
+    // Only persisted commands are stored, and only when they actually change: a
+    // flow may repeat the same setpoint all day.
     if (API_INPUTS[key].persist && (!previous || previous.value !== value)) this._storeInputs();
     if (await this._deliver(key, value) === false) {
       throw new Error(this.homey.__('input.delivery_failed'));
@@ -343,7 +344,7 @@ class OpenQuattDevice extends Homey.Device {
     for (const [key, entry] of Object.entries(this._inputs)) {
       // A measurement nobody refreshed is no longer worth asserting: dropping
       // it lets the controller fall back to its own source. Commands stand.
-      if (!API_INPUTS[key].persist && now - entry.updatedAt > this._maxAgeMs()) {
+      if (!API_INPUTS[key].command && now - entry.updatedAt > this._maxAgeMs()) {
         delete this._inputs[key];
         delete this._deliveryProblems[key];
         continue;

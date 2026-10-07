@@ -327,6 +327,44 @@ test('setInput sends temperatures to their own API input', async () => {
   ]);
 });
 
+test('heating curve offset uses API and MQTT, and stands without being stored', async () => {
+  const published = [];
+  const device = makeFeedDevice({
+    publisher: {
+      publish: (topic, payload) => {
+        published.push({ topic, payload });
+        return true;
+      },
+    },
+  });
+
+  await device.setInput('heating_curve_offset', -1.5);
+  assert.deepEqual(device.apiCalls, [
+    { route: 'number', name: 'api_input_heating_curve_modifier', value: '-1.50' },
+  ]);
+  assert.deepEqual(published, [
+    { topic: 'openquatt/openquatt/input/heating/curve_modifier', payload: '-1.50' },
+  ]);
+  assert.equal(device.stored, null);
+
+  // A command, not a measurement: it outlives the sensor age.
+  device._inputs.heating_curve_offset.updatedAt -= 61 * 60 * 1000;
+  await device._publishInputs();
+  assert.equal(device._inputs.heating_curve_offset.value, -1.5);
+  assert.equal(device.apiCalls.length, 2);
+  assert.equal(published.length, 2);
+});
+
+test('a heating curve offset that failed to deliver is retried on the next tick', async () => {
+  const device = makeFeedDevice({ apiFails: true });
+
+  await assert.rejects(device.setInput('heating_curve_offset', 3), /delivery_failed/);
+  assert.equal(device._inputs.heating_curve_offset.value, 3);
+
+  await device._publishInputs();
+  assert.deepEqual(device.apiCalls.map(call => call.value), ['3.00', '3.00']);
+});
+
 test('the permissions take the switch route, MQTT as boolean', async () => {
   const published = [];
   const device = makeFeedDevice({
