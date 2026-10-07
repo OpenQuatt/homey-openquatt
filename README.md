@@ -70,11 +70,11 @@ The dew point is not the only source value the controller accepts from outside. 
 | Send the outside temperature to the controller | -40…60 °C | until your flow stops refreshing it |
 | Send the room temperature to the controller | 0…50 °C | until your flow stops refreshing it |
 | Send the room setpoint to the controller | 5…35 °C | until you send a new value |
-| Send the heating curve offset to the controller | −5…+5 °C | until your flow stops refreshing it |
+| Send the heating curve offset to the controller | −5…+5 °C | until you send a new value |
 | Set heating permission (on/off) | — | until you send a new value |
 | Set cooling permission (on/off) | — | until you send a new value |
 
-The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements and the heating curve offset stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default). The controller uses a 0 °C offset after its 15-minute validity window; send 0 °C to clear the offset immediately. The setpoint and the two permissions are commands rather than measurements: they stand until you send a new value, and are re-asserted after an app restart.
+The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default) — the controller then falls back to its own source, rather than steering on a value from this morning. The setpoint, the heating curve offset and the two permissions are commands rather than measurements: they stand until you send a new value. The setpoint and the permissions are also re-asserted after an app restart. The offset is not: after a restart the controller lets it lapse to 0 °C once its 15-minute validity window has passed. Send 0 °C to clear the offset immediately.
 
 The cooling permission is the regular permission signal, so the controller weighs it against the source you picked. *Set manual cooling enable* is a different card for a different thing: OpenQuatt's manual override, which permits cooling regardless of the selected source.
 

@@ -327,7 +327,7 @@ test('setInput sends temperatures to their own API input', async () => {
   ]);
 });
 
-test('heating curve offset uses API and MQTT, then expires without being stored', async () => {
+test('heating curve offset uses API and MQTT, and stands without being stored', async () => {
   const published = [];
   const device = makeFeedDevice({
     publisher: {
@@ -347,37 +347,22 @@ test('heating curve offset uses API and MQTT, then expires without being stored'
   ]);
   assert.equal(device.stored, null);
 
+  // A command, not a measurement: it outlives the sensor age.
   device._inputs.heating_curve_offset.updatedAt -= 61 * 60 * 1000;
   await device._publishInputs();
-  assert.equal(device._inputs.heating_curve_offset, undefined);
-  assert.equal(device.apiCalls.length, 1);
-  assert.equal(published.length, 1);
+  assert.equal(device._inputs.heating_curve_offset.value, -1.5);
+  assert.equal(device.apiCalls.length, 2);
+  assert.equal(published.length, 2);
 });
 
-test('a failed heating curve offset Flow is not retried after reconnecting', async () => {
+test('a heating curve offset that failed to deliver is retried on the next tick', async () => {
   const device = makeFeedDevice({ apiFails: true });
 
   await assert.rejects(device.setInput('heating_curve_offset', 3), /delivery_failed/);
-  assert.equal(device._inputs.heating_curve_offset, undefined);
+  assert.equal(device._inputs.heating_curve_offset.value, 3);
 
   await device._publishInputs();
-  assert.equal(device.apiCalls.length, 1);
-});
-
-test('an older failed offset Flow does not erase a newer value', async () => {
-  const device = makeFeedDevice();
-  let failFirst;
-  const firstDelivery = new Promise((resolve, reject) => { failFirst = reject; });
-  device.client.setNumber = (name, value) => {
-    device.apiCalls.push({ route: 'number', name, value });
-    return value === '3.00' ? firstDelivery : Promise.resolve();
-  };
-
-  const firstFlow = device.setInput('heating_curve_offset', 3);
-  await device.setInput('heating_curve_offset', 4);
-  failFirst(new Error('connection lost'));
-  await assert.rejects(firstFlow, /delivery_failed/);
-  assert.equal(device._inputs.heating_curve_offset.value, 4);
+  assert.deepEqual(device.apiCalls.map(call => call.value), ['3.00', '3.00']);
 });
 
 test('the permissions take the switch route, MQTT as boolean', async () => {

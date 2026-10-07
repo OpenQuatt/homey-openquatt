@@ -968,8 +968,8 @@
           "nl": "Stuur stooklijn-offset [[offset]] °C naar de controller"
         },
         "hint": {
-          "en": "Requires OpenQuatt firmware with heating curve offset support. This adjusts the local heating curve, not the supply target. Sent via API input (or MQTT from the device settings), then re-sent every minute until Maximum sensor value age expires. Select API input or MQTT under Heating curve offset in the OpenQuatt web app.",
-          "nl": "Vereist OpenQuatt-firmware met stooklijn-offset. Dit corrigeert de lokale stooklijn en vervangt het aanvoertarget niet. Gaat via API-invoer (of MQTT uit de apparaatinstellingen) en wordt elke minuut herhaald tot Maximale leeftijd sensorwaarde is verstreken. Kies API-invoer of MQTT bij Stooklijn-offset in de OpenQuatt web-app."
+          "en": "Requires OpenQuatt firmware with heating curve offset support. This adjusts the local heating curve, not the supply target. Sent via API input (or MQTT from the device settings) and re-sent every minute until you send a new value; send 0 to clear it. After an app restart the offset lapses to 0. Select API input or MQTT under Heating curve offset in the OpenQuatt web app.",
+          "nl": "Vereist OpenQuatt-firmware met stooklijn-offset. Dit corrigeert de lokale stooklijn en vervangt het aanvoertarget niet. Gaat via API-invoer (of MQTT uit de apparaatinstellingen) en wordt elke minuut herhaald tot je een nieuwe waarde stuurt; stuur 0 om hem te wissen. Na een herstart van de app vervalt de offset naar 0. Kies API-invoer of MQTT bij Stooklijn-offset in de OpenQuatt web-app."
         },
         "args": [
           {
