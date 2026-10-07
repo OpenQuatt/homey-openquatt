@@ -80,7 +80,7 @@ The cooling permission is the regular permission signal, so the controller weigh
 
 One thing to set on the controller side: in the OpenQuatt web app under *Settings → Sources / integrations → Sensor selection*, the signal has to be allowed to use API input (or MQTT) as its source — `Auto` covers that for most of them.
 
-For the heating curve offset, explicitly select *API input* or *MQTT* under *Stooklijn-offset* in the OpenQuatt web app. It adjusts the local heating curve and does not replace the supply target.
+For the heating curve offset, explicitly select *API input* or *MQTT* under *Heating curve offset* in the OpenQuatt web app. It adjusts the local heating curve and does not replace the supply target.
 
 ### Dashboard widget
 
