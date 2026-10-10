@@ -10,8 +10,11 @@ const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 // Entity id (as seen on the /events stream) -> Homey capability. Every
 // capability here is also an Insights log, which is the point of exposing the
 // numbers and booleans below rather than keeping them widget-only telemetry.
+// The firmware has no system-wide return sensor; the return water enters at
+// HP1, whose water inlet the web app's overview shows as the return as well.
 const ENTITY_CAPABILITIES = {
   'sensor-water_supply_temp__selected_': 'measure_temperature.supply',
+  'sensor-hp1_-_water_in_temperature': 'measure_temperature.return',
   'sensor-outside_temperature__selected_': 'measure_temperature.outside',
   'sensor-room_temperature__selected_': 'measure_temperature.room',
   'sensor-room_setpoint__selected_': 'measure_temperature.setpoint',
@@ -47,6 +50,7 @@ const MIGRATED_CAPABILITIES = [
   'oq_heating_permitted',
   'oq_cooling_permitted',
   'onoff.openquatt',
+  'measure_temperature.return',
 ];
 
 const HEATING_MODES = ['CM2', 'CM3', 'CM4'];

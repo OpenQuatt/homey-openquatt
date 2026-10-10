@@ -9,6 +9,7 @@ const OpenQuattDevice = require('../drivers/openquatt/device');
 
 const ALL_CAPABILITIES = [
   'measure_temperature.supply',
+  'measure_temperature.return',
   'measure_temperature.outside',
   'measure_temperature.room',
   'measure_temperature.setpoint',
@@ -85,6 +86,7 @@ test('maps the Insights entities onto their capabilities', () => {
   device._onState({ id: 'binary_sensor-heating_enable__selected_', value: true, state: 'ON' });
   device._onState({ id: 'binary_sensor-cooling_enable__selected_', value: false, state: 'OFF' });
   device._onState({ id: 'switch-openquatt_enabled', value: true, state: 'ON' });
+  device._onState({ id: 'sensor-hp1_-_water_in_temperature', value: 27.84, state: '27.84 °C' });
 
   assert.equal(device.capabilityValues.oq_cop, 4.12);
   assert.equal(device.capabilityValues.oq_flow, 780);
@@ -92,6 +94,7 @@ test('maps the Insights entities onto their capabilities', () => {
   assert.equal(device.capabilityValues.oq_heating_permitted, true);
   assert.equal(device.capabilityValues.oq_cooling_permitted, false);
   assert.equal(device.capabilityValues['onoff.openquatt'], true);
+  assert.equal(device.capabilityValues['measure_temperature.return'], 27.84);
 });
 
 test('thermal power feeds both the widget and its capability', () => {

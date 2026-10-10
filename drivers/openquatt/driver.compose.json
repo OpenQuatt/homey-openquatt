@@ -6,6 +6,7 @@
   "class": "thermostat",
   "capabilities": [
     "measure_temperature.supply",
+    "measure_temperature.return",
     "measure_temperature.outside",
     "measure_temperature.room",
     "measure_temperature.setpoint",
@@ -31,6 +32,12 @@
       "title": {
         "en": "Supply temperature",
         "nl": "Aanvoertemperatuur"
+      }
+    },
+    "measure_temperature.return": {
+      "title": {
+        "en": "Return temperature",
+        "nl": "Retourtemperatuur"
       }
     },
     "measure_temperature.outside": {

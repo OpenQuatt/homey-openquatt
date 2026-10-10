@@ -39,5 +39,9 @@
   "1.6.0": {
     "en": "New flow card: send a heating curve offset (−5 to +5 °C) to the controller. It shifts the controller's own heating curve up or down, and stands until you send a new value; send 0 to clear it. Needs controller firmware with heating curve offset support.",
     "nl": "Nieuwe flow-kaart: stuur een stooklijn-offset (−5 tot +5 °C) naar de controller. Die verschuift de eigen stooklijn van de controller omhoog of omlaag, en blijft staan tot je een nieuwe waarde stuurt; stuur 0 om hem te wissen. Vereist controller-firmware met stooklijn-offset."
+  },
+  "1.7.0": {
+    "en": "The return temperature (the water coming back in at HP1) is now on the device and in Insights, so you can follow it next to the supply temperature.",
+    "nl": "De retourtemperatuur (het water dat bij HP1 terugkomt) staat nu op het apparaat en in Insights, zodat je hem naast de aanvoertemperatuur kunt volgen."
   }
 }

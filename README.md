@@ -29,6 +29,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | Capability | Source |
 |---|---|
 | Supply / outside / room temperature | live, pushed by the controller |
+| Return temperature (HP1 water inlet) | live |
 | Room setpoint (as selected by the controller) | live |
 | Dew point (as selected by the controller) | live |
 | Power in, heat output, cooling output | live |
