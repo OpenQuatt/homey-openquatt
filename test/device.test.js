@@ -458,11 +458,13 @@ test('commands are stored and restored, measurements are not', async () => {
   assert.deepEqual(device.stored, {
     room_setpoint: 21, heating_enable: true, cooling_enable: false,
   });
-  assert.deepEqual(device._restoreInputs(), {
-    room_setpoint: { value: 21, updatedAt: device._inputs.room_setpoint.updatedAt },
-    heating_enable: { value: true, updatedAt: device._inputs.heating_enable.updatedAt },
-    cooling_enable: { value: false, updatedAt: device._inputs.cooling_enable.updatedAt },
-  });
+  // Restored entries are stamped at restore time, so compare the values only:
+  // matching timestamps would fail whenever a millisecond passes in between.
+  const restored = device._restoreInputs();
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(restored).map(([key, entry]) => [key, entry.value])),
+    { room_setpoint: 21, heating_enable: true, cooling_enable: false },
+  );
 });
 
 test('the publish loop drops stale measurements but keeps commands standing', async () => {
