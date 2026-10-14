@@ -7,6 +7,7 @@
   "capabilities": [
     "measure_temperature.supply",
     "measure_temperature.return",
+    "measure_temperature.supply_target",
     "measure_temperature.outside",
     "measure_temperature.room",
     "measure_temperature.setpoint",
@@ -38,6 +39,12 @@
       "title": {
         "en": "Return temperature",
         "nl": "Retourtemperatuur"
+      }
+    },
+    "measure_temperature.supply_target": {
+      "title": {
+        "en": "Supply target (heating curve)",
+        "nl": "Aanvoertarget (stooklijn)"
       }
     },
     "measure_temperature.outside": {

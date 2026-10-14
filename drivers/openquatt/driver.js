@@ -98,6 +98,16 @@ class OpenQuattDriver extends Homey.Driver {
         await device.setInput('room_setpoint', setpoint);
       });
 
+    this.homey.flow.getActionCard('send_heating_supply_target')
+      .registerRunListener(async ({ device, target }) => {
+        await device.setInput('heating_supply_target', target);
+      });
+
+    this.homey.flow.getActionCard('release_heating_supply_target')
+      .registerRunListener(async ({ device }) => {
+        device.releaseInput('heating_supply_target');
+      });
+
     this.homey.flow.getActionCard('send_heating_curve_offset')
       .registerRunListener(async ({ device, offset }) => {
         await device.setInput('heating_curve_offset', offset);

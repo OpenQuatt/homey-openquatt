@@ -30,6 +30,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 |---|---|
 | Supply / outside / room temperature | live, pushed by the controller |
 | Return temperature (HP1 water inlet) | live |
+| Supply target (heating curve) | live, the target the heating curve control steers to |
 | Room setpoint (as selected by the controller) | live |
 | Dew point (as selected by the controller) | live |
 | Power in, heat output, cooling output | live |
@@ -47,7 +48,7 @@ Every number and switch above is a capability, so Homey logs it in **Insights** 
 
 - **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off, the dew point became available / was lost
 - **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …, a dew point is available, cooling is permitted
-- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, set the heating permission, set the cooling permission
+- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, send a supply target, hand the supply target back to the heating curve, send a heating curve offset, set the heating permission, set the cooling permission
 
 ### Dew point & cooling safety
 
@@ -71,17 +72,20 @@ The dew point is not the only source value the controller accepts from outside. 
 | Send the outside temperature to the controller | -40…60 °C | until your flow stops refreshing it |
 | Send the room temperature to the controller | 0…50 °C | until your flow stops refreshing it |
 | Send the room setpoint to the controller | 5…35 °C | until you send a new value |
+| Send a supply target to the controller | 20…70 °C | until you send a new value or hand it back to the heating curve |
 | Send the heating curve offset to the controller | −5…+5 °C | until you send a new value |
 | Set heating permission (on/off) | — | until you send a new value |
 | Set cooling permission (on/off) | — | until you send a new value |
 
-The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default) — the controller then falls back to its own source, rather than steering on a value from this morning. The setpoint, the heating curve offset and the two permissions are commands rather than measurements: they stand until you send a new value. The setpoint and the permissions are also re-asserted after an app restart. The offset is not: after a restart the controller lets it lapse to 0 °C once its 15-minute validity window has passed. Send 0 °C to clear the offset immediately.
+The app re-sends everything it feeds every minute, so the controller's validity windows (10 to 30 minutes, depending on the signal) never expire underneath you. Measurements stop being sent once the flow behind them goes quiet for longer than *Maximum sensor value age* (60 minutes by default) — the controller then falls back to its own source, rather than steering on a value from this morning. The setpoint, the supply target, the heating curve offset and the two permissions are commands rather than measurements: they stand until you send a new value. The setpoint and the permissions are also re-asserted after an app restart. The supply target and the offset are not: after a restart the controller lets them lapse once their 15-minute validity window has passed, back to its own heating curve and to a 0 °C offset. Send 0 °C to clear the offset immediately.
 
 The cooling permission is the regular permission signal, so the controller weighs it against the source you picked. *Set manual cooling enable* is a different card for a different thing: OpenQuatt's manual override, which permits cooling regardless of the selected source.
 
 One thing to set on the controller side: in the OpenQuatt web app under *Settings → Sources / integrations → Sensor selection*, the signal has to be allowed to use API input (or MQTT) as its source — `Auto` covers that for most of them.
 
 For the heating curve offset, explicitly select *API input* or *MQTT* under *Heating curve offset* in the OpenQuatt web app. It adjusts the local heating curve and does not replace the supply target.
+
+The supply target goes further: it replaces the heating curve's own target, room correction included, for as long as it stands, and takes priority over the offset. Use it when something else already knows how warm the water should be, such as a buffer tank flow. The controller's water temperature limits, its PID and the heat pump control stay its own. Select *API input* or *MQTT* under *Supply target (heating curve)* in the OpenQuatt web app; the default, *Heating curve*, ignores it. There is no neutral value to clear it with, so *Hand the supply target back to the heating curve* stops sending it instead: the controller returns to its curve once the last value has expired, within 15 minutes. The *Supply target (heating curve)* value on the device shows the target the control actually steers to, whichever of the two it is.
 
 ### Dashboard widget
 

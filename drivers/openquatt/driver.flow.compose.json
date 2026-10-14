@@ -701,6 +701,45 @@
       ]
     },
     {
+      "id": "send_heating_supply_target",
+      "title": {
+        "en": "Send a supply target to the controller",
+        "nl": "Stuur een aanvoertarget naar de controller"
+      },
+      "titleFormatted": {
+        "en": "Send supply target [[target]] °C to the controller",
+        "nl": "Stuur aanvoertarget [[target]] °C naar de controller"
+      },
+      "hint": {
+        "en": "Requires OpenQuatt firmware with external supply target support. Replaces the controller's own heating curve target, room correction included; its water temperature limits and heat pump control stay its own. Sent via API input (or MQTT from the device settings) and re-sent every minute until you send a new value or hand it back to the heating curve. After an app restart the controller returns to its heating curve. Select API input or MQTT under Supply target (heating curve) in the OpenQuatt web app.",
+        "nl": "Vereist OpenQuatt-firmware met extern aanvoertarget. Vervangt het eigen stooklijntarget van de controller, inclusief kamercorrectie; de watertemperatuurgrenzen en de warmtepompregeling blijven van de controller. Gaat via API-invoer (of MQTT uit de apparaatinstellingen) en wordt elke minuut herhaald tot je een nieuwe waarde stuurt of het teruggeeft aan de stooklijn. Na een herstart van de app gaat de controller terug naar zijn stooklijn. Kies API-invoer of MQTT bij Aanvoertarget (stooklijn) in de OpenQuatt web-app."
+      },
+      "args": [
+        {
+          "name": "target",
+          "type": "number",
+          "min": 20,
+          "max": 70,
+          "step": 0.1,
+          "placeholder": {
+            "en": "Supply target (°C)",
+            "nl": "Aanvoertarget (°C)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "release_heating_supply_target",
+      "title": {
+        "en": "Hand the supply target back to the heating curve",
+        "nl": "Geef het aanvoertarget terug aan de stooklijn"
+      },
+      "hint": {
+        "en": "Stops sending the supply target. The controller returns to its own heating curve once the last value has expired, within 15 minutes.",
+        "nl": "Stopt met het versturen van het aanvoertarget. De controller gaat terug naar zijn eigen stooklijn zodra de laatste waarde is verlopen, binnen 15 minuten."
+      }
+    },
+    {
       "id": "send_heating_curve_offset",
       "title": {
         "en": "Send a heating curve offset to the controller",

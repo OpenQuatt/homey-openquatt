@@ -10,6 +10,7 @@ const OpenQuattDevice = require('../drivers/openquatt/device');
 const ALL_CAPABILITIES = [
   'measure_temperature.supply',
   'measure_temperature.return',
+  'measure_temperature.supply_target',
   'measure_temperature.outside',
   'measure_temperature.room',
   'measure_temperature.setpoint',
@@ -87,6 +88,7 @@ test('maps the Insights entities onto their capabilities', () => {
   device._onState({ id: 'binary_sensor-cooling_enable__selected_', value: false, state: 'OFF' });
   device._onState({ id: 'switch-openquatt_enabled', value: true, state: 'ON' });
   device._onState({ id: 'sensor-hp1_-_water_in_temperature', value: 27.84, state: '27.84 °C' });
+  device._onState({ id: 'sensor-heating_supply_target__effective_', value: 34.5, state: '34.5 °C' });
 
   assert.equal(device.capabilityValues.oq_cop, 4.12);
   assert.equal(device.capabilityValues.oq_flow, 780);
@@ -95,6 +97,7 @@ test('maps the Insights entities onto their capabilities', () => {
   assert.equal(device.capabilityValues.oq_cooling_permitted, false);
   assert.equal(device.capabilityValues['onoff.openquatt'], true);
   assert.equal(device.capabilityValues['measure_temperature.return'], 27.84);
+  assert.equal(device.capabilityValues['measure_temperature.supply_target'], 34.5);
 });
 
 test('thermal power feeds both the widget and its capability', () => {
@@ -366,6 +369,54 @@ test('a heating curve offset that failed to deliver is retried on the next tick'
 
   await device._publishInputs();
   assert.deepEqual(device.apiCalls.map(call => call.value), ['3.00', '3.00']);
+});
+
+test('the supply target uses API and MQTT, and stands without being stored', async () => {
+  const published = [];
+  const device = makeFeedDevice({
+    publisher: {
+      publish: (topic, payload) => {
+        published.push({ topic, payload });
+        return true;
+      },
+    },
+  });
+
+  await device.setInput('heating_supply_target', 42);
+  assert.deepEqual(device.apiCalls, [
+    { route: 'number', name: 'api_input_heating_supply_target', value: '42.00' },
+  ]);
+  assert.deepEqual(published, [
+    { topic: 'openquatt/openquatt/input/heating/supply_target', payload: '42.00' },
+  ]);
+  assert.equal(device.stored, null);
+
+  // A command, not a measurement: it outlives the sensor age.
+  device._inputs.heating_supply_target.updatedAt -= 61 * 60 * 1000;
+  await device._publishInputs();
+  assert.equal(device._inputs.heating_supply_target.value, 42);
+  assert.equal(device.apiCalls.length, 2);
+});
+
+test('a released supply target is no longer re-sent', async () => {
+  const device = makeFeedDevice();
+
+  await device.setInput('heating_supply_target', 42);
+  device.releaseInput('heating_supply_target');
+  await device._publishInputs();
+
+  assert.equal(device._inputs.heating_supply_target, undefined);
+  assert.equal(device.apiCalls.length, 1);
+  // Releasing what was never sent is harmless.
+  device.releaseInput('heating_supply_target');
+});
+
+test('setInput rejects a supply target outside the heating range', async () => {
+  const device = makeFeedDevice();
+
+  await assert.rejects(device.setInput('heating_supply_target', 15), /out_of_range/);
+  await assert.rejects(device.setInput('heating_supply_target', 75), /out_of_range/);
+  assert.equal(device.apiCalls.length, 0);
 });
 
 test('the permissions take the switch route, MQTT as boolean', async () => {

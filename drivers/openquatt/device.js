@@ -12,9 +12,12 @@ const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 // numbers and booleans below rather than keeping them widget-only telemetry.
 // The firmware has no system-wide return sensor; the return water enters at
 // HP1, whose water inlet the web app's overview shows as the return as well.
+// The effective supply target is what the heating curve control steers to: an
+// external target while one is valid, the curve with its corrections otherwise.
 const ENTITY_CAPABILITIES = {
   'sensor-water_supply_temp__selected_': 'measure_temperature.supply',
   'sensor-hp1_-_water_in_temperature': 'measure_temperature.return',
+  'sensor-heating_supply_target__effective_': 'measure_temperature.supply_target',
   'sensor-outside_temperature__selected_': 'measure_temperature.outside',
   'sensor-room_temperature__selected_': 'measure_temperature.room',
   'sensor-room_setpoint__selected_': 'measure_temperature.setpoint',
@@ -51,6 +54,7 @@ const MIGRATED_CAPABILITIES = [
   'oq_cooling_permitted',
   'onoff.openquatt',
   'measure_temperature.return',
+  'measure_temperature.supply_target',
 ];
 
 const HEATING_MODES = ['CM2', 'CM3', 'CM4'];
@@ -268,6 +272,18 @@ class OpenQuattDevice extends Homey.Device {
     if (await this._deliver(key, value) === false) {
       throw new Error(this.homey.__('input.delivery_failed'));
     }
+  }
+
+  /**
+   * Stop feeding a command that has no neutral value to send instead. The
+   * controller keeps the last value until its own validity window runs out,
+   * then falls back to its own source.
+   */
+  releaseInput(key) {
+    if (!this._inputs[key]) return;
+    delete this._inputs[key];
+    delete this._deliveryProblems[key];
+    if (API_INPUTS[key].persist) this._storeInputs();
   }
 
   hasFault() {
