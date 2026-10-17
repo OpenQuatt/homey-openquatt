@@ -47,5 +47,9 @@
   "1.8.0": {
     "en": "Supply target (heating curve): see the target the controller steers to on the device and in Insights, and set it from a flow. It replaces the controller's own heating curve target until you send a new value or hand it back to the curve. Needs controller firmware with external supply target support.",
     "nl": "Aanvoertarget (stooklijn): zie het target waar de controller op regelt op het apparaat en in Insights, en stel het in vanuit een flow. Het vervangt het eigen stooklijntarget van de controller tot je een nieuwe waarde stuurt of het teruggeeft aan de stooklijn. Vereist controller-firmware met extern aanvoertarget."
+  },
+  "1.9.0": {
+    "en": "New flow cards for the water flow: when it rose above or dropped below a value you choose, when it changed, and a condition for whether it is above a value. Handy for an alert on low flow before the controller's own protection kicks in.",
+    "nl": "Nieuwe flow-kaarten voor de flow: wanneer die boven of onder een gekozen waarde komt, wanneer die verandert, en een voorwaarde of die hoger is dan een waarde. Handig voor een melding bij lage flow, nog voordat de eigen beveiliging van de controller ingrijpt."
   }
 }

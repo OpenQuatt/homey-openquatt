@@ -13,6 +13,18 @@ const CM_OVERRIDE_OPTIONS = {
 class OpenQuattDriver extends Homey.Driver {
 
   async onInit() {
+    // The device passes the previous and current value as state, so each card
+    // fires only on the reading that crosses its own threshold.
+    this.homey.flow.getDeviceTriggerCard('flow_rose_above')
+      .registerRunListener(async ({ threshold }, { previous, current }) => (
+        previous <= threshold && current > threshold
+      ));
+
+    this.homey.flow.getDeviceTriggerCard('flow_dropped_below')
+      .registerRunListener(async ({ threshold }, { previous, current }) => (
+        previous >= threshold && current < threshold
+      ));
+
     this.homey.flow.getConditionCard('is_cooling')
       .registerRunListener(async ({ device }) => device.isCooling());
 
@@ -41,6 +53,12 @@ class OpenQuattDriver extends Homey.Driver {
 
     this.homey.flow.getConditionCard('cooling_is_permitted')
       .registerRunListener(async ({ device }) => device.isCoolingPermitted());
+
+    this.homey.flow.getConditionCard('flow_is_above')
+      .registerRunListener(async ({ device, threshold }) => {
+        const flow = device.getCapabilityValue('oq_flow');
+        return flow !== null && flow > threshold;
+      });
 
     this.homey.flow.getActionCard('set_manual_cooling')
       .registerRunListener(async ({ device, state }) => {

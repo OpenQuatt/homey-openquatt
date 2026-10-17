@@ -69,6 +69,16 @@ const BINARY_TRIGGERS = {
   'binary_sensor-cooling_dew_point_available': { on: 'dew_point_available', off: 'dew_point_lost' },
 };
 
+// Numeric capabilities that fire a changed trigger and two threshold triggers.
+// Values are compared at the precision the device shows, so sensor noise below
+// it does not fire anything; the threshold cards decide in the driver whether
+// a change crossed their own threshold.
+const NUMERIC_TRIGGERS = {
+  oq_flow: {
+    token: 'flow', decimals: 0, cards: ['flow_changed', 'flow_rose_above', 'flow_dropped_below'],
+  },
+};
+
 // Telemetry keys that feed the aggregated fault state.
 const FAULT_KEYS = ['hp1Failures', 'hp2Failures', 'lowflowFault', 'flowMismatch', 'otLinkProblem'];
 
@@ -131,6 +141,7 @@ class OpenQuattDevice extends Homey.Device {
     this._controlModeCode = null;
     this._telemetry = {};
     this._binary = {};
+    this._numeric = {};
     this._faultActive = null;
     this._deliveryProblems = {};
 
@@ -497,7 +508,11 @@ class OpenQuattDevice extends Homey.Device {
     const capability = ENTITY_CAPABILITIES[state.id];
     if (!capability || !this.hasCapability(capability)) return;
 
-    this.setCapabilityValue(capability, entityValue(state)).catch(this.error);
+    const value = entityValue(state);
+    this.setCapabilityValue(capability, value).catch(this.error);
+
+    const numericTrigger = NUMERIC_TRIGGERS[capability];
+    if (numericTrigger) this._onNumericTrigger(capability, numericTrigger, value);
   }
 
   _onControlMode(code) {
@@ -556,6 +571,22 @@ class OpenQuattDevice extends Homey.Device {
     this.homey.flow.getDeviceTriggerCard(value ? card.on : card.off)
       .trigger(this, card.tokens || {})
       .catch(this.error);
+  }
+
+  // Like the binary triggers, the first value only records state. A reading
+  // without a value ("NA") is skipped, so a sensor dropout is not a drop to 0.
+  _onNumericTrigger(capability, card, raw) {
+    if (raw === null) return;
+    const factor = 10 ** card.decimals;
+    const value = Math.round(raw * factor) / factor;
+    const previous = this._numeric[capability];
+    this._numeric[capability] = value;
+    if (previous === undefined || previous === value) return;
+    for (const id of card.cards) {
+      this.homey.flow.getDeviceTriggerCard(id)
+        .trigger(this, { [card.token]: value }, { previous, current: value })
+        .catch(this.error);
+    }
   }
 
   _evaluateFaults() {

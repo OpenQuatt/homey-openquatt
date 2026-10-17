@@ -38,6 +38,7 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
   device._controlModeCode = null;
   device._telemetry = {};
   device._binary = {};
+  device._numeric = {};
   device._faultActive = null;
 
   device.triggered = [];
@@ -46,8 +47,8 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
     __: key => key,
     flow: {
       getDeviceTriggerCard: id => ({
-        trigger: (dev, tokens) => {
-          device.triggered.push({ id, tokens });
+        trigger: (dev, tokens, state) => {
+          device.triggered.push(state === undefined ? { id, tokens } : { id, tokens, state });
           return Promise.resolve();
         },
       }),
@@ -184,6 +185,33 @@ test('binary triggers only fire on edges, with their tokens', () => {
   device._onState({ id: 'binary_sensor-boiler_active', value: true, state: 'ON' });
   assert.deepEqual(device.triggered, [{ id: 'boiler_started', tokens: {} }]);
   assert.equal(device.isBoilerActive(), true);
+});
+
+test('flow triggers fire on whole-number changes, with previous and current', () => {
+  const device = makeDevice();
+  const flow = value => device._onState({ id: 'sensor-flow_average__selected_', value, state: `${value} L/h` });
+  const cards = (tokens, state) => ['flow_changed', 'flow_rose_above', 'flow_dropped_below']
+    .map(id => ({ id, tokens, state }));
+
+  // The first reading only records state.
+  flow(812.4);
+  assert.deepEqual(device.triggered, []);
+  assert.equal(device.capabilityValues.oq_flow, 812.4);
+
+  // Noise below the shown precision fires nothing.
+  flow(811.6);
+  assert.deepEqual(device.triggered, []);
+
+  flow(640.2);
+  assert.deepEqual(device.triggered, cards({ flow: 640 }, { previous: 812, current: 640 }));
+
+  // A dropout is skipped, not a drop to zero; the next reading compares
+  // against the last real one.
+  device.triggered = [];
+  flow('NA');
+  assert.deepEqual(device.triggered, []);
+  flow(655);
+  assert.deepEqual(device.triggered, cards({ flow: 655 }, { previous: 640, current: 655 }));
 });
 
 test('aggregates faults and translates the boolean ones', () => {

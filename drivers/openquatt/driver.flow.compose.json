@@ -155,6 +155,102 @@
         "en": "Without a valid dew point the controller blocks or limits cooling, depending on its configuration.",
         "nl": "Zonder geldig dauwpunt blokkeert of beperkt de controller het koelen, afhankelijk van de instellingen."
       }
+    },
+    {
+      "id": "flow_changed",
+      "title": {
+        "en": "The water flow changed",
+        "nl": "De flow is veranderd"
+      },
+      "tokens": [
+        {
+          "name": "flow",
+          "type": "number",
+          "title": {
+            "en": "Water flow (L/h)",
+            "nl": "Flow (L/u)"
+          },
+          "example": 900
+        }
+      ]
+    },
+    {
+      "id": "flow_rose_above",
+      "title": {
+        "en": "The water flow rose above a value",
+        "nl": "De flow is boven een waarde gestegen"
+      },
+      "titleFormatted": {
+        "en": "The water flow rose above [[threshold]] L/h",
+        "nl": "De flow is boven [[threshold]] L/u gestegen"
+      },
+      "hint": {
+        "en": "Fires once when the flow crosses the value, not on every reading above it.",
+        "nl": "Gaat één keer af wanneer de flow de waarde passeert, niet bij elke meting erboven."
+      },
+      "tokens": [
+        {
+          "name": "flow",
+          "type": "number",
+          "title": {
+            "en": "Water flow (L/h)",
+            "nl": "Flow (L/u)"
+          },
+          "example": 900
+        }
+      ],
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "min": 0,
+          "max": 5000,
+          "step": 1,
+          "placeholder": {
+            "en": "Water flow (L/h)",
+            "nl": "Flow (L/u)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "flow_dropped_below",
+      "title": {
+        "en": "The water flow dropped below a value",
+        "nl": "De flow is onder een waarde gezakt"
+      },
+      "titleFormatted": {
+        "en": "The water flow dropped below [[threshold]] L/h",
+        "nl": "De flow is onder [[threshold]] L/u gezakt"
+      },
+      "hint": {
+        "en": "Fires once when the flow crosses the value, not on every reading below it.",
+        "nl": "Gaat één keer af wanneer de flow de waarde passeert, niet bij elke meting eronder."
+      },
+      "tokens": [
+        {
+          "name": "flow",
+          "type": "number",
+          "title": {
+            "en": "Water flow (L/h)",
+            "nl": "Flow (L/u)"
+          },
+          "example": 900
+        }
+      ],
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "min": 0,
+          "max": 5000,
+          "step": 1,
+          "placeholder": {
+            "en": "Water flow (L/h)",
+            "nl": "Flow (L/u)"
+          }
+        }
+      ]
     }
   ],
   "conditions": [
@@ -265,6 +361,30 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "flow_is_above",
+      "title": {
+        "en": "The water flow is !{{above|not above}} a value",
+        "nl": "De flow is !{{hoger|niet hoger}} dan een waarde"
+      },
+      "titleFormatted": {
+        "en": "The water flow is !{{above|not above}} [[threshold]] L/h",
+        "nl": "De flow is !{{hoger|niet hoger}} dan [[threshold]] L/u"
+      },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "min": 0,
+          "max": 5000,
+          "step": 1,
+          "placeholder": {
+            "en": "Water flow (L/h)",
+            "nl": "Flow (L/u)"
+          }
         }
       ]
     }
