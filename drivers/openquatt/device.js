@@ -86,8 +86,8 @@ const FAULT_KEYS = ['hp1Failures', 'hp2Failures', 'lowflowFault', 'flowMismatch'
 // to finish before treating fault changes as real transitions.
 const FAULT_SETTLE_MS = 15000;
 
-// Extra entities kept in memory for the status widget — not exposed as
-// capabilities to avoid cluttering the device page.
+// Extra entities kept in memory for the widgets — not exposed as capabilities
+// to avoid cluttering the device page.
 const TELEMETRY_ENTITIES = {
   'text_sensor-hp1_-_active_failures_list': 'hp1Failures',
   'text_sensor-hp2_-_active_failures_list': 'hp2Failures',
@@ -104,7 +104,30 @@ const TELEMETRY_ENTITIES = {
   'sensor-heatpump_eer_daily': 'eerDaily',
   'binary_sensor-cooling_permitted': 'coolingPermitted',
   'sensor-cooling_effective_minimum_supply_temp': 'minSupplyTemp',
+  'select-quatt_hybrid_version': 'hybridVersion',
 };
+
+// Per-unit entities for the heat pump widget. Both units carry the same set
+// under their own prefix ("HP1 - ", "HP2 - "), so they are keyed by domain and
+// the object id after that prefix. HP2 only exists on duo installations.
+const HEATPUMP_ENTITIES = {
+  'text_sensor-working_mode_label': 'mode',
+  'binary_sensor-defrost': 'defrost',
+  'text_sensor-active_failures_list': 'failures',
+  'sensor-compressor_frequency': 'frequency',
+  'sensor-fan_speed': 'fanSpeed',
+  'sensor-outside_temperature': 'outside',
+  'sensor-power_input': 'power',
+  'sensor-heat_power': 'heatPower',
+  'sensor-cooling_power': 'coolPower',
+  'sensor-cop': 'cop',
+  'sensor-eer': 'eer',
+  'sensor-water_in_temperature': 'waterIn',
+  'sensor-water_out_temperature': 'waterOut',
+  'sensor-flow': 'flow',
+};
+
+const HEATPUMP_ENTITY_ID = /^([a-z_]+)-(hp[12])_-_(.+)$/;
 
 // The aux relay function select is `internal: true` in the firmware, so it is
 // absent from the event stream and has to be polled via REST.
@@ -140,6 +163,7 @@ class OpenQuattDevice extends Homey.Device {
   async onInit() {
     this._controlModeCode = null;
     this._telemetry = {};
+    this._heatpumps = {};
     this._binary = {};
     this._numeric = {};
     this._faultActive = null;
@@ -485,12 +509,38 @@ class OpenQuattDevice extends Homey.Device {
     return { ...this._telemetry, controlModeCode: this._controlModeCode };
   }
 
+  /**
+   * The live values of one heat pump unit ('hp1' or 'hp2') for the heat pump
+   * widget, or null while the controller has not reported that unit, which on
+   * a single installation is always the case for HP2.
+   */
+  getHeatpump(unit) {
+    const values = this._heatpumps[unit];
+    if (!values) return null;
+    const heatpump = { ...values };
+    // A Quatt Hybrid V1 has no usable flow reading on HP1 itself; the web app
+    // shows the system's selected flow there instead, and so does the widget.
+    if (unit === 'hp1' && this._telemetry.hybridVersion === 'V1') {
+      heatpump.flow = this.hasCapability('oq_flow') ? this.getCapabilityValue('oq_flow') : null;
+    }
+    return heatpump;
+  }
+
   _onState(state) {
     const telemetryKey = TELEMETRY_ENTITIES[state.id];
     if (telemetryKey) {
       this._telemetry[telemetryKey] = entityValue(state);
       if (FAULT_KEYS.includes(telemetryKey)) this._evaluateFaults();
       // No early return: an entity may feed both the widget and a capability.
+    }
+
+    const unit = HEATPUMP_ENTITY_ID.exec(state.id);
+    const heatpumpKey = unit && HEATPUMP_ENTITIES[`${unit[1]}-${unit[3]}`];
+    if (heatpumpKey) {
+      if (!this._heatpumps[unit[2]]) this._heatpumps[unit[2]] = {};
+      this._heatpumps[unit[2]][heatpumpKey] = entityValue(state);
+      // No early return here either: the HP1 water inlet is also the return
+      // temperature capability, and the defrost entities fire triggers.
     }
 
     // The raw control mode code drives the flow triggers.

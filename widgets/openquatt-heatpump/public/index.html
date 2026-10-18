@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* The widget itself must never scroll; vertical swipe gestures should
+       pass through to the Homey app's dashboard. */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+
+    /* Same palette as the status widget: ink and orange on light backgrounds,
+       chalk and a brighter orange on dark ones. Homey flags dark mode with
+       the .homey-dark-mode class; .oq-dark is our own fallback (see syncTheme). */
+    :root {
+      --oq-primary: #0f1724;
+      --oq-accent: #ea580c;
+      --oq-accent-soft: rgba(234, 88, 12, 0.14);
+      --oq-cool: #0284c7;
+      --oq-cool-soft: rgba(14, 165, 233, 0.14);
+      --oq-line: rgba(128, 144, 168, 0.28);
+      --oq-panel: rgba(128, 144, 168, 0.08);
+      --oq-blade: rgba(100, 116, 139, 0.55);
+    }
+    .homey-dark-mode, .oq-dark {
+      --oq-primary: #f8fafc;
+      --oq-accent: #f97316;
+      --oq-accent-soft: rgba(249, 115, 22, 0.18);
+      --oq-cool: #38bdf8;
+      --oq-cool-soft: rgba(56, 189, 248, 0.16);
+      --oq-line: rgba(148, 163, 184, 0.22);
+      --oq-panel: rgba(148, 163, 184, 0.07);
+      --oq-blade: rgba(203, 213, 225, 0.5);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--homey-text-color, #1c2b3a);
+      padding: var(--homey-su-4, 16px);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mark {
+      flex: 0 0 auto;
+      display: block;
+      width: 24px;
+      height: 24px;
+    }
+    .mark .p { fill: var(--oq-primary); }
+    .mark .tail { fill: none; stroke: var(--oq-accent); }
+    .title {
+      font-size: var(--homey-font-size-large, 20px);
+      font-weight: var(--homey-font-weight-bold, 700);
+      line-height: 24px;
+    }
+
+    .badge {
+      margin-left: auto;
+      font-size: var(--homey-font-size-small, 14px);
+      font-weight: var(--homey-font-weight-medium, 500);
+      padding: 3px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge.idle  { background: rgba(128, 144, 168, 0.18); color: var(--homey-text-color-light, #6b7a8c); }
+    .badge.heat  { background: var(--oq-accent-soft); color: var(--oq-accent); }
+    .badge.cool  { background: var(--oq-cool-soft);   color: var(--oq-cool); }
+    .badge.frost { background: var(--oq-cool-soft);   color: var(--homey-text-color-light, #6b7a8c); }
+    .badge.off   { background: rgba(220, 68, 68, 0.14);   color: var(--homey-text-color-danger, #dc4444); }
+
+    .brandline {
+      position: relative;
+      height: 2px;
+      border-radius: 1px;
+      margin: 10px 0 12px;
+      background: var(--oq-line);
+    }
+    .brandline::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 44px;
+      border-radius: 1px;
+      background: var(--oq-accent);
+    }
+
+    /* The scheme: the water side on the left, the outdoor unit on the right.
+       The pipes stretch with the widget width; the unit keeps its size. */
+    .scheme {
+      display: flex;
+      height: 108px;
+    }
+    .water {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .reading {
+      position: absolute;
+      left: 0;
+      right: 8px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      height: 20px;
+      line-height: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .reading.top { top: 0; }
+    .reading.mid { top: 44px; }
+    .reading.bottom { top: 88px; }
+    .reading .spacer { flex: 1 1 auto; }
+    .cap {
+      font-size: 12px;
+      color: var(--homey-text-color-light, #6b7a8c);
+    }
+    .val {
+      font-size: 16px;
+      font-weight: var(--homey-font-weight-bold, 700);
+      font-variant-numeric: tabular-nums;
+    }
+    .val.sm { font-size: 14px; }
+
+    /* Narrow dashboard columns: drop the ΔT first, then the captions, so the
+       values keep their room next to the unit. */
+    @media (max-width: 340px) {
+      #delta { display: none; }
+    }
+    @media (max-width: 290px) {
+      .reading .cap { display: none; }
+    }
+
+    .pipe {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 6px;
+      border-radius: 3px 0 0 3px;
+      overflow: hidden;
+      background: var(--oq-line);
+    }
+    .pipe.out { top: 29px; }
+    .pipe.in { top: 73px; }
+    .pipe i {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -12px;
+      right: -12px;
+      opacity: 0;
+      background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.75) 0 3px, transparent 3px 12px);
+    }
+    .is-flowing .pipe.hot { background: var(--oq-accent); }
+    .is-flowing .pipe.cold { background: var(--oq-cool); }
+    .unit .port { fill: var(--oq-line); }
+    .is-flowing .unit .port.hot { fill: var(--oq-accent); }
+    .is-flowing .unit .port.cold { fill: var(--oq-cool); }
+    .is-flowing .pipe i {
+      opacity: 1;
+      animation: var(--oq-flow-speed, 1s) linear infinite;
+    }
+    /* Water leaves the unit on the supply pipe and comes back on the return. */
+    .is-flowing .pipe.out i { animation-name: flow-left; }
+    .is-flowing .pipe.in i { animation-name: flow-right; }
+    @keyframes flow-left { to { transform: translateX(-12px); } }
+    @keyframes flow-right { to { transform: translateX(12px); } }
+
+    .unit {
+      flex: 0 0 auto;
+      display: block;
+      width: 150px;
+      height: 108px;
+      overflow: visible;
+    }
+    .unit .body { fill: var(--oq-panel); stroke: var(--oq-line); stroke-width: 1.5; }
+    .unit .divider { stroke: var(--oq-line); stroke-width: 1; }
+    .unit .ring { fill: none; stroke: var(--oq-line); stroke-width: 2; }
+    .unit .hub { fill: var(--oq-blade); }
+    .unit .blades {
+      fill: var(--oq-blade);
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .is-fan-running .unit .blades { animation: spin var(--oq-fan-speed, 1s) linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .unit text { fill: var(--homey-text-color, #1c2b3a); }
+    .unit .u, .unit .c { fill: var(--homey-text-color-light, #6b7a8c); }
+    .unit .u { font-size: 11px; }
+    .unit .c { font-size: 10px; }
+    .unit .v-lg {
+      font-size: 22px;
+      font-weight: var(--homey-font-weight-bold, 700);
+      font-variant-numeric: tabular-nums;
+    }
+    .unit .v-sm {
+      font-size: 14px;
+      font-weight: var(--homey-font-weight-bold, 700);
+      font-variant-numeric: tabular-nums;
+    }
+    .is-heating .unit .freq { fill: var(--oq-accent); }
+    .is-cooling .unit .freq { fill: var(--oq-cool); }
+
+    .unit .frost {
+      fill: var(--oq-cool);
+      opacity: 0;
+    }
+    .is-defrosting .unit .frost { opacity: 1; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+
+    /* Stale values while the controller is offline: keep them, stop the motion. */
+    .is-offline .scheme { opacity: 0.55; }
+    .is-offline .pipe i, .is-offline .unit .blades, .is-offline .unit .frost { animation: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pipe i, .unit .blades, .unit .frost { animation: none !important; }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .stat .label {
+      font-size: 13px;
+      color: var(--homey-text-color-light, #6b7a8c);
+      white-space: nowrap;
+    }
+    .stat .value {
+      font-size: 18px;
+      font-weight: var(--homey-font-weight-bold, 700);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .stat .value .unit-label {
+      font-size: 12px;
+      font-weight: var(--homey-font-weight-regular, 400);
+      color: var(--homey-text-color-light, #6b7a8c);
+      margin-left: 1px;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--homey-text-color-light, #6b7a8c);
+    }
+    .footer .dot {
+      flex: 0 0 auto;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--homey-text-color-success, #2fa84f);
+    }
+    .footer.problem { color: var(--homey-text-color-danger, #dc4444); }
+    .footer.problem .dot { background: var(--homey-text-color-danger, #dc4444); }
+    .footer .insight {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .footer .time { margin-left: auto; flex: 0 0 auto; }
+
+    .empty {
+      display: none;
+      text-align: center;
+      padding: 24px 8px;
+      color: var(--homey-text-color-light, #6b7a8c);
+    }
+    body.is-empty .empty { display: block; }
+    body.is-empty .scheme, body.is-empty .grid, body.is-empty .footer { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <!-- OpenQuatt mark; colours follow the theme via CSS. The viewBox is the
+         status widget logo's height, centred on the mark, so both show it at
+         the same size. -->
+    <svg class="mark" viewBox="5.85 7.95 79.6 79.6" aria-hidden="true">
+      <g transform="translate(2 5) scale(.9)">
+        <path class="p" d="M62.118 76.32 A37.25 37.25 0 1 1 77.32 61.118 L67.076 50.874 A23.75 23.75 0 1 0 51.874 66.076 Z"/>
+        <path class="tail" d="M53.5 52.5 L83 82" stroke-width="13.5" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div class="title" id="title">HP1</div>
+    <div class="badge idle" id="badge">…</div>
+  </div>
+
+  <div class="brandline"></div>
+
+  <div class="scheme" id="scheme">
+    <div class="water">
+      <div class="reading top"><span class="cap" id="l-supply">Supply</span><span class="val" id="water-out">—</span></div>
+      <div class="pipe out" id="pipe-out"><i></i></div>
+      <div class="reading mid">
+        <span class="cap" id="l-flow">Flow</span><span class="val sm" id="flow">—</span>
+        <span class="spacer"></span><span class="cap" id="delta"></span>
+      </div>
+      <div class="pipe in" id="pipe-in"><i></i></div>
+      <div class="reading bottom"><span class="cap" id="l-return">Return</span><span class="val" id="water-in">—</span></div>
+    </div>
+
+    <svg class="unit" viewBox="0 0 150 108" aria-hidden="true">
+      <rect class="body" x="0.75" y="0.75" width="148.5" height="106.5" rx="16"/>
+      <!-- Where the pipes enter the unit -->
+      <rect class="port out" id="port-out" x="0" y="29" width="9" height="6" rx="3"/>
+      <rect class="port in" id="port-in" x="0" y="73" width="9" height="6" rx="3"/>
+
+      <circle class="ring" cx="40" cy="47" r="29"/>
+      <g transform="translate(40 47) scale(0.72)">
+        <g class="blades">
+          <path d="M0 -34 C11 -22 12 -11 0 0 C-12 -11 -11 -22 0 -34 Z"/>
+          <path d="M34 0 C22 11 11 12 0 0 C11 -12 22 -11 34 0 Z"/>
+          <path d="M0 34 C-11 22 -12 11 0 0 C12 11 11 22 0 34 Z"/>
+          <path d="M-34 0 C-22 -11 -11 -12 0 0 C-11 12 -22 11 -34 0 Z"/>
+        </g>
+      </g>
+      <circle class="hub" cx="40" cy="47" r="4.5"/>
+      <text x="40" y="96" text-anchor="middle"><tspan class="u" id="l-air">air</tspan> <tspan class="v-sm" id="air">—</tspan></text>
+
+      <!-- Defrost: a snowflake over the fan while the unit thaws its coil -->
+      <g class="frost" transform="translate(58 4) scale(0.75)">
+        <path d="M20.79 13.95L18.46 14.57L16.46 13.44V10.56L18.46 9.43L20.79 10.05L21.31 8.12L19.54 7.65L20 5.88L18.07 5.36L17.45 7.69L15.45 8.82L13 7.38V5.12L14.71 3.41L13.29 2L12 3.29L10.71 2L9.29 3.41L11 5.12V7.38L8.5 8.82L6.5 7.69L5.92 5.36L4 5.88L4.47 7.65L2.7 8.12L3.22 10.05L5.55 9.43L7.55 10.56V13.45L5.55 14.58L3.22 13.96L2.7 15.89L4.47 16.36L4 18.12L5.93 18.64L6.55 16.31L8.55 15.18L11 16.62V18.88L9.29 20.59L10.71 22L12 20.71L13.29 22L14.7 20.59L13 18.88V16.62L15.5 15.17L17.5 16.3L18.12 18.63L20 18.12L19.53 16.35L21.3 15.88L20.79 13.95M9.5 10.56L12 9.11L14.5 10.56V13.44L12 14.89L9.5 13.44V10.56Z"/>
+      </g>
+
+      <line class="divider" x1="82" y1="14" x2="82" y2="94"/>
+
+      <text x="116" y="40" text-anchor="middle"><tspan class="v-lg freq" id="freq">—</tspan><tspan class="u" dx="2">Hz</tspan></text>
+      <text class="c" x="116" y="54" text-anchor="middle" id="l-compressor">compressor</text>
+      <text x="116" y="82" text-anchor="middle"><tspan class="v-sm" id="fan">—</tspan><tspan class="u" dx="2">rpm</tspan></text>
+      <text class="c" x="116" y="96" text-anchor="middle" id="l-fan">fan</text>
+    </svg>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><div class="label" id="l-power">Power in</div><div class="value" id="power">—</div></div>
+    <div class="stat"><div class="label" id="l-output">Output</div><div class="value" id="output">—</div></div>
+    <div class="stat"><div class="label" id="efflabel">COP</div><div class="value" id="eff">—</div></div>
+  </div>
+
+  <div class="footer" id="footer">
+    <div class="dot"></div>
+    <div class="insight" id="insight"></div>
+    <div class="time" id="time"></div>
+  </div>
+
+  <div class="empty" id="empty">No OpenQuatt controller paired</div>
+
+  <script type="text/javascript">
+    // UI strings; English is the default, Dutch follows the Homey language.
+    const I18N = {
+      en: {
+        supply: 'Supply',
+        return: 'Return',
+        flow: 'Flow',
+        air: 'air',
+        compressor: 'compressor',
+        fan: 'fan',
+        power: 'Power in',
+        output: 'Output',
+        cop: 'COP',
+        eer: 'EER',
+        standby: 'Standby',
+        heating: 'Heating',
+        cooling: 'Cooling',
+        defrost: 'Defrosting',
+        unknown: 'Unknown',
+        offline: 'Offline',
+        noFaults: 'No faults',
+        empty: 'No OpenQuatt controller paired',
+        noData: unit => (unit === 'HP2'
+          ? 'No data from HP2. Only a duo installation has one.'
+          : `No data from ${unit} yet`),
+      },
+      nl: {
+        supply: 'Aanvoer',
+        return: 'Retour',
+        flow: 'Flow',
+        air: 'lucht',
+        compressor: 'compressor',
+        fan: 'ventilator',
+        power: 'Opname',
+        output: 'Afgifte',
+        cop: 'COP',
+        eer: 'EER',
+        standby: 'Standby',
+        heating: 'Verwarmen',
+        cooling: 'Koelen',
+        defrost: 'Ontdooien',
+        unknown: 'Onbekend',
+        offline: 'Offline',
+        noFaults: 'Geen storingen',
+        empty: 'Geen OpenQuatt-controller gekoppeld',
+        noData: unit => (unit === 'HP2'
+          ? 'Geen gegevens van HP2. Die heeft alleen een duo-installatie.'
+          : `Nog geen gegevens van ${unit}`),
+      },
+    };
+
+    // Working mode label (as the firmware reports it) → badge label key and style.
+    const MODES = {
+      Standby: { key: 'standby', cls: 'idle' },
+      Heating: { key: 'heating', cls: 'heat' },
+      Cooling: { key: 'cooling', cls: 'cool' },
+      Defrost: { key: 'defrost', cls: 'frost' },
+    };
+
+    // Protective routines the firmware lists among the failures without them
+    // being a fault; the OpenQuatt web app does not warn about them either.
+    const NOT_A_FAULT = ['compressor oil return'];
+
+    let t9n = I18N.en;
+
+    const $ = id => document.getElementById(id);
+    const num = v => (typeof v === 'number' && isFinite(v) ? v : null);
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+    // Homey marks dark mode with the .homey-dark-mode class. As a fallback,
+    // derive the theme from the text colour Homey gives us, so the logo and
+    // accents follow the dashboard even when that class is not present.
+    function syncTheme() {
+      const rgb = (getComputedStyle(document.body).color.match(/\d+(\.\d+)?/g) || []).map(Number);
+      if (rgb.length < 3) return;
+      const luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+      document.documentElement.classList.toggle('oq-dark', luminance > 128);
+    }
+
+    function fmt(value, unit, decimals) {
+      const n = num(value);
+      if (n === null) return '—';
+      return `${n.toFixed(decimals)}<span class="unit-label">${unit}</span>`;
+    }
+
+    function text(value, decimals, suffix = '') {
+      const n = num(value);
+      return n === null ? '—' : `${n.toFixed(decimals)}${suffix}`;
+    }
+
+    function setBadge(label, cls) {
+      const badge = $('badge');
+      badge.textContent = label;
+      badge.className = `badge ${cls}`;
+    }
+
+    function faults(list) {
+      if (typeof list !== 'string' || list === 'None') return [];
+      return list.split(',')
+        .map(item => item.trim())
+        .filter(item => item && !NOT_A_FAULT.includes(item.toLowerCase()));
+    }
+
+    function applyLanguage(language) {
+      t9n = I18N[language] || I18N.en;
+      $('l-supply').textContent = t9n.supply;
+      $('l-return').textContent = t9n.return;
+      $('l-flow').textContent = t9n.flow;
+      $('l-air').textContent = t9n.air;
+      $('l-compressor').textContent = t9n.compressor;
+      $('l-fan').textContent = t9n.fan;
+      $('l-power').textContent = t9n.power;
+      $('l-output').textContent = t9n.output;
+      $('empty').textContent = t9n.empty;
+    }
+
+    function render(status, unitName) {
+      applyLanguage(status.language);
+      $('title').textContent = unitName;
+
+      const hp = status.heatpump;
+      document.body.classList.toggle('is-empty', !status.paired || !hp);
+      document.body.classList.toggle('is-offline', status.paired && !status.available);
+      if (!status.paired) {
+        setBadge('—', 'idle');
+        return;
+      }
+      if (!hp) {
+        $('empty').textContent = t9n.noData(unitName);
+        if (!status.available) setBadge(t9n.offline, 'off');
+        else setBadge('—', 'idle');
+        return;
+      }
+
+      const defrosting = hp.defrost === true || hp.mode === 'Defrost';
+      const mode = MODES[defrosting ? 'Defrost' : hp.mode];
+      const cooling = hp.mode === 'Cooling' && !defrosting;
+      if (!status.available) {
+        setBadge(t9n.offline, 'off');
+      } else {
+        setBadge(mode ? t9n[mode.key] : t9n.unknown, mode ? mode.cls : 'idle');
+      }
+
+      // Water side. The warmer pipe glows orange, the colder one blue, so
+      // cooling and defrost (which pull heat from the water) read right too.
+      const waterIn = num(hp.waterIn);
+      const waterOut = num(hp.waterOut);
+      const flow = num(hp.flow);
+      const outHot = waterIn !== null && waterOut !== null ? waterOut >= waterIn : !cooling;
+      $('water-out').textContent = text(waterOut, 1, '°C');
+      $('water-in').textContent = text(waterIn, 1, '°C');
+      $('flow').textContent = text(flow, 0, ' L/h');
+      $('delta').textContent = waterIn !== null && waterOut !== null
+        ? `ΔT ${Math.abs(waterOut - waterIn).toFixed(1)}°` : '';
+      $('pipe-out').className = `pipe out ${outHot ? 'hot' : 'cold'}`;
+      $('pipe-in').className = `pipe in ${outHot ? 'cold' : 'hot'}`;
+      $('port-out').setAttribute('class', `port out ${outHot ? 'hot' : 'cold'}`);
+      $('port-in').setAttribute('class', `port in ${outHot ? 'cold' : 'hot'}`);
+
+      // Unit side.
+      const frequency = num(hp.frequency);
+      const fanSpeed = num(hp.fanSpeed);
+      $('freq').textContent = text(frequency, 0);
+      $('fan').textContent = text(fanSpeed, 0);
+      $('air').textContent = text(hp.outside, 1, '°');
+
+      // Motion follows the readings: faster water, faster dashes; faster fan,
+      // faster blades. Rounded, so a small change does not restart the cycle.
+      const scheme = $('scheme');
+      const running = frequency !== null && frequency > 0;
+      scheme.classList.toggle('is-flowing', flow !== null && flow > 0);
+      scheme.classList.toggle('is-fan-running', fanSpeed !== null && fanSpeed > 0);
+      scheme.classList.toggle('is-defrosting', defrosting);
+      scheme.classList.toggle('is-heating', running && !cooling && !defrosting);
+      scheme.classList.toggle('is-cooling', running && cooling);
+      if (flow) scheme.style.setProperty('--oq-flow-speed', `${clamp(600 / flow, 0.4, 2).toFixed(1)}s`);
+      if (fanSpeed) scheme.style.setProperty('--oq-fan-speed', `${clamp(600 / fanSpeed, 0.4, 3).toFixed(1)}s`);
+
+      // Stats: output is heat or cold, whichever is being delivered right
+      // now; the efficiency is the EER while cooling and the COP otherwise.
+      $('power').innerHTML = fmt(hp.power, 'W', 0);
+      const heat = num(hp.heatPower);
+      const cool = num(hp.coolPower);
+      $('output').innerHTML = fmt(heat === null && cool === null ? null : Math.max(heat || 0, cool || 0), 'W', 0);
+      $('efflabel').textContent = cooling ? t9n.eer : t9n.cop;
+      $('eff').innerHTML = fmt(cooling ? hp.eer : hp.cop, '', 1);
+
+      const problems = faults(hp.failures);
+      const footer = $('footer');
+      footer.classList.toggle('problem', problems.length > 0);
+      $('insight').textContent = problems.length ? problems.join(', ') : t9n.noFaults;
+      $('time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function onHomeyReady(Homey) {
+      Homey.ready();
+
+      const unit = (Homey.getSettings() || {}).unit === 'hp2' ? 'hp2' : 'hp1';
+      const unitName = unit.toUpperCase();
+      $('title').textContent = unitName;
+
+      let busy = false;
+      const refresh = async () => {
+        if (busy) return;
+        busy = true;
+        syncTheme();
+        try {
+          render(await Homey.api('GET', `/heatpump?unit=${unit}`, {}), unitName);
+        } catch (err) {
+          setBadge(t9n.offline, 'off');
+        } finally {
+          busy = false;
+        }
+      };
+
+      refresh();
+      setInterval(refresh, 10000);
+    }
+  </script>
+</body>
+</html>

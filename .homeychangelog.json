@@ -51,5 +51,9 @@
   "1.9.0": {
     "en": "New flow cards for the water flow: when it rose above or dropped below a value you choose, when it changed, and a condition for whether it is above a value. Handy for an alert on low flow before the controller's own protection kicks in.",
     "nl": "Nieuwe flow-kaarten voor de flow: wanneer die boven of onder een gekozen waarde komt, wanneer die verandert, en een voorwaarde of die hoger is dan een waarde. Handig voor een melding bij lage flow, nog voordat de eigen beveiliging van de controller ingrijpt."
+  },
+  "1.10.0": {
+    "en": "New widget: OpenQuatt heat pump. One outdoor unit up close: supply and return on flowing pipes, the water flow, a fan that spins at the unit's own speed, the compressor frequency, power, output and COP of that unit, and its own failures. Pick HP1 or HP2 in the widget settings.",
+    "nl": "Nieuwe widget: OpenQuatt warmtepomp. Eén buitenunit van dichtbij: aanvoer en retour op stromende leidingen, de flow, een ventilator die op het eigen toerental van de unit draait, de compressorfrequentie, het opgenomen vermogen, de afgifte en COP van die unit, en zijn eigen storingen. Kies HP1 of HP2 in de widget-instellingen."
   }
 }

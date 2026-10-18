@@ -37,6 +37,7 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
   const device = Object.create(OpenQuattDevice.prototype);
   device._controlModeCode = null;
   device._telemetry = {};
+  device._heatpumps = {};
   device._binary = {};
   device._numeric = {};
   device._faultActive = null;
@@ -55,6 +56,7 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
     },
   };
   device.hasCapability = cap => capabilities.includes(cap);
+  device.getCapabilityValue = cap => (cap in device.capabilityValues ? device.capabilityValues[cap] : null);
   device.setCapabilityValue = (cap, value) => {
     device.capabilityValues[cap] = value;
     return Promise.resolve();
@@ -261,6 +263,61 @@ test('getTelemetry exposes widget data including the control mode code', () => {
     heatPower: 4.2,
     copDaily: null,
   });
+});
+
+test('getHeatpump keeps each unit apart, and has nothing for an absent HP2', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'text_sensor-hp1_-_working_mode_label', state: 'Heating' });
+  device._onState({ id: 'sensor-hp1_-_compressor_frequency', value: 52, state: '52 Hz' });
+  device._onState({ id: 'sensor-hp1_-_fan_speed', value: 640, state: '640 rpm' });
+  device._onState({ id: 'sensor-hp1_-_cop', value: 'NA', state: 'NA' });
+  device._onState({ id: 'sensor-hp1_-_water_in_temperature', value: 30.1, state: '30.1 °C' });
+  device._onState({ id: 'binary_sensor-hp1_-_defrost', value: false, state: 'OFF' });
+  device._onState({ id: 'text_sensor-hp1_-_active_failures_list', state: 'None' });
+  // Same name without the unit prefix: a system entity, not part of a unit.
+  device._onState({ id: 'sensor-flow', value: 999, state: '999 L/h' });
+
+  assert.deepEqual(device.getHeatpump('hp1'), {
+    mode: 'Heating',
+    frequency: 52,
+    fanSpeed: 640,
+    cop: null,
+    waterIn: 30.1,
+    defrost: false,
+    failures: 'None',
+  });
+  assert.equal(device.getHeatpump('hp2'), null);
+  // The unit entities keep feeding their capability and the fault state.
+  assert.equal(device.capabilityValues['measure_temperature.return'], 30.1);
+  assert.equal(device.getTelemetry().hp1Failures, 'None');
+
+  device._onState({ id: 'sensor-hp2_-_power_input', value: 812.5, state: '812.5 W' });
+  assert.deepEqual(device.getHeatpump('hp2'), { power: 812.5 });
+  assert.equal(device.getHeatpump('hp1').power, undefined);
+});
+
+test('unit defrost feeds the widget and still fires its trigger', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'binary_sensor-hp2_-_defrost', value: false, state: 'OFF' });
+  device._onState({ id: 'binary_sensor-hp2_-_defrost', value: true, state: 'ON' });
+
+  assert.equal(device.getHeatpump('hp2').defrost, true);
+  assert.deepEqual(device.triggered, [{ id: 'defrost_started', tokens: { heatpump: 'HP2' } }]);
+});
+
+test('HP1 of a Quatt Hybrid V1 shows the selected flow', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'sensor-hp1_-_flow', value: 0, state: '0 L/h' });
+  device._onState({ id: 'sensor-hp2_-_flow', value: 410, state: '410 L/h' });
+  device._onState({ id: 'sensor-flow_average__selected_', value: 780, state: '780 L/h' });
+  assert.equal(device.getHeatpump('hp1').flow, 0);
+
+  device._onState({ id: 'select-quatt_hybrid_version', state: 'V1', value: 'V1' });
+  assert.equal(device.getHeatpump('hp1').flow, 780);
+  assert.equal(device.getHeatpump('hp2').flow, 410);
 });
 
 // --- Feeding external source values ---------------------------------------

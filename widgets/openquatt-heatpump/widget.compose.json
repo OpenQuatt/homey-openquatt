@@ -1,0 +1,39 @@
+{
+  "name": {
+    "en": "OpenQuatt heat pump",
+    "nl": "OpenQuatt warmtepomp"
+  },
+  "height": 264,
+  "transparent": false,
+  "settings": [
+    {
+      "id": "unit",
+      "type": "dropdown",
+      "title": {
+        "en": "Heat pump",
+        "nl": "Warmtepomp"
+      },
+      "value": "hp1",
+      "values": [
+        {
+          "id": "hp1",
+          "title": {
+            "en": "HP1"
+          }
+        },
+        {
+          "id": "hp2",
+          "title": {
+            "en": "HP2 (duo)"
+          }
+        }
+      ]
+    }
+  ],
+  "api": {
+    "getHeatpump": {
+      "method": "GET",
+      "path": "/heatpump"
+    }
+  }
+}
