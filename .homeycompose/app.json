@@ -1,6 +1,6 @@
 {
   "id": "nl.openquatt",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -32,5 +32,22 @@
   "bugs": {
     "url": "https://github.com/OpenQuatt/homey-openquatt/issues"
   },
-  "brandColor": "#0f1724"
+  "brandColor": "#0f1724",
+  "api": {
+    "remoteLogin": {
+      "method": "POST",
+      "path": "/remote/login",
+      "public": true
+    },
+    "remoteState": {
+      "method": "POST",
+      "path": "/remote/state",
+      "public": true
+    },
+    "remoteLogout": {
+      "method": "POST",
+      "path": "/remote/logout",
+      "public": true
+    }
+  }
 }

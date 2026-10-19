@@ -159,6 +159,37 @@
     {
       "type": "group",
       "label": {
+        "en": "Controller login",
+        "nl": "Login van de controller"
+      },
+      "children": [
+        {
+          "id": "web_username",
+          "type": "text",
+          "label": {
+            "en": "Username",
+            "nl": "Gebruikersnaam"
+          },
+          "value": "",
+          "hint": {
+            "en": "Fill in when the OpenQuatt web app asks for a login; leave empty otherwise. Remote access below needs one.",
+            "nl": "Vul in als de OpenQuatt web-app om een login vraagt; laat anders leeg. Toegang op afstand hieronder heeft er een nodig."
+          }
+        },
+        {
+          "id": "web_password",
+          "type": "password",
+          "label": {
+            "en": "Password",
+            "nl": "Wachtwoord"
+          },
+          "value": ""
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
         "en": "External values",
         "nl": "Externe waarden"
       },
@@ -240,6 +271,41 @@
           "hint": {
             "en": "Used in the MQTT topics openquatt/<name>/input/…. Check the exact topics under MQTT sensors → Details in the OpenQuatt web app.",
             "nl": "Wordt gebruikt in de MQTT-topics openquatt/<naam>/input/…. Controleer de exacte topics onder MQTT-sensoren → Details in de OpenQuatt web-app."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Remote access",
+        "nl": "Toegang op afstand"
+      },
+      "children": [
+        {
+          "id": "remote_enabled",
+          "type": "checkbox",
+          "label": {
+            "en": "View the controller from outside the home",
+            "nl": "Controller bekijken buiten de deur"
+          },
+          "value": false,
+          "hint": {
+            "en": "Lets the page below show the controller from anywhere, read-only, through your Homey's cloud connection. You sign in there with the controller login above, which needs a password of at least 8 characters. Turning this off or changing the password signs everyone out.",
+            "nl": "Laat de pagina hieronder de controller overal tonen (alleen bekijken, niet bedienen), via de cloudverbinding van je Homey. Je logt daar in met de login van de controller hierboven; die heeft een wachtwoord van minstens 8 tekens nodig. Uitzetten of het wachtwoord wijzigen meldt iedereen af."
+          }
+        },
+        {
+          "id": "remote_link",
+          "type": "label",
+          "label": {
+            "en": "Page",
+            "nl": "Pagina"
+          },
+          "value": "",
+          "hint": {
+            "en": "Open this address in a browser. It contains your Homey's id, so the page knows which Homey to call.",
+            "nl": "Open dit adres in een browser. Het bevat het id van je Homey, zodat de pagina weet welke Homey hij moet aanroepen."
           }
         }
       ]

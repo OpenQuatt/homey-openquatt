@@ -1,6 +1,7 @@
 {
   "device": {
-    "unreachable": "De OpenQuatt-controller is niet bereikbaar"
+    "unreachable": "De OpenQuatt-controller is niet bereikbaar",
+    "login_rejected": "De controller weigert de login: controleer de gebruikersnaam en het wachtwoord in de apparaatinstellingen"
   },
   "fault": {
     "lowflow": "Lage doorstroming — beveiliging actief",
@@ -13,5 +14,8 @@
   "input": {
     "out_of_range": "Waarde buiten bereik",
     "delivery_failed": "Kan de waarde niet afleveren: de controller is onbereikbaar, of de firmware heeft geen API-invoer (stel MQTT in bij de apparaatinstellingen als fallback)"
+  },
+  "remote": {
+    "login_required": "Toegang op afstand heeft de login van de controller nodig, met een wachtwoord van minstens __length__ tekens"
   }
 }

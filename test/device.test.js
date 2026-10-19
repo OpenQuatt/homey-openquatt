@@ -40,6 +40,7 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
   device._heatpumps = {};
   device._binary = {};
   device._numeric = {};
+  device._entities = {};
   device._faultActive = null;
 
   device.triggered = [];
@@ -56,6 +57,7 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
     },
   };
   device.hasCapability = cap => capabilities.includes(cap);
+  device.getCapabilities = () => capabilities;
   device.getCapabilityValue = cap => (cap in device.capabilityValues ? device.capabilityValues[cap] : null);
   device.setCapabilityValue = (cap, value) => {
     device.capabilityValues[cap] = value;
@@ -579,5 +581,57 @@ test('the publish loop re-sends the dew point aggregate alongside the inputs', a
   assert.deepEqual(device.apiCalls, [
     { route: 'number', name: 'api_input_cooling_dew_point', value: '14.00' },
     { route: 'number', name: 'api_input_room_temperature', value: '20.50' },
+  ]);
+});
+
+test('the remote snapshot carries the device data, and every entity on request', () => {
+  const device = makeDevice();
+  device.getName = () => 'OpenQuatt';
+  device.getAvailable = () => true;
+
+  device._onState({
+    id: 'sensor-total_power_input', name: 'Total Power Input', value: 250.5, state: '250.5 W',
+  });
+  device._onState({ id: 'sensor-hp1_-_compressor_frequency', value: 42, state: '42 Hz' });
+  device._onState({ id: 'text_sensor-control_mode', value: 'CM2', state: 'CM2' });
+  device._onState({
+    id: 'sensor-total_power_input', name: 'Total Power Input', value: 300, state: '300.0 W',
+  });
+
+  const snapshot = device.getRemoteSnapshot();
+  assert.equal(snapshot.name, 'OpenQuatt');
+  assert.equal(snapshot.available, true);
+  assert.equal(snapshot.capabilities.measure_power, 300);
+  assert.equal(snapshot.capabilities['measure_temperature.supply'], null);
+  assert.equal(snapshot.telemetry.controlModeCode, 'CM2');
+  assert.equal(snapshot.heatpumps.hp1.frequency, 42);
+  assert.equal(snapshot.heatpumps.hp2, null);
+  assert.equal(snapshot.entities, undefined);
+
+  // Latest value per entity, as the firmware formats it; v2 frames have no name.
+  assert.deepEqual(device.getRemoteSnapshot({ entities: true }).entities, [
+    { id: 'sensor-total_power_input', name: 'Total Power Input', state: '300.0 W' },
+    { id: 'sensor-hp1_-_compressor_frequency', name: null, state: '42 Hz' },
+    { id: 'text_sensor-control_mode', name: null, state: 'CM2' },
+  ]);
+});
+
+test('settings refuse remote access without a strong login, and pass the login on', async () => {
+  const device = makeDevice();
+  const logins = [];
+  device.client = { setHost() {}, setCredentials: login => logins.push(login) };
+  const settings = {
+    address: '', web_username: 'admin', web_password: 'short', remote_enabled: true,
+  };
+
+  await assert.rejects(device.onSettings({ newSettings: settings, changedKeys: ['remote_enabled'] }), /remote\.login_required/);
+  await assert.rejects(device.onSettings({ newSettings: { ...settings, web_username: '', web_password: 'correct-horse' }, changedKeys: [] }));
+  assert.deepEqual(logins, []);
+
+  await device.onSettings({ newSettings: { ...settings, web_password: 'correct-horse' }, changedKeys: ['web_password'] });
+  await device.onSettings({ newSettings: { ...settings, remote_enabled: false }, changedKeys: ['remote_enabled'] });
+  assert.deepEqual(logins, [
+    { username: 'admin', password: 'correct-horse' },
+    { username: 'admin', password: 'short' },
   ]);
 });

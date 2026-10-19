@@ -44,6 +44,8 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 
 Every number and switch above is a capability, so Homey logs it in **Insights** — the control mode included, charted as its bare CM code next to the readable label. Room humidity is the one thing that is missing: OpenQuatt itself has no room humidity value, it only works with the dew point, so chart the humidity sensor in Homey instead.
 
+Set a login on the controller? Fill in the same username and password under *Controller login* in the device settings. The controller then asks for it on every request, the live stream included, and the device tells you when it rejects the login.
+
 ### Flow cards
 
 - **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off, the dew point became available / was lost, the water flow changed (with flow token), the water flow rose above / dropped below a value you choose
@@ -113,12 +115,36 @@ The supply target goes further: it replaces the heating curve's own target, room
 - The unit's own active failures in red
 - Pick HP1 or HP2 in the widget settings; on a duo installation, place one of each
 
+### Remote access
+
+Away from home, you can still look at the controller: a read-only page shows the system, power, both heat pumps and the status, and on request every value the controller reports, refreshed every five seconds.
+
+<p align="center">
+  <img src=".github/remote-page.png" alt="Remote page" width="380">
+</p>
+
+It is off by default. To switch it on:
+
+1. Set a login on the controller in the OpenQuatt web app, and fill in the same username and password under *Controller login* in the device settings. Remote access needs a password of at least 8 characters.
+2. Tick *View the controller from outside the home* under *Remote access*.
+3. Open the address shown under *Page* there and sign in with the controller login. The address holds your Homey's ID, so the page knows which Homey to ask.
+
+The page lives in this repository (`docs/remote`, served by GitHub Pages) and calls three public endpoints of the app through your Homey's cloud connection, `https://<homey-id>.connect.athom.com/api/app/nl.openquatt/remote/…`. Public means Homey asks for no Homey account, so the app guards them itself:
+
+- Signing in checks the controller login in constant time and hands out a random session token, so the password is not sent again. The page keeps the token in the browser and stays signed in.
+- After 10 failed sign-ins within 15 minutes, every sign-in is refused until the window has passed. Pages that are already signed in keep working.
+- A session ends after 30 days without use, when the app restarts, when you sign out, and as soon as you switch remote access off or change the password.
+- The endpoints only read: nothing on the page can switch or change the controller.
+
+This is the only part of the app that goes through the cloud, and only while it is switched on.
+
 ## 🔌 How it works
 
 The app talks to the ESPHome web server that OpenQuatt already runs on port 80 — the same interface the OpenQuatt web app uses:
 
 - **State**: one persistent Server-Sent Events stream on `GET /events`. Every entity state arrives on connect and is pushed on every change — real-time, no polling.
 - **Commands**: the REST routes, addressed by URL-encoded display name (`POST /switch/Manual%20Cooling%20Enable/turn_on`). These also reach `internal: true` entities such as the aux relay configuration.
+- **Login**: when one is set on the controller, every request carries it as HTTP Basic auth, the way the controller checks it.
 
 Unlike the Home Assistant integration (which uses the ESPHome native API on port 6053), no API encryption key or pairing window is needed. The load on the ESP equals a single open browser tab of the web UI, and there are **zero runtime npm dependencies**.
 

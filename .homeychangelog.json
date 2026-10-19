@@ -55,5 +55,9 @@
   "1.10.0": {
     "en": "New widget: OpenQuatt heat pump. One outdoor unit up close: supply and return on flowing pipes, the water flow, a fan that spins at the unit's own speed, the compressor frequency, power, output and COP of that unit, and its own failures. Pick HP1 or HP2 in the widget settings.",
     "nl": "Nieuwe widget: OpenQuatt warmtepomp. Eén buitenunit van dichtbij: aanvoer en retour op stromende leidingen, de flow, een ventilator die op het eigen toerental van de unit draait, de compressorfrequentie, het opgenomen vermogen, de afgifte en COP van die unit, en zijn eigen storingen. Kies HP1 of HP2 in de widget-instellingen."
+  },
+  "1.11.0": {
+    "en": "Remote access: an optional page to view the controller away from home, read-only, through your Homey's cloud connection and signed in with the controller's own login. The app now also works with a login set on the controller.",
+    "nl": "Toegang op afstand: een optionele pagina om de controller buiten de deur te bekijken (alleen bekijken), via de cloudverbinding van je Homey en met de eigen login van de controller. De app werkt nu ook met een login die op de controller is ingesteld."
   }
 }

@@ -118,6 +118,31 @@ test('normalises web server v3 frame ids to the object_id form', async () => {
       // The rest of the frame is passed through untouched.
       assert.equal(states[2].value, true);
       assert.equal(states[3].state, 'CM98');
+      assert.equal(states[1].name, 'HP1 - Defrost');
+    } finally {
+      client.close();
+    }
+  });
+});
+
+test('takes the display name from a v3 id when the frame has no name', async () => {
+  let stream;
+  await withServer(sseHandler(res => { stream = res; }), async host => {
+    const client = new OpenQuattClient(host);
+    try {
+      const states = [];
+      client.on('state', state => states.push(state));
+
+      client.connect();
+      await once(client, 'connected');
+
+      stream.write('event: state\r\ndata: {"id":"sensor/HP2 - Fan speed","value":670,"state":"670 rpm"}\r\n\r\n');
+      stream.write('event: state\r\ndata: {"id":"sensor-total_power_input","value":1,"state":"1 W"}\r\n\r\n');
+      while (states.length < 2) await once(client, 'state');
+
+      assert.equal(states[0].id, 'sensor-hp2_-_fan_speed');
+      assert.equal(states[0].name, 'HP2 - Fan speed');
+      assert.equal(states[1].name, null);
     } finally {
       client.close();
     }
@@ -196,5 +221,90 @@ test('getEntity returns the parsed entity and rejects on 404', async () => {
     assert.equal(entity.state, 'Heating demand');
 
     await assert.rejects(client.getEntity('select', 'Nope'), /HTTP 404/);
+  });
+});
+
+test('sends the controller login as Basic auth on every route', async () => {
+  const handler = (req, res) => {
+    if (req.url === '/events') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+      res.flushHeaders();
+    } else if (req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end('{"state":"Heating demand"}');
+    } else {
+      res.writeHead(200);
+      res.end();
+    }
+  };
+  await withServer(handler, async (host, requests) => {
+    const client = new OpenQuattClient(host, { username: 'admin', password: 's3cret:pw' });
+    try {
+      client.connect();
+      await once(client, 'connected');
+      await client.setSwitch('Manual Cooling Enable', true);
+      await client.getEntity('select', 'Aux Relay Function');
+
+      const expected = `Basic ${Buffer.from('admin:s3cret:pw').toString('base64')}`;
+      assert.equal(requests.length, 3);
+      for (const r of requests) assert.equal(r.headers.authorization, expected);
+    } finally {
+      client.close();
+    }
+  });
+});
+
+test('sends no Authorization header without a login', async () => {
+  const handler = (req, res) => {
+    res.writeHead(200);
+    res.end();
+  };
+  await withServer(handler, async (host, requests) => {
+    const client = new OpenQuattClient(host, { username: '', password: '' });
+    await client.setSwitch('Manual Cooling Enable', true);
+    assert.equal(requests[0].headers.authorization, undefined);
+  });
+});
+
+test('a rejected login disconnects with status 401', async () => {
+  const handler = (req, res) => {
+    res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Login Required"' });
+    res.end();
+  };
+  await withServer(handler, async host => {
+    const client = new OpenQuattClient(host, { username: 'admin', password: 'wrong' });
+    try {
+      client.connect();
+      const [err] = await once(client, 'disconnected');
+      assert.equal(err.statusCode, 401);
+      assert.match(err.message, /HTTP 401/);
+    } finally {
+      client.close();
+    }
+  });
+});
+
+test('a new login reconnects the stream with it', async () => {
+  const streams = [];
+  await withServer(sseHandler(res => { streams.push(res); }), async (host, requests) => {
+    const client = new OpenQuattClient(host);
+    // Reconnect straight away instead of after the regular backoff.
+    client._backoff = 10;
+    try {
+      client.connect();
+      await once(client, 'connected');
+      assert.equal(requests[0].headers.authorization, undefined);
+
+      client._backoff = 10;
+      client.setCredentials({ username: 'admin', password: 'n3w-password' });
+      await once(client, 'connected');
+      assert.equal(requests[1].headers.authorization, `Basic ${Buffer.from('admin:n3w-password').toString('base64')}`);
+
+      // The same login again changes nothing.
+      client.setCredentials({ username: 'admin', password: 'n3w-password' });
+      assert.equal(requests.length, 2);
+    } finally {
+      client.close();
+    }
   });
 });

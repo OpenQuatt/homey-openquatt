@@ -6,6 +6,7 @@ const { MqttPublisher } = require('../../lib/MqttPublisher');
 const { DewPointSources } = require('../../lib/dewPoint');
 const { API_INPUTS, formatInput } = require('../../lib/apiInputs');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
+const { remoteLogin, MIN_PASSWORD_LENGTH } = require('../../lib/RemoteAccess');
 
 // Entity id (as seen on the /events stream) -> Homey capability. Every
 // capability here is also an Insights log, which is the point of exposing the
@@ -138,6 +139,10 @@ const AUX_FUNCTION_POLL_MS = 60000;
 // fed value alive. What is fed, and over which routes, lives in lib/apiInputs.js.
 const INPUT_PUBLISH_MS = 60000;
 
+// The remote page, served from the repository's docs folder; the Homey id in
+// the fragment tells it which Homey to call, without sending it to the host.
+const REMOTE_PAGE_URL = 'https://openquatt.github.io/homey-openquatt/remote/';
+
 // Persisted commands (setpoint, heating permission) are re-asserted on start,
 // so a controller that restarted meanwhile gets the standing value back.
 const INPUT_STORE_KEY = 'inputs';
@@ -166,10 +171,12 @@ class OpenQuattDevice extends Homey.Device {
     this._heatpumps = {};
     this._binary = {};
     this._numeric = {};
+    this._entities = {};
     this._faultActive = null;
     this._deliveryProblems = {};
 
     await this._migrateCapabilities();
+    this._showRemoteLink().catch(this.error);
 
     this.registerCapabilityListener('onoff.openquatt', async value => {
       await this.client.setSwitch('OpenQuatt Enabled', value);
@@ -184,7 +191,7 @@ class OpenQuattDevice extends Homey.Device {
       await this.client.setSelect('Aux Relay Function', ID_TO_OPTION[value]);
     });
 
-    this.client = new OpenQuattClient(this._address());
+    this.client = new OpenQuattClient(this._address(), this._credentials(this.getSettings()));
     this.client.on('connected', () => {
       this.setAvailable().catch(this.error);
       // Establish the fault baseline once, after the initial state burst, so a
@@ -202,7 +209,8 @@ class OpenQuattDevice extends Homey.Device {
       this.homey.setTimeout(() => this._refreshAuxFunction(), 10000);
     });
     this.client.on('disconnected', err => {
-      this.setUnavailable(this.homey.__('device.unreachable')).catch(this.error);
+      const reason = err && err.statusCode === 401 ? 'device.login_rejected' : 'device.unreachable';
+      this.setUnavailable(this.homey.__(reason)).catch(this.error);
       if (err) this.log(`disconnected: ${err.message}`);
     });
     this.client.on('state', state => this._onState(state));
@@ -231,7 +239,13 @@ class OpenQuattDevice extends Homey.Device {
   }
 
   async onSettings({ newSettings, changedKeys }) {
+    // Refusing the save keeps remote access from opening with a missing or
+    // weak login.
+    if (newSettings.remote_enabled && !remoteLogin(newSettings)) {
+      throw new Error(this.homey.__('remote.login_required', { length: MIN_PASSWORD_LENGTH }));
+    }
     if (newSettings.address) this.client.setHost(newSettings.address);
+    this.client.setCredentials(this._credentials(newSettings));
     if (changedKeys.some(key => key.startsWith('mqtt_'))) {
       this._setupInputPublisher(newSettings);
     }
@@ -493,6 +507,16 @@ class OpenQuattDevice extends Homey.Device {
     }
   }
 
+  _credentials(settings) {
+    return { username: settings.web_username || '', password: settings.web_password || '' };
+  }
+
+  // A label setting, so the link can be copied from the device settings.
+  async _showRemoteLink() {
+    const link = `${REMOTE_PAGE_URL}#${await this.homey.cloud.getHomeyId()}`;
+    if (this.getSetting('remote_link') !== link) await this.setSettings({ remote_link: link });
+  }
+
   _address() {
     const override = this.getSetting('address');
     if (override) return override;
@@ -526,7 +550,34 @@ class OpenQuattDevice extends Homey.Device {
     return heatpump;
   }
 
+  /**
+   * Everything the remote page shows: the capabilities and widget data, and
+   * on request every entity the controller reports, as the firmware formats it.
+   */
+  getRemoteSnapshot({ entities = false } = {}) {
+    const capabilities = {};
+    for (const id of this.getCapabilities()) capabilities[id] = this.getCapabilityValue(id);
+    const snapshot = {
+      name: this.getName(),
+      available: this.getAvailable(),
+      capabilities,
+      telemetry: this.getTelemetry(),
+      heatpumps: { hp1: this.getHeatpump('hp1'), hp2: this.getHeatpump('hp2') },
+    };
+    if (entities) {
+      snapshot.entities = Object.entries(this._entities).map(([id, entity]) => ({ id, ...entity }));
+    }
+    return snapshot;
+  }
+
   _onState(state) {
+    // Every entity, for the remote page's full list. Web server v2 frames carry
+    // no display name; the page then falls back to the id.
+    this._entities[state.id] = {
+      name: state.name || null,
+      state: typeof state.state === 'string' ? state.state : null,
+    };
+
     const telemetryKey = TELEMETRY_ENTITIES[state.id];
     if (telemetryKey) {
       this._telemetry[telemetryKey] = entityValue(state);
