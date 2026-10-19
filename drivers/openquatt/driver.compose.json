@@ -3,7 +3,7 @@
     "en": "OpenQuatt Controller",
     "nl": "OpenQuatt Controller"
   },
-  "class": "thermostat",
+  "class": "heatpump",
   "capabilities": [
     "measure_temperature.supply",
     "measure_temperature.return",

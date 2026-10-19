@@ -42,6 +42,8 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | Aux relay status | live status text from the control loop |
 | OpenQuatt control, manual cooling enable & R2 relay toggles | direct control |
 
+The device is a heat pump in Homey, so you pick which of these values its tile shows as **status indicator**: a temperature, the power, the COP, the flow and so on (device settings → *Status indicator*).
+
 Every number and switch above is a capability, so Homey logs it in **Insights** — the control mode included, charted as its bare CM code next to the readable label. Room humidity is the one thing that is missing: OpenQuatt itself has no room humidity value, it only works with the dew point, so chart the humidity sensor in Homey instead.
 
 Set a login on the controller? Fill in the same username and password under *Controller login* in the device settings. The controller then asks for it on every request, the live stream included, and the device tells you when it rejects the login.

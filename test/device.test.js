@@ -635,3 +635,20 @@ test('settings refuse remote access without a strong login, and pass the login o
     { username: 'admin', password: 'short' },
   ]);
 });
+
+test('a device paired as a thermostat becomes a heat pump', async () => {
+  const device = makeDevice();
+  let deviceClass = 'thermostat';
+  device.getClass = () => deviceClass;
+  device.setClass = value => {
+    deviceClass = value;
+    return Promise.resolve();
+  };
+
+  await device._migrateClass();
+  assert.equal(deviceClass, 'heatpump');
+
+  // Already a heat pump: nothing to set.
+  device.setClass = () => assert.fail('setClass called again');
+  await device._migrateClass();
+});

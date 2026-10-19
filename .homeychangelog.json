@@ -59,5 +59,9 @@
   "1.11.0": {
     "en": "Remote access: an optional page to view the controller away from home, read-only, through your Homey's cloud connection and signed in with a login you set in the device settings. The app now also works with a login set on the controller.",
     "nl": "Toegang op afstand: een optionele pagina om de controller buiten de deur te bekijken (alleen bekijken), via de cloudverbinding van je Homey en met een login die je in de apparaatinstellingen instelt. De app werkt nu ook met een login die op de controller is ingesteld."
+  },
+  "1.12.0": {
+    "en": "The device is now a heat pump instead of a thermostat, so you pick which value its tile shows as status indicator: a temperature, the power, the COP, the flow and more.",
+    "nl": "Het apparaat is nu een warmtepomp in plaats van een thermostaat, zodat je zelf kiest welke waarde de tegel als statusindicator toont: een temperatuur, het vermogen, de COP, de flow en meer."
   }
 }

@@ -58,6 +58,10 @@ const MIGRATED_CAPABILITIES = [
   'measure_temperature.supply_target',
 ];
 
+// Devices paired before v1.12.0 were thermostats, a class for which Homey does
+// not let the user pick the status indicator on the device tile.
+const DEVICE_CLASS = 'heatpump';
+
 const HEATING_MODES = ['CM2', 'CM3', 'CM4'];
 
 // Binary entities that fire started/stopped flow triggers on state edges.
@@ -175,6 +179,7 @@ class OpenQuattDevice extends Homey.Device {
     this._faultActive = null;
     this._deliveryProblems = {};
 
+    await this._migrateClass();
     await this._migrateCapabilities();
     this._showRemoteLink().catch(this.error);
 
@@ -368,6 +373,11 @@ class OpenQuattDevice extends Homey.Device {
       this._publisher = null;
     }
     if (this.client) this.client.close();
+  }
+
+  // Devices keep the class they were paired with; move older ones over.
+  async _migrateClass() {
+    if (this.getClass() !== DEVICE_CLASS) await this.setClass(DEVICE_CLASS).catch(this.error);
   }
 
   // Devices paired with an older app version keep their original capability
