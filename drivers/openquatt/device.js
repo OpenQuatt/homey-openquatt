@@ -7,6 +7,8 @@ const { DewPointSources } = require('../../lib/dewPoint');
 const { API_INPUTS, formatInput } = require('../../lib/apiInputs');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 const { remoteLogin, MIN_PASSWORD_LENGTH } = require('../../lib/RemoteAccess');
+const { History } = require('../../lib/History');
+const { parseEnergyHistory } = require('../../lib/energyHistory');
 
 // Entity id (as seen on the /events stream) -> Homey capability. Every
 // capability here is also an Insights log, which is the point of exposing the
@@ -147,6 +149,23 @@ const INPUT_PUBLISH_MS = 60000;
 // the fragment tells it which Homey to call, without sending it to the host.
 const REMOTE_PAGE_URL = 'https://openquatt.github.io/homey-openquatt/remote/';
 
+// The remote page's 24-hour charts: sampled every minute, averaged per five
+// minutes, and saved now and then so an app restart does not wipe them.
+const HISTORY_FIELDS = [
+  ['supply', 1], ['return', 1], ['target', 1], ['outside', 1], ['room', 1], ['setpoint', 1],
+  ['power', 0], ['heat', 0], ['cool', 0], ['flow', 0], ['hp1', 0], ['hp2', 0],
+];
+const HISTORY_SAMPLE_MS = 60 * 1000;
+const HISTORY_INTERVAL_MS = 5 * 60 * 1000;
+const HISTORY_SPAN_MS = 24 * 60 * 60 * 1000;
+const HISTORY_SAVE_MS = 30 * 60 * 1000;
+const HISTORY_STORE_KEY = 'history';
+
+// The energy history comes from the controller on request; a short cache keeps
+// a remote viewer paging back and forth from loading the ESP.
+const ENERGY_CACHE_MS = 2 * 60 * 1000;
+const ENERGY_CACHE_SIZE = 12;
+
 // Persisted commands (setpoint, heating permission) are re-asserted on start,
 // so a controller that restarted meanwhile gets the standing value back.
 const INPUT_STORE_KEY = 'inputs';
@@ -176,6 +195,7 @@ class OpenQuattDevice extends Homey.Device {
     this._binary = {};
     this._numeric = {};
     this._entities = {};
+    this._energyCache = new Map();
     this._faultActive = null;
     this._deliveryProblems = {};
 
@@ -233,6 +253,13 @@ class OpenQuattDevice extends Homey.Device {
       () => this._publishInputs().catch(this.error),
       INPUT_PUBLISH_MS,
     );
+
+    this._history = new History({
+      fields: HISTORY_FIELDS, intervalMs: HISTORY_INTERVAL_MS, spanMs: HISTORY_SPAN_MS,
+    });
+    this._history.restore(this.getStoreValue(HISTORY_STORE_KEY), Date.now());
+    this._historyTimer = this.homey.setInterval(() => this._recordHistory(), HISTORY_SAMPLE_MS);
+    this._historySaveTimer = this.homey.setInterval(() => this._saveHistory(), HISTORY_SAVE_MS);
   }
 
   async onUninit() {
@@ -240,7 +267,7 @@ class OpenQuattDevice extends Homey.Device {
   }
 
   async onDeleted() {
-    this._teardown();
+    this._teardown({ saveHistory: false });
   }
 
   async onSettings({ newSettings, changedKeys }) {
@@ -355,7 +382,13 @@ class OpenQuattDevice extends Homey.Device {
     return faults;
   }
 
-  _teardown() {
+  _teardown({ saveHistory = true } = {}) {
+    if (this._historyTimer) {
+      this.homey.clearInterval(this._historyTimer);
+      this.homey.clearInterval(this._historySaveTimer);
+      this._historyTimer = null;
+      if (saveHistory) this._saveHistory();
+    }
     if (this._auxPollTimer) {
       this.homey.clearInterval(this._auxPollTimer);
       this._auxPollTimer = null;
@@ -562,7 +595,8 @@ class OpenQuattDevice extends Homey.Device {
 
   /**
    * Everything the remote page shows: the capabilities and widget data, and
-   * on request every entity the controller reports, as the firmware formats it.
+   * on request the entities the controller reports, as the firmware formats
+   * them: all of them (`true`), or the ids asked for.
    */
   getRemoteSnapshot({ entities = false } = {}) {
     const capabilities = {};
@@ -574,10 +608,63 @@ class OpenQuattDevice extends Homey.Device {
       telemetry: this.getTelemetry(),
       heatpumps: { hp1: this.getHeatpump('hp1'), hp2: this.getHeatpump('hp2') },
     };
-    if (entities) {
+    if (entities === true) {
       snapshot.entities = Object.entries(this._entities).map(([id, entity]) => ({ id, ...entity }));
+    } else if (Array.isArray(entities)) {
+      snapshot.entities = entities
+        .filter(id => Object.prototype.hasOwnProperty.call(this._entities, id))
+        .map(id => ({ id, ...this._entities[id] }));
     }
     return snapshot;
+  }
+
+  getRemoteHistory() {
+    return this._history.toJSON(Date.now());
+  }
+
+  /**
+   * The controller's energy history for a range checked by the caller (see
+   * lib/energyHistory), parsed into day and hour records.
+   */
+  async getEnergyHistory({ from, to, hours }) {
+    const key = `${from}-${to}-${hours ? 1 : 0}`;
+    const cached = this._energyCache.get(key);
+    if (cached && Date.now() - cached.at < ENERGY_CACHE_MS) return cached.data;
+
+    const text = await this.client.getText(`/energy/history?from=${from}&to=${to}&hours=${hours ? 1 : 0}`);
+    const data = parseEnergyHistory(text);
+    this._energyCache.delete(key);
+    this._energyCache.set(key, { at: Date.now(), data });
+    if (this._energyCache.size > ENERGY_CACHE_SIZE) {
+      this._energyCache.delete(this._energyCache.keys().next().value);
+    }
+    return data;
+  }
+
+  // Only while the controller is connected: otherwise the values are stale,
+  // and a gap in the chart is the honest picture.
+  _recordHistory() {
+    if (!this.getAvailable()) return;
+    const cap = id => (this.hasCapability(id) ? this.getCapabilityValue(id) : null);
+    const frequency = unit => (this._heatpumps[unit] ? this._heatpumps[unit].frequency : null);
+    this._history.record(Date.now(), {
+      supply: cap('measure_temperature.supply'),
+      return: cap('measure_temperature.return'),
+      target: cap('measure_temperature.supply_target'),
+      outside: cap('measure_temperature.outside'),
+      room: cap('measure_temperature.room'),
+      setpoint: cap('measure_temperature.setpoint'),
+      power: cap('measure_power'),
+      heat: cap('oq_heat_power'),
+      cool: cap('oq_cool_power'),
+      flow: cap('oq_flow'),
+      hp1: frequency('hp1'),
+      hp2: frequency('hp2'),
+    });
+  }
+
+  _saveHistory() {
+    this.setStoreValue(HISTORY_STORE_KEY, this._history.toJSON(Date.now())).catch(this.error);
   }
 
   _onState(state) {
@@ -586,6 +673,7 @@ class OpenQuattDevice extends Homey.Device {
     this._entities[state.id] = {
       name: state.name || null,
       state: typeof state.state === 'string' ? state.state : null,
+      value: entityValue(state),
     };
 
     const telemetryKey = TELEMETRY_ENTITIES[state.id];

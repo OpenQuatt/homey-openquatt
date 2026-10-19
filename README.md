@@ -119,10 +119,19 @@ The supply target goes further: it replaces the heating curve's own target, room
 
 ### Remote access
 
-Away from home, you can still look at the controller: a read-only page shows the system, power, both heat pumps and the status, and on request every value the controller reports, refreshed every five seconds.
+Away from home, you can still look at the controller: a read-only page in the style of the OpenQuatt web app, refreshed every five seconds.
+
+- **Overview** — key figures, system status, the heating curve with its supply target, the temperatures, and both outdoor units with fans that turn at their real speed
+- **Heat pumps** — each unit's refrigerant circuit live: water through the condenser, compressor, expansion valve and evaporator, with pressures and temperatures, and every unit detail next to it
+- **Energy** — power now, today and since the start, and the controller's energy history per day, week or month, with the average COP and how much heat came from the outside air
+- **Trends** — the last 24 hours of water temperatures, comfort, power and compressors, as five-minute averages your Homey keeps
+- **All values** — everything the controller reports, searchable
 
 <p align="center">
-  <img src=".github/remote-page.png" alt="Remote page" width="380">
+  <img src=".github/remote-heatpumps.png" alt="Remote page: a heat pump's refrigerant circuit" width="760">
+</p>
+<p align="center">
+  <img src=".github/remote-page.png" alt="Remote page: overview on a phone" width="320">
 </p>
 
 It is off by default. To switch it on:
@@ -131,12 +140,12 @@ It is off by default. To switch it on:
 2. Tick *View the controller from outside the home* under *Remote access*.
 3. Open the address shown under *Page* there and sign in with that login. The address holds your Homey's ID, so the page knows which Homey to ask.
 
-The page lives in this repository (`docs/remote`, served by GitHub Pages) and calls three public endpoints of the app through your Homey's cloud connection, `https://<homey-id>.connect.athom.com/api/app/nl.openquatt/remote/…`. Public means Homey asks for no Homey account, so the app guards them itself:
+The page lives in this repository (`docs/remote`, served by GitHub Pages) and calls public endpoints of the app through your Homey's cloud connection, `https://<homey-id>.connect.athom.com/api/app/nl.openquatt/remote/…`. Public means Homey asks for no Homey account, so the app guards them itself:
 
 - Signing in checks the login in constant time and hands out a random session token, so the password is not sent again. The page keeps the token in the browser and stays signed in.
 - After 10 failed sign-ins within 15 minutes, every sign-in is refused until the window has passed. Pages that are already signed in keep working.
 - A session ends after 30 days without use, when the app restarts, when you sign out, and as soon as you switch remote access off or change the password.
-- The endpoints only read: nothing on the page can switch or change the controller.
+- The endpoints only read: nothing on the page can switch or change the controller. Each tab asks only for the values it shows, and the controller's energy history is cached for two minutes, so paging through periods does not load the ESP.
 
 This is the only part of the app that goes through the cloud, and only while it is switched on.
 

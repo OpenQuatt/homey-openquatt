@@ -6,6 +6,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const OpenQuattDevice = require('../drivers/openquatt/device');
+const { History } = require('../lib/History');
 
 const ALL_CAPABILITIES = [
   'measure_temperature.supply',
@@ -608,12 +609,27 @@ test('the remote snapshot carries the device data, and every entity on request',
   assert.equal(snapshot.heatpumps.hp2, null);
   assert.equal(snapshot.entities, undefined);
 
-  // Latest value per entity, as the firmware formats it; v2 frames have no name.
+  // Latest value per entity, typed and as the firmware formats it; v2 frames
+  // have no name.
   assert.deepEqual(device.getRemoteSnapshot({ entities: true }).entities, [
-    { id: 'sensor-total_power_input', name: 'Total Power Input', state: '300.0 W' },
-    { id: 'sensor-hp1_-_compressor_frequency', name: null, state: '42 Hz' },
-    { id: 'text_sensor-control_mode', name: null, state: 'CM2' },
+    {
+      id: 'sensor-total_power_input', name: 'Total Power Input', state: '300.0 W', value: 300,
+    },
+    {
+      id: 'sensor-hp1_-_compressor_frequency', name: null, state: '42 Hz', value: 42,
+    },
+    {
+      id: 'text_sensor-control_mode', name: null, state: 'CM2', value: 'CM2',
+    },
   ]);
+
+  // Or only the ones asked for; unknown ids are left out.
+  assert.deepEqual(
+    device.getRemoteSnapshot({ entities: ['text_sensor-control_mode', 'sensor-nope'] }).entities,
+    [{
+      id: 'text_sensor-control_mode', name: null, state: 'CM2', value: 'CM2',
+    }],
+  );
 });
 
 test('settings refuse remote access without a strong login, and pass the login on', async () => {
@@ -651,4 +667,49 @@ test('a device paired as a thermostat becomes a heat pump', async () => {
   // Already a heat pump: nothing to set.
   device.setClass = () => assert.fail('setClass called again');
   await device._migrateClass();
+});
+
+test('history records only while connected, from the capabilities and units', () => {
+  const device = makeDevice();
+  let available = true;
+  device.getAvailable = () => available;
+  device._history = new History({
+    fields: [['supply', 1], ['power', 0], ['hp1', 0], ['hp2', 0]],
+    intervalMs: 300000,
+    spanMs: 86400000,
+  });
+
+  device._onState({ id: 'sensor-water_supply_temp__selected_', value: 44.86, state: '44.86 °C' });
+  device._onState({ id: 'sensor-total_power_input', value: 512.4, state: '512.4 W' });
+  device._onState({ id: 'sensor-hp1_-_compressor_frequency', value: 48, state: '48 Hz' });
+  device._recordHistory();
+  available = false;
+  device._onState({ id: 'sensor-total_power_input', value: 9999, state: '9999 W' });
+  device._recordHistory();
+
+  const { fields, rows } = device.getRemoteHistory();
+  assert.deepEqual(fields, ['supply', 'power', 'hp1', 'hp2']);
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0].slice(1), [44.9, 512, 48, null]);
+});
+
+test('energy history is parsed, and cached briefly per range', async () => {
+  const device = makeDevice();
+  device._energyCache = new Map();
+  const paths = [];
+  device.client = {
+    getText: async path => {
+      paths.push(path);
+      return '@schema|3\n3|20261018|0|8168|7534|0|32623|0|0|32584\n@current|20261019|2642|2418|0|10211|0|0|10221\n';
+    },
+  };
+
+  const range = { from: 20261018, to: 20261019, hours: false };
+  const first = await device.getEnergyHistory(range);
+  assert.deepEqual(first.days.map(day => [day.date, day.electrical]), [[20261018, 8168], [20261019, 2642]]);
+  await device.getEnergyHistory(range);
+  assert.deepEqual(paths, ['/energy/history?from=20261018&to=20261019&hours=0']);
+
+  await device.getEnergyHistory({ ...range, hours: true });
+  assert.equal(paths[1], '/energy/history?from=20261018&to=20261019&hours=1');
 });

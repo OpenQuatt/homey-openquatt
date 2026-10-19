@@ -1,369 +1,748 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0f1724">
   <!-- The page only ever talks to a Homey through Athom's cloud connection. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://*.connect.athom.com; img-src data:; base-uri 'none'; form-action 'none'">
   <title>OpenQuatt</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    /* OpenQuatt brand palette, as in the widgets: ink and orange on light
-       backgrounds, chalk and a brighter orange on dark ones. */
+    /* Tokens follow the OpenQuatt web app: a warm page, a soft shell, white
+       cards, an orange accent, and the overview's meaningful tones (blue for
+       electrical, orange for heat, green for efficiency, sky for flow). */
     :root {
-      color-scheme: light dark;
-      --bg: #f3f5f8;
+      color-scheme: light;
+      --page: linear-gradient(180deg, #f6f2ea 0%, #f8fafc 100%);
+      --page-solid: #f6f2ea;
+      --shell: #f9fafb;
       --card: #ffffff;
-      --text: #1c2b3a;
-      --muted: #6b7a8c;
-      --line: rgba(128, 144, 168, 0.28);
-      --primary: #0f1724;
+      --card-muted: #f3f4f6;
+      --line: #e5e7eb;
+      --line-soft: rgba(229, 231, 235, 0.7);
+      --ink: #111827;
+      --soft: #4b5563;
+      --faint: #6b7280;
       --accent: #ea580c;
-      --accent-soft: rgba(234, 88, 12, 0.14);
-      --cool: #0284c7;
-      --cool-soft: rgba(14, 165, 233, 0.14);
-      --idle-soft: rgba(128, 144, 168, 0.18);
-      --danger: #dc4444;
-      --danger-soft: rgba(220, 68, 68, 0.12);
-      --ok: #2fa84f;
+      --accent-deep: #c2410c;
+      --accent-soft: #fff7ed;
+      --accent-line: rgba(234, 88, 12, 0.3);
+      --blue: #2563eb;
+      --orange: #ea580c;
+      --green: #16a34a;
+      --sky: #0284c7;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --slate: #94a3b8;
+      --hot: #dc2626;
+      --cold: #2563eb;
+      --ok: #16a34a;
+      --ok-bg: #f0fdf4;
+      --ok-line: rgba(22, 163, 74, 0.3);
+      --warn: #b45309;
+      --warn-bg: #fffbeb;
+      --warn-line: rgba(217, 119, 6, 0.28);
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --danger-line: rgba(220, 38, 38, 0.24);
+      --heat-bg: #fff7ed;
+      --heat-line: rgba(234, 88, 12, 0.18);
+      --heat-ink: #c2410c;
+      --cool-bg: #eff6ff;
+      --cool-line: rgba(37, 99, 235, 0.16);
+      --cool-ink: #1d4ed8;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 14px 40px rgba(15, 23, 42, 0.05);
+      --grid: rgba(148, 163, 184, 0.3);
+      --r-lg: 16px;
+      --r-md: 12px;
+      --r-sm: 10px;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0b111a;
-        --card: #141c27;
-        --text: #e6edf5;
-        --muted: #8fa0b3;
-        --line: rgba(148, 163, 184, 0.22);
-        --primary: #f8fafc;
+        color-scheme: dark;
+        --page: #0f1724;
+        --page-solid: #0f1724;
+        --shell: #162131;
+        --card: #1c2a3d;
+        --card-muted: #243449;
+        --line: rgba(148, 163, 184, 0.24);
+        --line-soft: rgba(148, 163, 184, 0.16);
+        --ink: #f8fafc;
+        --soft: #dbe4ef;
+        --faint: #aec0d4;
         --accent: #f97316;
-        --accent-soft: rgba(249, 115, 22, 0.18);
-        --cool: #38bdf8;
-        --cool-soft: rgba(56, 189, 248, 0.16);
-        --idle-soft: rgba(148, 163, 184, 0.16);
-        --danger: #f87171;
-        --danger-soft: rgba(248, 113, 113, 0.14);
+        --accent-deep: #fb923c;
+        --accent-soft: rgba(249, 115, 22, 0.14);
+        --accent-line: rgba(249, 115, 22, 0.36);
+        --blue: #60a5fa;
+        --orange: #fb923c;
+        --green: #4ade80;
+        --sky: #38bdf8;
+        --hot: #f87171;
+        --cold: #60a5fa;
         --ok: #4ade80;
+        --ok-bg: rgba(20, 83, 45, 0.28);
+        --ok-line: rgba(74, 222, 128, 0.3);
+        --warn: #fbbf24;
+        --warn-bg: rgba(120, 53, 15, 0.3);
+        --warn-line: rgba(251, 191, 36, 0.3);
+        --danger: #fca5a5;
+        --danger-bg: rgba(127, 29, 29, 0.32);
+        --danger-line: rgba(248, 113, 113, 0.32);
+        --heat-bg: rgba(249, 115, 22, 0.1);
+        --heat-line: rgba(249, 115, 22, 0.26);
+        --heat-ink: #fdba74;
+        --cool-bg: rgba(59, 130, 246, 0.12);
+        --cool-line: rgba(96, 165, 250, 0.26);
+        --cool-ink: #93c5fd;
+        --shadow: 0 1px 2px rgba(15, 23, 42, 0.16), 0 24px 56px rgba(2, 6, 23, 0.2);
+        --grid: rgba(148, 163, 184, 0.2);
       }
     }
 
-    html { background: var(--bg); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--page-solid); }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      min-height: 100vh;
+      padding: 18px 0 36px;
+      background: var(--page);
+      color: var(--ink);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
       -webkit-font-smoothing: antialiased;
-      line-height: 1.35;
-      padding: 16px;
     }
-    .wrap { max-width: 1040px; margin: 0 auto; }
+    button, input { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
 
-    .header { display: flex; align-items: center; gap: 10px; }
-    .logo { display: block; height: 24px; width: auto; flex: 0 0 auto; }
-    .logo .p { fill: var(--primary); }
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px;
+      background: var(--shell);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow);
+    }
+
+    /* Header */
+    .head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .logo { display: block; width: clamp(170px, 22vw, 230px); height: auto; }
+    .logo .p { fill: var(--ink); }
     .logo .a { fill: var(--accent); }
     .logo .tail { fill: none; stroke: var(--accent); }
-    .device-name {
-      color: var(--muted);
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .badge {
-      margin-left: auto;
-      font-size: 14px;
-      font-weight: 500;
-      padding: 3px 10px;
-      border-radius: 999px;
-      white-space: nowrap;
-      flex: 0 0 auto;
-    }
-    .badge.small { margin-left: 0; font-size: 12px; padding: 2px 8px; }
-    .badge.idle  { background: var(--idle-soft);   color: var(--muted); }
-    .badge.heat  { background: var(--accent-soft); color: var(--accent); }
-    .badge.cool  { background: var(--cool-soft);   color: var(--cool); }
-    .badge.frost { background: var(--cool-soft);   color: var(--muted); }
-    .badge.off   { background: var(--danger-soft); color: var(--danger); }
-    .badge[hidden] { display: none; }
-
-    .brandline {
-      position: relative;
-      height: 2px;
-      border-radius: 1px;
-      margin: 12px 0 16px;
-      background: var(--line);
-    }
-    .brandline::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 44px;
-      border-radius: 1px;
-      background: var(--accent);
-    }
-
-    .banner {
-      border-radius: 12px;
-      padding: 10px 14px;
-      margin-bottom: 12px;
-      font-size: 14px;
-      background: var(--danger-soft);
-      color: var(--danger);
-    }
-    .banner.notice { background: var(--idle-soft); color: var(--text); }
-    .banner[hidden] { display: none; }
-    .banner ul { margin: 4px 0 0 18px; }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 12px;
-    }
-    .card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 14px 16px 16px;
-      min-width: 0;
-    }
-    .card.wide { grid-column: 1 / -1; }
-    .card-head {
-      display: flex;
+    .lead { grid-column: 1 / -1; color: var(--soft); }
+    .head-side { display: flex; align-items: center; gap: 10px; }
+    .live {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
-    }
-    .card-head h2 {
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--soft);
       font-size: 13px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-    }
-    .card-head .badge { margin-left: auto; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px 10px;
-    }
-    .sub {
-      grid-column: 1 / -1;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: -6px;
-    }
-    .stat .label {
-      font-size: 13px;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .stat .value {
-      font-size: 19px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
-    .unit {
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--muted);
-      margin-left: 2px;
-    }
-
-    .faults {
-      margin-top: 12px;
-      font-size: 13px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .faults .dot {
-      flex: 0 0 auto;
-      width: 7px;
-      height: 7px;
+    .live::before {
+      content: "";
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--ok);
+      background: var(--slate);
     }
-    .faults.problem { color: var(--danger); }
-    .faults.problem .dot { background: var(--danger); }
+    .live.is-ok::before { background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16); animation: pulse 2.4s ease-in-out infinite; }
+    .live.is-off::before { background: #ef4444; }
+    .live.is-stale::before { background: var(--amber); }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0.04); } }
+    .icon-btn {
+      display: inline-grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--card);
+      color: var(--soft);
+      cursor: pointer;
+    }
+    .icon-btn:hover:not(:disabled) { border-color: var(--accent-line); color: var(--accent-deep); }
+    .icon-btn:disabled { opacity: 0.4; cursor: default; }
+    svg.icon {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-    .rows { display: grid; gap: 2px; }
-    .row {
+    /* Tabs */
+    .tabs {
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 6px 0;
+      gap: 10px;
+      margin: 18px 0;
+      padding-bottom: 18px;
       border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: var(--card);
+      color: var(--soft);
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+    .tab:hover { border-color: rgba(234, 88, 12, 0.24); }
+    .tab.is-active {
+      border-color: var(--accent-line);
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+    }
+
+    /* Banners */
+    .banner {
+      margin-bottom: 14px;
+      padding: 12px 16px;
+      border: 1px solid var(--warn-line);
+      border-radius: var(--r-md);
+      background: var(--warn-bg);
       font-size: 14px;
     }
-    .row:last-child { border-bottom: 0; }
-    .row .name { color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
-    .row .val {
-      text-align: right;
+    .banner strong { display: block; margin-bottom: 2px; color: var(--warn); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .banner.is-danger { border-color: var(--danger-line); background: var(--danger-bg); }
+    .banner.is-danger strong { color: var(--danger); }
+    .banner ul { margin-left: 18px; }
+
+    /* Panels and type */
+    .panel {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      background: var(--card);
+    }
+    .stack > * + * { margin-top: 16px; }
+    .kicker {
+      margin-bottom: 6px;
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1, h2 { font-size: 1.35rem; line-height: 1.2; letter-spacing: -0.01em; }
+    h3 { font-size: 1.05rem; line-height: 1.3; }
+    .sub { margin: 18px 0 10px; font-size: 0.95rem; font-weight: 700; }
+    .panel-lead { margin-top: 6px; color: var(--soft); }
+    .row { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .muted { color: var(--faint); }
+
+    /* Stat cards, as in the OpenQuatt overview */
+    .stats { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stats.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stats.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stat {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: var(--card);
+      overflow: hidden;
+    }
+    .stat-label {
+      color: var(--tone, var(--soft));
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.2;
       font-variant-numeric: tabular-nums;
       overflow-wrap: anywhere;
     }
-    .val.on { color: var(--ok); font-weight: 600; }
+    .u { margin-left: 3px; color: var(--faint); font-size: 0.8em; font-weight: 600; }
+    .stat-note { color: var(--soft); font-size: 0.8rem; line-height: 1.4; }
+    .stat-note:empty { display: none; }
+    .stat.is-text .stat-value { font-size: 0.95rem; line-height: 1.35; overflow-wrap: break-word; hyphens: auto; }
+    .stat.blue { --tone: var(--blue); --bar: linear-gradient(180deg, #1d4ed8, #60a5fa); }
+    .stat.orange { --tone: var(--orange); --bar: linear-gradient(180deg, #f59e0b, #ef4444); }
+    .stat.green { --tone: var(--green); --bar: linear-gradient(180deg, #16a34a, #4ade80); }
+    .stat.sky { --tone: var(--sky); --bar: linear-gradient(180deg, #0ea5e9, #67e8f9); }
+    .stat.accented { padding-left: 21px; }
+    .stat.accented::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--bar, var(--tone));
+    }
+    .stat.accented .stat-label { color: var(--soft); }
 
-    details > summary {
-      cursor: pointer;
-      list-style: none;
-      display: flex;
+    .live-grid { display: grid; gap: 22px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+
+    /* Status cards: a read-only take on the web app's controls */
+    .controls { display: grid; gap: 10px; }
+    .control {
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: var(--card);
+    }
+    .control-head { display: flex; align-items: center; gap: 10px; }
+    .control-name {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      color: var(--soft);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
-    details > summary::-webkit-details-marker { display: none; }
-    details > summary::after {
+    .control-name::before {
       content: "";
-      width: 7px;
-      height: 7px;
-      border-right: 2px solid var(--muted);
-      border-bottom: 2px solid var(--muted);
-      transform: rotate(45deg);
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: #cbd5e1;
+      box-shadow: 0 0 0 4px rgba(203, 213, 225, 0.16);
+    }
+    .control.is-on .control-name::before { background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16); }
+    .control-note { margin-top: 5px; color: var(--soft); font-size: 0.86rem; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
       margin-left: auto;
-      transition: transform 0.15s;
-    }
-    details[open] > summary::after { transform: rotate(-135deg); }
-    details[open] > summary { margin-bottom: 12px; }
-    .count { color: var(--muted); font-size: 13px; }
-    .group h3 {
-      font-size: 13px;
-      font-weight: 600;
-      margin: 14px 0 2px;
-    }
-
-    input {
-      font: inherit;
-      color: var(--text);
-      background: var(--bg);
+      padding: 2px 10px;
       border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
-      width: 100%;
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--soft);
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
-    input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-    .search { margin-bottom: 4px; }
+    .pill.on { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok); }
+    .pill.heat { border-color: var(--heat-line); background: var(--heat-bg); color: var(--heat-ink); }
+    .pill.cool { border-color: var(--cool-line); background: var(--cool-bg); color: var(--cool-ink); }
+    .pill.frost { border-color: var(--cool-line); background: var(--cool-bg); color: var(--soft); }
+    .pill.off { border-color: var(--danger-line); background: var(--danger-bg); color: var(--danger); }
 
-    .login { max-width: 380px; margin: 8vh auto 0; }
-    .login .card { padding: 20px; }
-    .login .logo { height: 28px; margin-bottom: 16px; }
-    .login p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
-    .field { display: block; margin-bottom: 12px; }
-    .field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-    .error { color: var(--danger); font-size: 14px; min-height: 1.35em; margin-bottom: 8px; }
+    /* Heating curve */
+    .target {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+    }
+    .target .stat-label { color: var(--soft); }
+    .target-value { margin: 4px 0 2px; font-size: 2.3rem; font-weight: 750; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .target-value .u { font-size: 0.55em; }
+    .gauge { position: relative; height: 8px; margin: 16px 0 6px; border-radius: 999px; background: linear-gradient(90deg, rgba(59, 130, 246, 0.22), rgba(249, 115, 22, 0.24)); }
+    .gauge i { position: absolute; top: -5px; width: 4px; height: 18px; border-radius: 2px; transform: translateX(-2px); transition: left 400ms ease; }
+    .gauge .is-target { background: var(--ink); }
+    .gauge .is-supply { background: var(--orange); }
+    .gauge .is-return { background: var(--blue); }
+    .gauge-scale { display: flex; justify-content: space-between; gap: 8px; color: var(--faint); font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+    .gauge-scale > span:nth-child(2) { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; }
+    .target + .stats { margin-top: 10px; }
 
-    button {
-      font: inherit;
-      cursor: pointer;
-      border: 0;
-      border-radius: 10px;
-      padding: 10px 16px;
-      background: var(--accent);
-      color: #fff;
+    /* Key/value lists */
+    .list { display: grid; }
+    .list-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .list-row:last-child { border-bottom: 0; }
+    /* Labels wrap between words, never inside one; a long value wraps instead. */
+    .list-row span { flex: 0 1 auto; min-width: min-content; color: var(--soft); }
+    .list-row strong { flex: 0 1 auto; min-width: 0; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: break-word; }
+    .list-row strong.on { color: var(--ok); }
+    .list.compact .list-row { padding: 7px 0; font-size: 0.9rem; }
+
+    /* Heat pump cards on the overview */
+    .units-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 26px 0 12px; }
+    .units-head p { color: var(--soft); }
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--soft);
       font-weight: 600;
-      width: 100%;
+      cursor: pointer;
+      white-space: nowrap;
     }
-    button:disabled { opacity: 0.6; cursor: default; }
-    button.link {
-      background: none;
-      color: var(--muted);
-      font-weight: 400;
-      padding: 0;
-      width: auto;
-      text-decoration: underline;
+    .ghost-btn:hover { border-color: var(--accent-line); color: var(--accent-deep); }
+    .units { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .unit-head { display: flex; align-items: center; gap: 10px; }
+    .unit-head h3 { font-size: 1.2rem; }
+    .hp-head .pill { margin-left: 0; }
+    .hp-head .muted { margin-left: auto; font-size: 0.85rem; }
+    .unit-art {
+      margin: 12px 0 14px;
+      padding: 20px 12px 10px;
+      border-radius: var(--r-md);
+      background:
+        radial-gradient(ellipse at 50% 92%, var(--glow, rgba(148, 163, 184, 0.16)), transparent 64%),
+        var(--card-muted);
+      transition: background 600ms ease;
     }
-
-    .footer {
+    .unit.is-heat .unit-art { --glow: rgba(249, 115, 22, 0.3); }
+    .unit.is-cool .unit-art { --glow: rgba(59, 130, 246, 0.28); }
+    .unit.is-frost .unit-art { --glow: rgba(125, 211, 252, 0.36); }
+    .unit-art svg { display: block; width: min(100%, 290px); height: auto; margin: 0 auto; }
+    .unit-water {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 6px 12px;
-      margin-top: 16px;
-      font-size: 13px;
-      color: var(--muted);
+      justify-content: center;
+      gap: 4px 18px;
+      margin-top: 8px;
+      color: var(--soft);
+      font-size: 0.84rem;
+      font-variant-numeric: tabular-nums;
     }
-    .footer button { margin-left: auto; }
+    .unit-water b { font-weight: 700; }
+    .unit-water .hot b { color: var(--hot); }
+    .unit-water .cold b { color: var(--cold); }
+    .unit .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .unit .stat { padding: 10px 12px; }
+    .unit .stat-value { font-size: 1.05rem; }
+    .unit-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--soft); font-size: 0.86rem; }
+    .unit-foot::before { content: ""; width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #22c55e; }
+    .unit-foot.is-problem { color: var(--danger); }
+    .unit-foot.is-problem::before { background: #ef4444; }
 
-    [hidden] { display: none !important; }
+    /* The outdoor unit drawing */
+    .ou-slat { stroke: rgba(255, 255, 255, 0.13); stroke-width: 1.6; }
+    .ou-blade { fill: #424b59; }
+    .ou-led { fill: #64748b; transition: fill 400ms ease; }
+    .unit.is-heat .ou-led { fill: #fb923c; }
+    .unit.is-cool .ou-led { fill: #60a5fa; }
+    .unit.is-frost .ou-led { fill: #bae6fd; }
+    .ou-snow { opacity: 0; transition: opacity 400ms ease; }
+    .unit.is-frost .ou-snow { opacity: 1; }
+    .spin { animation: spin var(--spin, 2s) linear infinite; animation-play-state: paused; }
+    .is-spinning .spin { animation-play-state: running; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @media (max-width: 380px) {
-      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* Heat pump schematic, in the web app's dark board style */
+    .hp-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+      margin-top: 14px;
+    }
+    .board {
+      container-type: inline-size;
+      padding: 14px;
+      border: 1px solid rgba(71, 85, 105, 0.42);
+      border-radius: 22px;
+      background: linear-gradient(180deg, #1b2230, #161c28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+    .board svg { display: block; width: 100%; height: auto; }
+    .sx-frame { fill: rgba(17, 24, 39, 0.24); stroke: rgba(100, 116, 139, 0.34); stroke-width: 1.5; stroke-dasharray: 8 10; }
+    .sx-title { fill: #f8fafc; font-size: 15px; font-weight: 700; }
+    .sx-cap { fill: #8fa1b8; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; }
+    .sx-val { fill: #f1f5f9; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sx-val.small { font-size: 11.5px; }
+    .sx-val.big { font-size: 17px; }
+    .sx-val.hot { fill: #fca5a5; }
+    .sx-val.cold { fill: #93c5fd; }
+    .sx-val.ref, .sx-val .ref { fill: #bbf7d0; }
+    .sx-shell { fill: #0f172a; stroke: rgba(148, 163, 184, 0.36); stroke-width: 1.5; }
+    .sx-fin { stroke: rgba(148, 163, 184, 0.2); stroke-width: 1.2; }
+    .sx-ref { fill: none; stroke: #22c55e; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.5)); transition: stroke 400ms ease; }
+    .sx-water { fill: none; stroke-width: 6; stroke-linecap: round; }
+    .sx-water.hot { stroke: #ef4444; }
+    .sx-water.cold { stroke: #3b82f6; }
+    .sx-flow { fill: none; stroke: rgba(255, 255, 255, 0.72); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 14; opacity: 0; }
+    .is-running .sx-flow.ref { opacity: 1; animation: dash var(--speed, 1.2s) linear infinite; }
+    .is-flowing .sx-flow.water { opacity: 1; animation: dash var(--water-speed, 1.4s) linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -32; } }
+    .sx-comp { fill: #0f172a; stroke: #475569; stroke-width: 3; transition: stroke 400ms ease; }
+    .is-running .sx-comp { stroke: #4ade80; filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.45)); }
+    .sx-valve { fill: #0f172a; stroke: #22c55e; stroke-width: 2.5; stroke-linejoin: round; transition: stroke 400ms ease; }
+    .sx-fan-ring { fill: rgba(15, 23, 42, 0.7); stroke: rgba(148, 163, 184, 0.4); stroke-width: 1.5; }
+    .sx-blade { fill: #64748b; transition: fill 400ms ease; }
+    .is-spinning .sx-blade { fill: #a3b1c4; }
+    .sx-snow { opacity: 0; transition: opacity 400ms ease; }
+    .is-defrost .sx-snow { opacity: 1; }
+    .is-defrost .sx-ref, .is-defrost .sx-valve { stroke: #7dd3fc; filter: drop-shadow(0 0 4px rgba(125, 211, 252, 0.55)); }
+    .is-off .sx-ref, .is-off .sx-valve { stroke: #475569; filter: none; }
+    .board-stats { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+    @container (min-width: 560px) {
+      .board-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .board-stat { min-width: 0; padding: 12px 14px; border: 1px solid rgba(124, 141, 165, 0.22); border-radius: 14px; background: rgba(35, 47, 63, 0.96); }
+    .board-stat span { display: block; color: #b0bed0; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .board-stat strong { display: block; margin-top: 6px; color: #f8fafc; font-size: 1.02rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .details { columns: 2; column-gap: 22px; }
+    .details > div { break-inside: avoid; }
+    .details > div + div h4 { margin-top: 14px; }
+    .details h4 { margin: 0 0 2px; color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* Energy */
+    .flows { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px; }
+    .flow-col { padding: 14px; border: 1px solid var(--line); border-radius: var(--r-md); }
+    .flow-col > h4 { margin-bottom: 10px; color: var(--soft); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .flow-box { padding: 10px 12px 6px; border: 1px solid var(--heat-line); border-radius: var(--r-md); background: var(--heat-bg); }
+    .flow-box + .flow-box { margin-top: 10px; }
+    .flow-box.cool { border-color: var(--cool-line); background: var(--cool-bg); }
+    .flow-box > p {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--heat-ink);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .flow-box.cool > p { color: var(--cool-ink); }
+    .flow-box > p::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .flow-box h5 { margin-top: 8px; font-size: 0.92rem; }
+    .flow-box .list-row { padding: 5px 0; font-size: 0.88rem; border-color: var(--line-soft); }
+
+    .seg {
+      display: inline-flex;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card-muted);
+    }
+    .seg button {
+      min-width: 76px;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 9px;
+      background: none;
+      color: var(--soft);
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .seg button.is-active { background: var(--accent-soft); color: var(--accent-deep); box-shadow: inset 0 0 0 1px var(--accent-line); }
+    .history-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 16px 0 14px; }
+    .pager { display: flex; align-items: center; gap: 8px; }
+    .pager strong { min-width: 170px; text-align: center; font-size: 0.92rem; }
+    .share { margin: 14px 0 4px; }
+    .share-bar { display: flex; height: 22px; overflow: hidden; border-radius: 999px; background: var(--card-muted); }
+    .share-bar i { display: block; height: 100%; transition: width 400ms ease; }
+    .share-legend { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; color: var(--soft); font-size: 0.86rem; }
+    .dot { display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 50%; }
+
+    /* Charts */
+    .chart-card { margin-top: 14px; padding: 16px 16px 8px; border: 1px solid var(--line); border-radius: var(--r-md); }
+    .chart-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+    .chart-head h4 { font-size: 0.95rem; }
+    .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--soft); font-size: 0.8rem; }
+    .legend i { display: inline-block; width: 14px; height: 3px; margin-right: 6px; border-radius: 2px; vertical-align: 3px; }
+    .legend i.dashed { height: 0; border-top: 2px dashed currentColor; background: none !important; }
+    .chart { position: relative; margin-top: 8px; touch-action: pan-y; }
+    .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart .grid { stroke: var(--grid); stroke-dasharray: 3 5; }
+    .chart .axis { fill: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .chart .cross { stroke: var(--faint); stroke-width: 1; opacity: 0; }
+    .chart.is-hover .cross { opacity: 0.6; }
+    .tip {
+      position: absolute;
+      top: 4px;
+      z-index: 2;
+      min-width: 160px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--card);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+      font-size: 0.8rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+    .chart.is-hover .tip { opacity: 1; }
+    .tip b { display: block; margin-bottom: 4px; }
+    .tip div { display: flex; justify-content: space-between; gap: 14px; font-variant-numeric: tabular-nums; }
+    .tip div span { color: var(--soft); }
+    .empty { padding: 26px 12px; color: var(--faint); text-align: center; }
+
+    /* All values */
+    .search {
+      width: 100%;
+      margin-top: 14px;
+      padding: 11px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: var(--card-muted);
+    }
+    .search:focus, .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .groups { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; align-items: start; }
+    .group { padding: 4px 16px 6px; border: 1px solid var(--line); border-radius: var(--r-md); }
+    .group h4 { margin: 12px 0 2px; color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .foot {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px 10px;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 0.74rem;
+      font-weight: 650;
+    }
+
+    /* Sign in */
+    .login { width: min(420px, calc(100% - 32px)); margin: 8vh auto 0; }
+    .login .shell { width: 100%; padding: 28px; }
+    .login .logo { width: 200px; margin-bottom: 22px; }
+    .field { display: block; margin-top: 14px; }
+    .field span { display: block; margin-bottom: 6px; color: var(--soft); font-size: 0.85rem; font-weight: 600; }
+    .field input {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: var(--card);
+    }
+    .error { min-height: 1.4em; margin-top: 12px; color: var(--danger); font-size: 0.9rem; }
+    .primary {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 6px;
+      border: 0;
+      border-radius: var(--r-sm);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary:disabled { opacity: 0.6; cursor: default; }
+    .note { margin-top: 16px; color: var(--faint); font-size: 0.82rem; text-align: center; }
+
+    @media (max-width: 1100px) {
+      .live-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 980px) {
+      .hp-body { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .row, .flows, .groups { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 640px) {
+      body { padding: 8px 0 24px; }
+      .shell { width: calc(100% - 16px); padding: 16px; }
+      .panel { padding: 16px; }
+      .stats.three, .stats.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .unit .stats, .board-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .units { grid-template-columns: minmax(0, 1fr); }
+      .board { padding: 8px; border-radius: 16px; }
+      .details { columns: 1; }
+      /* On a phone the scheme keeps its main readings, in larger type; the
+         list below carries the rest. */
+      .sx-cap:not(.keep), .sx-detail { display: none; }
+      .sx-val { font-size: 25px; }
+      .sx-val.small { font-size: 21px; }
+      .sx-val.big { font-size: 30px; }
+      .sx-cap.keep { font-size: 15px; }
+      .sx-title { font-size: 22px; }
+      .board-stat { padding: 10px 12px; }
+      .board-stat span { font-size: 0.64rem; letter-spacing: 0.05em; }
+      .history-bar { flex-direction: column; align-items: stretch; }
+      .seg button { flex: 1; min-width: 0; }
+      .pager { justify-content: space-between; }
+      .pager strong { min-width: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .spin, .sx-flow, .live::before { animation: none !important; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
 
-    <!-- Sign in -->
-    <section class="login" id="login" hidden>
-      <form class="card" id="login-form" novalidate>
-        <svg class="logo" data-logo viewBox="7.5 9.6 427.6 79.6" role="img" aria-label="OpenQuatt"></svg>
-        <p id="t-intro"></p>
-        <label class="field"><span id="t-homey"></span>
-          <input id="homey-id" autocomplete="off" autocapitalize="off" spellcheck="false">
-        </label>
-        <label class="field"><span id="t-username"></span>
-          <input id="username" autocomplete="username" autocapitalize="off" spellcheck="false">
-        </label>
-        <label class="field"><span id="t-password"></span>
-          <input id="password" type="password" autocomplete="current-password">
-        </label>
-        <div class="error" id="login-error" role="alert"></div>
-        <button type="submit" id="sign-in"></button>
-      </form>
-    </section>
+  <!-- Sign in -->
+  <div class="login" id="login" hidden>
+    <form class="shell" id="login-form" novalidate>
+      <svg class="logo" data-logo viewBox="7.5 9.6 427.6 79.6" role="img" aria-label="OpenQuatt"></svg>
+      <p class="kicker" data-t="remote"></p>
+      <h1 data-t="signInTitle"></h1>
+      <p class="panel-lead" data-t="intro"></p>
+      <label class="field"><span data-t="homey"></span>
+        <input id="homey-id" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </label>
+      <label class="field"><span data-t="username"></span>
+        <input id="username" autocomplete="username" autocapitalize="off" spellcheck="false">
+      </label>
+      <label class="field"><span data-t="password"></span>
+        <input id="password" type="password" autocomplete="current-password">
+      </label>
+      <div class="error" id="login-error" role="alert"></div>
+      <button class="primary" type="submit" id="sign-in" data-t="signIn"></button>
+      <p class="note" data-t="privacy"></p>
+    </form>
+  </div>
 
-    <!-- Dashboard -->
-    <section id="dash" hidden>
-      <div class="header">
-        <svg class="logo" data-logo viewBox="7.5 9.6 427.6 79.6" role="img" aria-label="OpenQuatt"></svg>
-        <span class="device-name" id="device-name"></span>
-        <span class="badge idle" id="badge">…</span>
+  <!-- Dashboard -->
+  <div class="shell" id="app" hidden>
+    <header class="head">
+      <svg class="logo" data-logo viewBox="7.5 9.6 427.6 79.6" role="img" aria-label="OpenQuatt"></svg>
+      <div class="head-side">
+        <span class="live" id="live"></span>
+        <button class="icon-btn" type="button" id="sign-out"></button>
       </div>
-      <div class="brandline"></div>
-
-      <div class="banner notice" id="stale" hidden></div>
-      <div class="banner notice" id="offline" hidden></div>
-      <div class="banner" id="problems" hidden></div>
-
-      <div class="cards">
-        <div class="card">
-          <div class="card-head"><h2 id="t-system"></h2></div>
-          <div class="grid" id="system"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h2 id="t-power"></h2></div>
-          <div class="grid" id="power"></div>
-        </div>
-        <div class="card" id="unit-hp1" hidden></div>
-        <div class="card" id="unit-hp2" hidden></div>
-        <div class="card">
-          <div class="card-head"><h2 id="t-status"></h2></div>
-          <div class="rows" id="status"></div>
-        </div>
-        <details class="card wide" id="all">
-          <summary class="card-head"><h2 id="t-all"></h2><span class="count" id="all-count"></span></summary>
-          <input class="search" id="search" type="search" autocomplete="off">
-          <div id="entities"></div>
-        </details>
-      </div>
-
-      <div class="footer">
-        <span id="updated"></span>
-        <span id="t-readonly"></span>
-        <button type="button" class="link" id="sign-out"></button>
-      </div>
-    </section>
-
+      <p class="lead" id="lead"></p>
+    </header>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div id="banners"></div>
+    <main id="view"></main>
+    <footer class="foot" id="foot"></footer>
   </div>
 
   <script>
@@ -371,8 +750,10 @@
 
     const APP_ID = 'nl.openquatt';
     const POLL_MS = 5000;
+    const SLOW_POLL_MS = 5 * 60 * 1000;
     const HOMEY_ID = /^[0-9a-f]{24}$/;
     const STORE_KEY = 'openquatt-remote';
+    const TAB_KEY = 'openquatt-remote-tab';
 
     // OpenQuatt logo (mark + wordmark), as in the widgets; colours follow the theme.
     const LOGO = `
@@ -381,7 +762,7 @@
         <path class="tail" d="M53.5 52.5 L83 82" stroke-width="13.5" stroke-linecap="round"/>
       </g>
       <g transform="translate(99 30.472) scale(0.46528)" fill-rule="evenodd">
-        <path class="p" transform="translate(0 0)" d="M50 0 A50 50 0 1 1 50 100 A50 50 0 1 1 50 0 Z M50 18 A32 32 0 1 0 50 82 A32 32 0 1 0 50 18 Z"/>
+        <path class="p" d="M50 0 A50 50 0 1 1 50 100 A50 50 0 1 1 50 0 Z M50 18 A32 32 0 1 0 50 82 A32 32 0 1 0 50 18 Z"/>
         <path class="p" transform="translate(110 0)" d="M0 30 H18 V37 C25 30 33 28 42 28 C63 28 76 43 76 65 C76 86 62 101 42 101 C32 101 25 98 18 92 V124 H0 Z M38 46 C26 46 18 53 18 65 C18 77 26 84 38 84 C50 84 58 77 58 65 C58 53 50 46 38 46 Z"/>
         <path class="p" transform="translate(192 0)" d="M71 72 H18 C21 82 28 86 38 86 C46 86 51 82 56 77 L69 89 C60 98 50 102 37 102 C14 102 0 87 0 65 C0 44 15 28 37 28 C59 28 72 43 72 65 Z M18 58 H54 C52 48 46 44 37 44 C28 44 21 49 18 58 Z"/>
         <path class="p" transform="translate(272 0)" d="M0 30 H18 V38 C25 31 33 28 43 28 C63 28 70 41 70 59 V100 H52 V62 C52 50 47 45 37 45 C25 45 18 53 18 65 V100 H0 Z"/>
@@ -393,152 +774,246 @@
         <path class="a" transform="translate(668 0)" d="M13 13 H31 V30 H52 V47 H31 V73 C31 82 34 85 41 85 C45 85 48 84 52 83 V99 C47 101 42 102 36 102 C20 102 13 94 13 77 V47 H0 V30 H13 Z"/>
       </g>`;
 
+    const ICONS = {
+      overview: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+      heatpumps: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="10" cy="12" r="4"/><path d="M10 8v8M6 12h8M17 9v6"/>',
+      energy: '<path d="M13 2 4.5 13.5h6.5L10 22l8.5-11.5H12z"/>',
+      trends: '<path d="M3 19.5h18"/><path d="m4 15 5-5 4 3.5L20 6"/>',
+      all: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+      signOut: '<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="m9 16-4-4 4-4"/><path d="M5 12h11"/>',
+      prev: '<path d="m15 18-6-6 6-6"/>',
+      next: '<path d="m9 18 6-6-6-6"/>',
+      arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
+    };
+
     // UI strings; Dutch for Dutch browsers, English otherwise.
     const I18N = {
-      en: {
-        intro: 'Sign in with the login from the device settings in Homey, where remote access must be switched on.',
-        homey: 'Homey ID',
-        username: 'Username',
-        password: 'Password',
-        signIn: 'Sign in',
-        signingIn: 'Signing in…',
-        signOut: 'Sign out',
-        readOnly: 'View only, through your Homey',
-        updated: time => `Updated ${time}`,
-        invalidId: 'That is not a Homey ID: use the link from the device settings.',
-        unauthorized: 'Wrong username or password, or remote access is switched off.',
-        locked: 'Too many failed attempts. Try again in 15 minutes.',
-        unreachable: 'Homey cannot be reached, or the OpenQuatt app is not running.',
-        expired: 'You were signed out. Sign in again.',
-        stale: time => `No connection to Homey since ${time}. Trying again…`,
-        offline: 'Homey cannot reach the controller right now. These are the last known values.',
-        system: 'System',
-        power: 'Power',
-        status: 'Status',
-        all: 'All values',
-        search: 'Search',
-        nothing: 'Nothing found',
-        loading: 'Loading…',
-        supply: 'Supply',
-        return: 'Return',
-        target: 'Supply target',
-        outside: 'Outside',
-        room: 'Room',
-        setpoint: 'Setpoint',
-        flow: 'Flow',
-        dewPoint: 'Dew point',
-        powerIn: 'Power in',
-        output: 'Output',
-        cop: 'COP',
-        eer: 'EER',
-        now: 'Now',
-        today: 'Today',
-        delivered: 'Delivered',
-        used: 'Used',
-        compressor: 'Compressor',
-        fan: 'Fan',
-        air: 'Air',
-        noFaults: 'No faults',
-        problems: 'Needs attention',
-        openquatt: 'OpenQuatt control',
-        heatingPermission: 'Heating permission',
-        coolingPermission: 'Cooling permission',
-        manualCooling: 'Manual cooling enable',
-        auxRelay: 'Aux relay (R2)',
-        auxStatus: 'Aux relay status',
-        coolingBlock: 'Cooling blocked by',
-        mode: 'Control mode',
-        on: 'On',
-        off: 'Off',
-        standby: 'Standby',
-        circulate: 'Circulate',
-        heating: 'Heating',
-        cooling: 'Cooling',
-        defrost: 'Defrosting',
-        antifreeze: 'Anti-freeze',
-        calibrating: 'Calibrating',
-        unknown: 'Unknown',
-        offlineBadge: 'Offline',
-        lowflow: 'Low flow — protection active',
-        flowMismatch: 'Flow mismatch between HP1 and HP2',
-        otLink: 'OpenTherm link problem',
-        domains: {
-          sensor: 'Sensors',
-          binary_sensor: 'Binary sensors',
-          text_sensor: 'Text sensors',
-          switch: 'Switches',
-          select: 'Selections',
-          number: 'Numbers',
-          other: 'Other',
-        },
-      },
       nl: {
-        intro: 'Log in met de login uit de apparaatinstellingen in Homey; daar moet toegang op afstand aan staan.',
+        remote: 'Op afstand',
+        signInTitle: 'Inloggen',
+        intro: 'Bekijk je OpenQuatt van overal, via je Homey. Log in met de login uit de apparaatinstellingen in Homey; daar moet toegang op afstand aan staan.',
         homey: 'Homey-ID',
         username: 'Gebruikersnaam',
         password: 'Wachtwoord',
         signIn: 'Inloggen',
         signingIn: 'Inloggen…',
+        privacy: 'Je login en gegevens gaan rechtstreeks naar je eigen Homey.',
         signOut: 'Afmelden',
-        readOnly: 'Alleen bekijken, via je Homey',
-        updated: time => `Bijgewerkt ${time}`,
+        lead: 'Je OpenQuatt op afstand, live via je Homey.',
         invalidId: 'Dat is geen Homey-ID: gebruik de link uit de apparaatinstellingen.',
         unauthorized: 'Gebruikersnaam of wachtwoord klopt niet, of toegang op afstand staat uit.',
         locked: 'Te veel mislukte pogingen. Probeer het over een kwartier opnieuw.',
         unreachable: 'Homey is niet bereikbaar, of de OpenQuatt-app draait niet.',
         expired: 'Je bent afgemeld. Log opnieuw in.',
-        stale: time => `Geen verbinding met Homey sinds ${time}. Opnieuw proberen…`,
-        offline: 'Homey kan de controller nu niet bereiken. Dit zijn de laatst bekende waarden.',
-        system: 'Systeem',
-        power: 'Vermogen',
+        liveOk: 'Live',
+        liveConnecting: 'Verbinden…',
+        liveOffline: 'Controller offline',
+        liveStale: time => `Geen verbinding sinds ${time}`,
+        offlineTitle: 'Controller niet bereikbaar',
+        offlineCopy: 'Homey kan de controller nu niet bereiken. Je ziet de laatst bekende waarden.',
+        staleTitle: 'Geen verbinding met Homey',
+        staleCopy: time => `Sinds ${time}. De pagina probeert het opnieuw.`,
+        problemsTitle: 'Aandacht nodig',
+        readOnly: 'Alleen bekijken, via Homey',
+        updated: time => `Bijgewerkt ${time}`,
+        tabs: { overview: 'Overzicht', heatpumps: 'Warmtepompen', energy: 'Energie', trends: 'Verloop', all: 'Alle waarden' },
+        overviewKicker: 'Overzicht',
+        overviewTitle: 'Live regeling',
+        overviewLead: 'Zo werkt OpenQuatt op dit moment.',
+        keyFigures: 'Kerncijfers',
+        systemStatus: 'Systeemstatus',
         status: 'Status',
-        all: 'Alle waarden',
-        search: 'Zoeken',
-        nothing: 'Niets gevonden',
-        loading: 'Laden…',
-        supply: 'Aanvoer',
-        return: 'Retour',
-        target: 'Aanvoertarget',
-        outside: 'Buiten',
-        room: 'Kamer',
-        setpoint: 'Setpoint',
-        flow: 'Flow',
-        dewPoint: 'Dauwpunt',
-        powerIn: 'Opname',
-        output: 'Afgifte',
+        electrical: 'Elektrisch vermogen',
+        electricalNote: 'hele systeem',
+        heatOutput: 'Warmteafgifte',
+        coolOutput: 'Koelafgifte',
+        thermalNote: 'thermisch vermogen',
         cop: 'COP',
         eer: 'EER',
-        now: 'Nu',
-        today: 'Vandaag',
-        delivered: 'Geleverd',
-        used: 'Stroom',
-        compressor: 'Compressor',
-        fan: 'Ventilator',
-        air: 'Lucht',
-        noFaults: 'Geen storingen',
-        problems: 'Aandacht nodig',
+        efficiencyNote: 'rendement',
+        flow: 'Flow',
+        flowNote: 'watercircuit',
+        strategy: 'Strategie',
+        strategyNote: 'regelstrategie',
+        controlMode: 'Regelmodus',
+        controlModeNote: 'actieve modus',
+        regulation: 'Regeling',
+        regulationNote: 'aanvoer ten opzichte van het doel',
+        system: 'Systeem',
+        systemNote: 'actieve randvoorwaarde',
+        belowTarget: 'Onder doel',
+        onTarget: 'Op doel',
+        aboveTarget: 'Boven doel',
+        noDemand: 'Geen warmtevraag',
+        normal: 'Normaal',
+        faultCount: n => (n === 1 ? '1 storing' : `${n} storingen`),
+        silentActive: 'Stille modus',
+        boilerActive: 'CV-ketel helpt mee',
+        strategyCurve: 'Stooklijnregeling',
+        strategyPower: 'Vermogensregeling',
         openquatt: 'OpenQuatt-regeling',
+        openquattOn: 'Verwarmen en koelen worden automatisch geregeld.',
+        openquattOff: 'OpenQuatt regelt nu niet.',
         heatingPermission: 'Warmtetoestemming',
         coolingPermission: 'Koeltoestemming',
-        manualCooling: 'Handmatige koelvrijgave',
+        silentMode: 'Stille modus',
         auxRelay: 'Hulprelais (R2)',
-        auxStatus: 'Hulprelais-status',
-        coolingBlock: 'Koelen geblokkeerd door',
-        mode: 'Regelmodus',
+        source: value => `Bron: ${value}`,
+        setting: value => `Instelling: ${value}`,
+        active: 'Actief',
         on: 'Aan',
         off: 'Uit',
+        curveTitle: 'Stooklijnregeling',
+        curveLead: 'Het actuele aanvoerdoel en hoe dicht de gemeten aanvoer daarbij ligt.',
+        target: 'Actueel aanvoerdoel',
+        supplyTarget: 'Aanvoerdoel',
+        targetSource: value => `Doel van ${value}.`,
+        targetSourceCurve: 'de stooklijn',
+        targetSourceExternal: 'een externe bron',
+        measuredSupply: 'Gemeten aanvoer',
+        measuredSupplyNote: 'wat nu wordt geleverd',
+        deviation: 'Afwijking',
+        deviationNote: 'verschil met het doel',
+        capacity: 'Beschikbare capaciteit',
+        capacityNote: 'geschat bij deze temperaturen',
+        gaugeTarget: 'doel',
+        gaugeSupply: 'aanvoer',
+        gaugeReturn: 'retour',
+        temperatures: 'Temperaturen',
+        temperaturesLead: 'De belangrijkste temperaturen voor comfort en regeling.',
+        room: 'Kamer',
+        roomSetpoint: 'Kamer-setpoint',
+        supply: 'Aanvoer',
+        return: 'Retour',
+        outside: 'Buiten',
+        dewPoint: 'Dauwpunt',
+        heatpumps: 'Warmtepompen',
+        showScheme: 'Schema bekijken',
+        unitSays: (unit, mode) => `${unit} ${mode.toLowerCase()}`,
+        compressor: 'Compressor',
+        fan: 'Ventilator',
+        powerIn: 'Opname',
+        noFaults: 'Geen storingen',
         standby: 'Standby',
-        circulate: 'Doorstromen',
         heating: 'Verwarmen',
         cooling: 'Koelen',
         defrost: 'Ontdooien',
         antifreeze: 'Antivries',
         calibrating: 'Inregelen',
+        circulate: 'Doorstromen',
         unknown: 'Onbekend',
-        offlineBadge: 'Offline',
-        lowflow: 'Lage doorstroming — beveiliging actief',
-        flowMismatch: 'Flowverschil tussen HP1 en HP2',
-        otLink: 'Probleem met OpenTherm-verbinding',
+        offline: 'Offline',
+        hpKicker: 'Warmtepompen',
+        hpTitle: 'Koudemiddelkring per buitenunit',
+        hpLead: 'Water, compressor, verdamper en ventilator van elke unit, live.',
+        condensor: 'Condensor',
+        evaporator: 'Verdamper',
+        capDischarge: 'persgas',
+        capSuction: 'zuiggas',
+        capCondensing: 'condensatie',
+        capEvaporating: 'verdamping',
+        capAir: 'buitenlucht',
+        capCoil: 'spiraal',
+        capDemand: value => `vraag ${value}`,
+        capEev: value => `EEV ${value}`,
+        workingMode: 'Werkmodus',
+        powerUse: 'Stroomverbruik',
+        heatUse: 'Warmteafgifte',
+        coolUse: 'Koelafgifte',
+        runtime: value => `${value} draaiuren`,
+        dCompressor: 'Compressor',
+        dRefrigerant: 'Koudemiddel',
+        dUnit: 'Buitenunit',
+        dWater: 'Water',
+        dElectric: 'Elektrisch',
+        dStatus: 'Status',
+        frequency: 'Frequentie',
+        demand: 'Gevraagd',
+        level: 'Niveau',
+        profile: 'Profiel',
+        highPressure: 'Hoge druk',
+        lowPressure: 'Lage druk',
+        discharge: 'Persgas',
+        suction: 'Zuiggas',
+        condensing: 'Condensatie',
+        evaporating: 'Verdamping',
+        innerCoil: 'Binnenspiraal',
+        coil: 'Verdamperspiraal',
+        fanSpeed: 'Ventilator',
+        eev: 'Expansieventiel',
+        steps: 'stappen',
+        deltaT: 'ΔT',
+        pump: 'Pompvermogen',
+        voltage: 'Spanning',
+        current: 'Stroom',
+        runtimeLabel: 'Draaiuren',
+        fourWay: '4-wegklep',
+        crankcase: 'Carterverwarming',
+        bottomPlate: 'Bodemplaatverwarming',
+        oilReturn: 'Olieretour',
+        faults: 'Storingen',
+        noUnits: 'Nog geen gegevens van de buitenunits.',
+        energyKicker: 'Energie',
+        energyTitle: 'Energiestromen',
+        energyLead: 'Wat er nu stroomt, wat het vandaag opleverde en de tellers sinds het begin.',
+        now: 'Nu',
+        today: 'Vandaag',
+        cumulative: 'Cumulatief',
+        heatingBox: 'Verwarmen',
+        coolingBox: 'Koelen',
+        heatpump: 'Warmtepomp',
+        boiler: 'CV-ketel',
+        systemHeat: 'Systeem',
+        electricalPower: 'Elektrisch vermogen',
+        electricity: 'Elektriciteit',
+        heat: 'Warmte',
+        coolingEnergy: 'Koeling',
+        resultsKicker: 'Resultaten',
+        resultsTitle: 'Energiehistorie',
+        resultsLead: 'Opbrengst, verbruik en rendement per periode, zoals de controller ze bewaart.',
+        day: 'Dag',
+        week: 'Week',
+        month: 'Maand',
+        previous: 'Vorige',
+        nextPeriod: 'Volgende',
+        weekLabel: (n, range) => `Week ${n} · ${range}`,
+        averageCop: 'Gemiddelde COP',
+        averageEer: 'Gemiddelde EER',
+        electricUsed: 'Elektrisch',
+        electricUsedNote: 'verbruikt',
+        hpDelivered: 'Warmtepomp',
+        hpDeliveredNote: 'warmte en koeling',
+        boilerDelivered: 'CV-ketel',
+        boilerDeliveredNote: 'thermisch',
+        fromAir: share => `${share} uit de buitenlucht`,
+        fromElectric: share => `${share} elektriciteit`,
+        legendElectric: 'Elektrisch',
+        legendHeat: 'Warmte',
+        legendCool: 'Koeling',
+        legendBoiler: 'Ketel',
+        historyLoading: 'Historie ophalen…',
+        historyEmpty: 'Geen gegevens in deze periode.',
+        historyUnavailable: 'De controller levert nu geen energiehistorie.',
+        needsUpdate: 'Werk de OpenQuatt-app in Homey bij om dit te zien.',
+        trendsKicker: 'Verloop',
+        trendsTitle: 'Afgelopen 24 uur',
+        trendsLead: 'Gemiddelden per vijf minuten, bijgehouden door je Homey.',
+        trendsBuilding: 'Het verloop wordt opgebouwd. Over een paar minuten verschijnt het eerste stuk.',
+        trendsSince: time => `Bijgehouden sinds ${time}.`,
+        waterTemps: 'Watertemperaturen',
+        comfort: 'Comfort',
+        power: 'Vermogen',
+        compressors: 'Compressoren',
+        avgOutside: 'Gem. buiten',
+        avgRoom: 'Gem. kamer',
+        energyUsed: 'Verbruikt',
+        cop24: 'COP 24 uur',
+        allKicker: 'Alle waarden',
+        allTitle: 'Alles wat de controller meldt',
+        allLead: 'Zoals de controller ze zelf weergeeft.',
+        search: 'Zoeken',
+        nothing: 'Niets gevonden',
+        loading: 'Laden…',
         domains: {
           sensor: 'Sensoren',
           binary_sensor: 'Binaire sensoren',
@@ -548,41 +1023,263 @@
           number: 'Getallen',
           other: 'Overig',
         },
+        lowflow: 'Lage doorstroming — beveiliging actief',
+        flowMismatch: 'Flowverschil tussen HP1 en HP2',
+        otLink: 'Probleem met OpenTherm-verbinding',
+        cycling: 'Compressor schakelt vaak aan en uit',
+      },
+      en: {
+        remote: 'Remote',
+        signInTitle: 'Sign in',
+        intro: 'View your OpenQuatt from anywhere, through your Homey. Sign in with the login from the device settings in Homey, where remote access must be switched on.',
+        homey: 'Homey ID',
+        username: 'Username',
+        password: 'Password',
+        signIn: 'Sign in',
+        signingIn: 'Signing in…',
+        privacy: 'Your login and data go straight to your own Homey.',
+        signOut: 'Sign out',
+        lead: 'Your OpenQuatt from afar, live through your Homey.',
+        invalidId: 'That is not a Homey ID: use the link from the device settings.',
+        unauthorized: 'Wrong username or password, or remote access is switched off.',
+        locked: 'Too many failed attempts. Try again in 15 minutes.',
+        unreachable: 'Homey cannot be reached, or the OpenQuatt app is not running.',
+        expired: 'You were signed out. Sign in again.',
+        liveOk: 'Live',
+        liveConnecting: 'Connecting…',
+        liveOffline: 'Controller offline',
+        liveStale: time => `No connection since ${time}`,
+        offlineTitle: 'Controller unreachable',
+        offlineCopy: 'Homey cannot reach the controller right now. These are the last known values.',
+        staleTitle: 'No connection to Homey',
+        staleCopy: time => `Since ${time}. The page keeps trying.`,
+        problemsTitle: 'Needs attention',
+        readOnly: 'View only, through Homey',
+        updated: time => `Updated ${time}`,
+        tabs: { overview: 'Overview', heatpumps: 'Heat pumps', energy: 'Energy', trends: 'Trends', all: 'All values' },
+        overviewKicker: 'Overview',
+        overviewTitle: 'Live control',
+        overviewLead: 'How OpenQuatt is working right now.',
+        keyFigures: 'Key figures',
+        systemStatus: 'System status',
+        status: 'Status',
+        electrical: 'Electrical power',
+        electricalNote: 'whole system',
+        heatOutput: 'Heat output',
+        coolOutput: 'Cooling output',
+        thermalNote: 'thermal power',
+        cop: 'COP',
+        eer: 'EER',
+        efficiencyNote: 'efficiency',
+        flow: 'Flow',
+        flowNote: 'water circuit',
+        strategy: 'Strategy',
+        strategyNote: 'control strategy',
+        controlMode: 'Control mode',
+        controlModeNote: 'active mode',
+        regulation: 'Control',
+        regulationNote: 'supply against the target',
+        system: 'System',
+        systemNote: 'active condition',
+        belowTarget: 'Below target',
+        onTarget: 'On target',
+        aboveTarget: 'Above target',
+        noDemand: 'No heat demand',
+        normal: 'Normal',
+        faultCount: n => (n === 1 ? '1 fault' : `${n} faults`),
+        silentActive: 'Silent mode',
+        boilerActive: 'Boiler assisting',
+        strategyCurve: 'Heating curve',
+        strategyPower: 'Power control',
+        openquatt: 'OpenQuatt control',
+        openquattOn: 'Heating and cooling are controlled automatically.',
+        openquattOff: 'OpenQuatt is not controlling right now.',
+        heatingPermission: 'Heating permission',
+        coolingPermission: 'Cooling permission',
+        silentMode: 'Silent mode',
+        auxRelay: 'Aux relay (R2)',
+        source: value => `Source: ${value}`,
+        setting: value => `Setting: ${value}`,
+        active: 'Active',
+        on: 'On',
+        off: 'Off',
+        curveTitle: 'Heating curve',
+        curveLead: 'The current supply target and how close the measured supply is.',
+        target: 'Current supply target',
+        supplyTarget: 'Supply target',
+        targetSource: value => `Target from ${value}.`,
+        targetSourceCurve: 'the heating curve',
+        targetSourceExternal: 'an external source',
+        measuredSupply: 'Measured supply',
+        measuredSupplyNote: 'what is delivered now',
+        deviation: 'Deviation',
+        deviationNote: 'difference to the target',
+        capacity: 'Available capacity',
+        capacityNote: 'estimated at these temperatures',
+        gaugeTarget: 'target',
+        gaugeSupply: 'supply',
+        gaugeReturn: 'return',
+        temperatures: 'Temperatures',
+        temperaturesLead: 'The temperatures that matter most for comfort and control.',
+        room: 'Room',
+        roomSetpoint: 'Room setpoint',
+        supply: 'Supply',
+        return: 'Return',
+        outside: 'Outside',
+        dewPoint: 'Dew point',
+        heatpumps: 'Heat pumps',
+        showScheme: 'View scheme',
+        unitSays: (unit, mode) => `${unit} ${mode.toLowerCase()}`,
+        compressor: 'Compressor',
+        fan: 'Fan',
+        powerIn: 'Power in',
+        noFaults: 'No faults',
+        standby: 'Standby',
+        heating: 'Heating',
+        cooling: 'Cooling',
+        defrost: 'Defrosting',
+        antifreeze: 'Anti-freeze',
+        calibrating: 'Calibrating',
+        circulate: 'Circulate',
+        unknown: 'Unknown',
+        offline: 'Offline',
+        hpKicker: 'Heat pumps',
+        hpTitle: 'Refrigerant circuit per outdoor unit',
+        hpLead: 'Water, compressor, evaporator and fan of each unit, live.',
+        condensor: 'Condenser',
+        evaporator: 'Evaporator',
+        capDischarge: 'discharge',
+        capSuction: 'suction',
+        capCondensing: 'condensing',
+        capEvaporating: 'evaporating',
+        capAir: 'outside air',
+        capCoil: 'coil',
+        capDemand: value => `demand ${value}`,
+        capEev: value => `EEV ${value}`,
+        workingMode: 'Working mode',
+        powerUse: 'Power use',
+        heatUse: 'Heat output',
+        coolUse: 'Cooling output',
+        runtime: value => `${value} running hours`,
+        dCompressor: 'Compressor',
+        dRefrigerant: 'Refrigerant',
+        dUnit: 'Outdoor unit',
+        dWater: 'Water',
+        dElectric: 'Electrical',
+        dStatus: 'Status',
+        frequency: 'Frequency',
+        demand: 'Requested',
+        level: 'Level',
+        profile: 'Profile',
+        highPressure: 'High pressure',
+        lowPressure: 'Low pressure',
+        discharge: 'Discharge gas',
+        suction: 'Suction gas',
+        condensing: 'Condensing',
+        evaporating: 'Evaporating',
+        innerCoil: 'Inner coil',
+        coil: 'Evaporator coil',
+        fanSpeed: 'Fan',
+        eev: 'Expansion valve',
+        steps: 'steps',
+        deltaT: 'ΔT',
+        pump: 'Pump power',
+        voltage: 'Voltage',
+        current: 'Current',
+        runtimeLabel: 'Running hours',
+        fourWay: '4-way valve',
+        crankcase: 'Crankcase heater',
+        bottomPlate: 'Bottom plate heater',
+        oilReturn: 'Oil return',
+        faults: 'Faults',
+        noUnits: 'No data from the outdoor units yet.',
+        energyKicker: 'Energy',
+        energyTitle: 'Energy flows',
+        energyLead: 'What flows right now, what today brought and the counters since the start.',
+        now: 'Now',
+        today: 'Today',
+        cumulative: 'Cumulative',
+        heatingBox: 'Heating',
+        coolingBox: 'Cooling',
+        heatpump: 'Heat pump',
+        boiler: 'Boiler',
+        systemHeat: 'System',
+        electricalPower: 'Electrical power',
+        electricity: 'Electricity',
+        heat: 'Heat',
+        coolingEnergy: 'Cooling',
+        resultsKicker: 'Results',
+        resultsTitle: 'Energy history',
+        resultsLead: 'Output, consumption and efficiency per period, as the controller keeps them.',
+        day: 'Day',
+        week: 'Week',
+        month: 'Month',
+        previous: 'Previous',
+        nextPeriod: 'Next',
+        weekLabel: (n, range) => `Week ${n} · ${range}`,
+        averageCop: 'Average COP',
+        averageEer: 'Average EER',
+        electricUsed: 'Electrical',
+        electricUsedNote: 'consumed',
+        hpDelivered: 'Heat pump',
+        hpDeliveredNote: 'heating and cooling',
+        boilerDelivered: 'Boiler',
+        boilerDeliveredNote: 'thermal',
+        fromAir: share => `${share} from the outside air`,
+        fromElectric: share => `${share} electricity`,
+        legendElectric: 'Electrical',
+        legendHeat: 'Heat',
+        legendCool: 'Cooling',
+        legendBoiler: 'Boiler',
+        historyLoading: 'Loading history…',
+        historyEmpty: 'No data in this period.',
+        historyUnavailable: 'The controller provides no energy history right now.',
+        needsUpdate: 'Update the OpenQuatt app in Homey to see this.',
+        trendsKicker: 'Trends',
+        trendsTitle: 'Last 24 hours',
+        trendsLead: 'Five-minute averages, kept by your Homey.',
+        trendsBuilding: 'The trends are being built. The first stretch appears in a few minutes.',
+        trendsSince: time => `Kept since ${time}.`,
+        waterTemps: 'Water temperatures',
+        comfort: 'Comfort',
+        power: 'Power',
+        compressors: 'Compressors',
+        avgOutside: 'Avg. outside',
+        avgRoom: 'Avg. room',
+        energyUsed: 'Consumed',
+        cop24: 'COP 24 hours',
+        allKicker: 'All values',
+        allTitle: 'Everything the controller reports',
+        allLead: 'As the controller formats them itself.',
+        search: 'Search',
+        nothing: 'Nothing found',
+        loading: 'Loading…',
+        domains: {
+          sensor: 'Sensors',
+          binary_sensor: 'Binary sensors',
+          text_sensor: 'Text sensors',
+          switch: 'Switches',
+          select: 'Selections',
+          number: 'Numbers',
+          other: 'Other',
+        },
+        lowflow: 'Low flow — protection active',
+        flowMismatch: 'Flow mismatch between HP1 and HP2',
+        otLink: 'OpenTherm link problem',
+        cycling: 'Compressor switches on and off often',
       },
     };
 
-    // System control mode → badge, as in the status widget.
-    const MODES = {
-      CM0: { key: 'standby', cls: 'idle' },
-      CM1: { key: 'circulate', cls: 'idle' },
-      CM2: { key: 'heating', cls: 'heat' },
-      CM3: { key: 'heating', cls: 'heat' },
-      CM4: { key: 'heating', cls: 'heat' },
-      CM5: { key: 'cooling', cls: 'cool' },
-      CM98: { key: 'antifreeze', cls: 'frost' },
-      CM100: { key: 'calibrating', cls: 'idle' },
-    };
-
-    // Unit working mode → badge, as in the heat pump widget.
-    const UNIT_MODES = {
-      Standby: { key: 'standby', cls: 'idle' },
-      Heating: { key: 'heating', cls: 'heat' },
-      Cooling: { key: 'cooling', cls: 'cool' },
-      Defrost: { key: 'defrost', cls: 'frost' },
-    };
-
-    // Protective routines the firmware lists among the failures without them
-    // being a fault; the web app and the widgets do not warn about them.
-    const NOT_A_FAULT = ['compressor oil return'];
-
-    const DOMAIN_ORDER = ['sensor', 'binary_sensor', 'text_sensor', 'switch', 'select', 'number'];
-
     const lang = (navigator.language || '').toLowerCase().startsWith('nl') ? 'nl' : 'en';
-    const t9n = I18N[lang];
+    const T = I18N[lang];
+    const locale = lang === 'nl' ? 'nl-NL' : 'en-GB';
     document.documentElement.lang = lang;
 
+    // --- Helpers ------------------------------------------------------------
+
     const $ = id => document.getElementById(id);
-    const num = v => (typeof v === 'number' && isFinite(v) ? v : null);
+    const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
     // Everything that comes from the controller is text, never markup.
     function esc(value) {
@@ -591,56 +1288,72 @@
       })[c]);
     }
 
-    function decimal(value, decimals) {
-      return value.toLocaleString(lang, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    function icon(name, label = '') {
+      const a11y = label ? `role="img" aria-label="${esc(label)}"` : 'aria-hidden="true"';
+      return `<svg class="icon" viewBox="0 0 24 24" ${a11y}>${ICONS[name]}</svg>`;
     }
 
-    function fmt(value, unit, decimals) {
+    function nf(value, decimals = 0) {
       const n = num(value);
-      if (n === null) return '—';
-      return `${decimal(n, decimals)}${unit ? `<span class="unit">${unit}</span>` : ''}`;
+      if (n === null) return null;
+      return n.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
 
-    function stat(label, value) {
-      return `<div class="stat"><div class="label">${esc(label)}</div><div class="value">${value}</div></div>`;
+    // Plain text, "12,3 °C", or a dash.
+    function qty(value, unit, decimals = 0) {
+      const text = nf(value, decimals);
+      return text === null ? '—' : `${text}${unit ? ` ${unit}` : ''}`;
     }
 
-    function row(name, value, cls = '') {
-      return `<div class="row"><span class="name">${esc(name)}</span><span class="val ${cls}">${esc(value)}</span></div>`;
+    // Markup with the unit set apart; only numbers and fixed units go in.
+    function qtyHtml(value, unit, decimals = 0) {
+      const text = nf(value, decimals);
+      return text === null ? '—' : `${text}${unit ? `<span class="u">${unit}</span>` : ''}`;
     }
 
-    function time(date) {
-      return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    // Compact temperatures for the scheme, where space is tight.
+    function deg(value) {
+      const text = nf(value, 1);
+      return text === null ? '—' : `${text}°`;
     }
 
-    function unitFaults(list) {
-      if (typeof list !== 'string' || list === 'None') return [];
-      return list.split(',')
-        .map(item => item.trim())
-        .filter(item => item && !NOT_A_FAULT.includes(item.toLowerCase()));
+    function clock(date, seconds = true) {
+      return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', ...(seconds ? { second: '2-digit' } : {}) });
     }
 
-    // --- Session ----------------------------------------------------------
+    function onOff(value) {
+      if (value === null || value === undefined) return '—';
+      return value ? T.on : T.off;
+    }
+
+    // --- Session ------------------------------------------------------------
 
     const storage = {
-      load() {
+      get(key) {
         try {
-          return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+          return JSON.parse(localStorage.getItem(key));
         } catch (err) {
-          return {};
+          return null;
         }
       },
-      save(value) {
+      set(key, value) {
         try {
-          localStorage.setItem(STORE_KEY, JSON.stringify(value));
-        } catch (err) { /* private mode: the session lasts for this tab only */ }
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (err) { /* private mode: this tab only */ }
       },
     };
 
-    let session = storage.load();
+    let session = storage.get(STORE_KEY) || {};
     // A link to another Homey than the remembered one starts afresh.
     const linkedId = location.hash.slice(1).trim().toLowerCase();
     if (HOMEY_ID.test(linkedId) && linkedId !== session.homeyId) session = { homeyId: linkedId };
+
+    class HttpError extends Error {
+      constructor(status) {
+        super(`HTTP ${status}`);
+        this.status = status;
+      }
+    }
 
     async function call(path, body) {
       const url = `https://${session.homeyId}.connect.athom.com/api/app/${APP_ID}${path}`;
@@ -651,308 +1364,1475 @@
         cache: 'no-store',
         credentials: 'omit',
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new HttpError(res.status);
       return res.json();
     }
 
-    // --- Views ------------------------------------------------------------
+    // --- State --------------------------------------------------------------
+
+    const app = {
+      view: storage.get(TAB_KEY) || 'overview',
+      snapshot: null,
+      entities: new Map(),
+      lastOk: null,
+      failing: false,
+      timer: null,
+      polling: false,
+      again: false,
+      viewState: {},
+    };
+
+    // Values by entity id, as the firmware reports them.
+    const ent = id => app.entities.get(id);
+    const ev = id => {
+      const entity = ent(id);
+      return entity ? num(entity.value) : null;
+    };
+    const et = id => {
+      const entity = ent(id);
+      if (!entity || typeof entity.state !== 'string' || entity.state === 'NA') return null;
+      return entity.state;
+    };
+    const eb = id => {
+      const entity = ent(id);
+      return entity && typeof entity.value === 'boolean' ? entity.value : null;
+    };
+    const cap = id => {
+      const caps = app.snapshot && app.snapshot.capabilities;
+      return caps && id in caps ? caps[id] : null;
+    };
+    const tele = key => (app.snapshot && app.snapshot.telemetry ? app.snapshot.telemetry[key] : undefined);
+    const unitData = unit => (app.snapshot && app.snapshot.heatpumps ? app.snapshot.heatpumps[unit] : null);
+
+    // Per-unit entities share a suffix under their own "HPx - " prefix.
+    const UNIT_ENTITIES = {
+      demand: 'sensor|compressor_frequency_demand',
+      fanMax: 'sensor|fan_speed_max',
+      eev: 'sensor|eev_steps',
+      coil: 'sensor|evaporator_coil_temperature',
+      discharge: 'sensor|gas_discharge_temperature',
+      suction: 'sensor|gas_return_temperature',
+      pLow: 'sensor|evaporator_pressure',
+      pHigh: 'sensor|condenser_pressure',
+      tCond: 'sensor|condensing_temperature',
+      tEvap: 'sensor|evaporating_temperature',
+      innerCoil: 'sensor|inner_coil_temperature',
+      pump: 'sensor|pump_power',
+      runtime: 'sensor|runtime_hours',
+      volt: 'sensor|ac_voltage',
+      amp: 'sensor|ac_current',
+      profile: 'text_sensor|compressor_level_profile',
+      fourWay: 'binary_sensor|4-way_valve',
+      crankcase: 'binary_sensor|crankcase_heater',
+      plate: 'binary_sensor|bottom_plate_heater',
+      oilReturn: 'binary_sensor|protection_-_compressor_oil_return',
+    };
+    const unitId = (unit, key) => {
+      const [domain, suffix] = UNIT_ENTITIES[key].split('|');
+      return `${domain}-${unit}_-_${suffix}`;
+    };
+    const levelId = unit => `sensor-${unit}_compressor_level`;
+
+    const ID = {
+      version: 'text_sensor-openquatt_version',
+      cycling: 'binary_sensor-compressor_cycling_warning',
+      silent: 'binary_sensor-silent_active',
+      silentMode: 'select-silent_mode_override',
+      boiler: 'binary_sensor-boiler_active',
+      strategy: 'text_sensor-heating_strategy',
+      targetSource: 'text_sensor-heating_supply___target_source',
+      capacity: 'sensor-hp_capacity__w_',
+      heatingSource: 'text_sensor-heating_enable_effective_source',
+    };
+
+    const ENERGY_IDS = {
+      now: {
+        elec: 'sensor-heating_power_input',
+        heat: 'sensor-total_heat_power',
+        cop: 'sensor-total_cop',
+        boiler: 'sensor-boiler_heat_power',
+        system: 'sensor-system_heat_power',
+        coolElec: 'sensor-cooling_power_input',
+        cool: 'sensor-total_cooling_power',
+        eer: 'sensor-total_eer',
+      },
+      today: {
+        elec: 'sensor-heating_electrical_energy_daily',
+        heat: 'sensor-heatpump_thermal_energy_daily',
+        cop: 'sensor-heatpump_cop_daily',
+        boiler: 'sensor-boiler_thermal_energy_daily',
+        system: 'sensor-system_thermal_energy_daily',
+        coolElec: 'sensor-cooling_electrical_energy_daily',
+        cool: 'sensor-heatpump_cooling_energy_daily',
+        eer: 'sensor-heatpump_eer_daily',
+      },
+      total: {
+        elec: 'sensor-heating_electrical_energy_cumulative',
+        heat: 'sensor-heatpump_thermal_energy_cumulative',
+        cop: 'sensor-heatpump_cop_cumulative',
+        boiler: 'sensor-boiler_thermal_energy_cumulative',
+        system: 'sensor-system_thermal_energy_cumulative',
+        coolElec: 'sensor-cooling_electrical_energy_cumulative',
+        cool: 'sensor-heatpump_cooling_energy_cumulative',
+        eer: 'sensor-heatpump_eer_cumulative',
+      },
+    };
+
+    const CORE_IDS = [ID.version, ID.cycling, ID.silent, ID.boiler];
+
+    // System and unit modes, as in the widgets.
+    const MODES = {
+      CM0: { key: 'standby', cls: '' },
+      CM1: { key: 'circulate', cls: '' },
+      CM2: { key: 'heating', cls: 'heat' },
+      CM3: { key: 'heating', cls: 'heat' },
+      CM4: { key: 'heating', cls: 'heat' },
+      CM5: { key: 'cooling', cls: 'cool' },
+      CM98: { key: 'antifreeze', cls: 'frost' },
+      CM100: { key: 'calibrating', cls: '' },
+    };
+    const UNIT_MODES = {
+      Standby: { key: 'standby', cls: '' },
+      Heating: { key: 'heating', cls: 'heat' },
+      Cooling: { key: 'cooling', cls: 'cool' },
+      Defrost: { key: 'defrost', cls: 'frost' },
+    };
+
+    // Protective routines the firmware lists among the failures without them
+    // being a fault; the web app and the widgets do not warn about them either.
+    const NOT_A_FAULT = ['compressor oil return'];
+
+    function unitFaults(list) {
+      if (typeof list !== 'string' || list === 'None') return [];
+      return list.split(',').map(item => item.trim())
+        .filter(item => item && !NOT_A_FAULT.includes(item.toLowerCase()));
+    }
+
+    function unitMode(hp) {
+      const defrosting = hp.defrost === true || hp.mode === 'Defrost';
+      return { defrosting, mode: UNIT_MODES[defrosting ? 'Defrost' : hp.mode] || null };
+    }
+
+    function units() {
+      return ['hp1', 'hp2'].filter(unit => unitData(unit));
+    }
+
+    function problems() {
+      const list = [];
+      if (tele('lowflowFault')) list.push(T.lowflow);
+      if (tele('flowMismatch')) list.push(T.flowMismatch);
+      if (tele('otLinkProblem')) list.push(T.otLink);
+      if (eb(ID.cycling)) list.push(T.cycling);
+      for (const unit of ['hp1', 'hp2']) {
+        const hp = unitData(unit);
+        for (const fault of unitFaults(hp && hp.failures)) list.push(`${unit.toUpperCase()}: ${fault}`);
+      }
+      return list;
+    }
+
+    // --- Binding: build the markup once, then patch values in place, so
+    // running animations (fans, flowing lines) do not restart on every poll.
+
+    let bound = new Map();
+
+    function bind(root) {
+      bound = new Map();
+      for (const el of root.querySelectorAll('[data-b]')) {
+        const key = el.dataset.b;
+        if (!bound.has(key)) bound.set(key, []);
+        bound.get(key).push(el);
+      }
+    }
+
+    function setText(key, text) {
+      for (const el of bound.get(key) || []) if (el.textContent !== text) el.textContent = text;
+    }
+
+    function setHtml(key, html) {
+      for (const el of bound.get(key) || []) if (el.innerHTML !== html) el.innerHTML = html;
+    }
+
+    function setClass(key, cls, on) {
+      for (const el of bound.get(key) || []) el.classList.toggle(cls, Boolean(on));
+    }
+
+    function setStyle(key, prop, value) {
+      for (const el of bound.get(key) || []) if (el.style.getPropertyValue(prop) !== value) el.style.setProperty(prop, value);
+    }
+
+    function setPill(key, label, cls) {
+      for (const el of bound.get(key) || []) {
+        el.textContent = label;
+        el.className = `pill${cls ? ` ${cls}` : ''}`;
+      }
+    }
+
+    function patch(el, html) {
+      if (el && el.innerHTML !== html) el.innerHTML = html;
+    }
+
+    function stat(key, label, tone, extra = '') {
+      return `<div class="stat ${tone} ${extra}">
+        <p class="stat-label" data-b="${key}.label">${esc(label)}</p>
+        <p class="stat-value" data-b="${key}">—</p>
+        <p class="stat-note" data-b="${key}.note"></p>
+      </div>`;
+    }
+
+    function row(name, value, cls = '') {
+      return `<div class="list-row"><span>${esc(name)}</span><strong class="${cls}">${esc(value)}</strong></div>`;
+    }
+
+    // --- Drawings ------------------------------------------------------------
+
+    // A generic outdoor unit: grille slats over a fan and an OpenQuatt-orange
+    // accent. The fan turns at the unit's own speed.
+    function outdoorUnit(unit) {
+      const slats = [];
+      for (let y = 22; y <= 134; y += 7) slats.push(`<line class="ou-slat" x1="16" x2="224" y1="${y}" y2="${y}"/>`);
+      const blades = [0, 72, 144, 216, 288]
+        .map(angle => `<path class="ou-blade" transform="rotate(${angle})" d="M0 -6 C 14 -14 34 -16 46 -8 C 38 -2 20 4 0 6 Z"/>`)
+        .join('');
+      return `<svg viewBox="0 0 240 172" aria-hidden="true">
+        <defs>
+          <linearGradient id="ou-body-${unit}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#363e4b"/>
+            <stop offset="1" stop-color="#1a1f27"/>
+          </linearGradient>
+          <radialGradient id="ou-hole-${unit}">
+            <stop offset="0.55" stop-color="#0d1117"/>
+            <stop offset="1" stop-color="#1b2028"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="120" cy="163" rx="104" ry="7" fill="rgba(15,23,42,0.18)"/>
+        <rect x="34" y="146" width="26" height="12" rx="3" fill="#232832"/>
+        <rect x="180" y="146" width="26" height="12" rx="3" fill="#232832"/>
+        <rect x="8" y="10" width="224" height="140" rx="14" fill="url(#ou-body-${unit})" stroke="rgba(255,255,255,0.07)"/>
+        <circle cx="92" cy="80" r="56" fill="url(#ou-hole-${unit})"/>
+        <g transform="translate(92 80)">
+          <g class="spin">${blades}</g>
+          <circle r="9" fill="#2a313c" stroke="rgba(255,255,255,0.16)"/>
+        </g>
+        ${slats.join('')}
+        <circle cx="92" cy="80" r="56" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+        <rect x="160" y="118" width="58" height="9" rx="4.5" fill="#ea580c" opacity="0.92"/>
+        <circle class="ou-led" cx="210" cy="26" r="4"/>
+        <g class="ou-snow" transform="translate(92 80)" stroke="#e0f2fe" stroke-width="3" stroke-linecap="round" fill="none">
+          <path d="M0 -22V22M-19 -11 19 11M-19 11 19 -11"/>
+          <path d="M-6 -16 0 -10 6 -16M-6 16 0 10 6 16"/>
+        </g>
+      </svg>`;
+    }
+
+    // The refrigerant circuit of one unit, after the web app's technical view:
+    // water through the condenser, the compressor, the expansion valve and
+    // the evaporator with its fan. Every value carries a short caption.
+    function schematic(unit) {
+      const k = key => `${unit}.${key}`;
+      const fins = [];
+      for (let y = 82; y <= 238; y += 9) fins.push(`<line class="sx-fin" x1="443" x2="477" y1="${y}" y2="${y}"/>`);
+      const blades = [0, 90, 180, 270]
+        .map(angle => `<path class="sx-blade" transform="rotate(${angle})" d="M0 -4 C 10 -12 26 -12 30 -4 C 22 2 10 4 0 4 Z"/>`)
+        .join('');
+      const discharge = 'M274 116 H206 V92 H142';
+      const suction = 'M440 92 H394 V116 H326';
+      const liquid = 'M142 228 H274 M326 228 H440';
+      return `<svg viewBox="0 0 600 300" aria-hidden="true">
+        <defs>
+          <linearGradient id="${unit}-water" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ef4444"/><stop offset="1" stop-color="#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="${unit}-ref" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#15803d"/>
+          </linearGradient>
+        </defs>
+        <text class="sx-title" x="120" y="30" text-anchor="middle">${esc(T.condensor)}</text>
+        <text class="sx-title" x="300" y="30" text-anchor="middle">${esc(T.compressor)}</text>
+        <text class="sx-title" x="470" y="30" text-anchor="middle">${esc(T.evaporator)}</text>
+        <rect class="sx-frame" x="12" y="46" width="576" height="242" rx="16"/>
+
+        <path class="sx-water hot" d="M98 92 H22"/>
+        <path class="sx-flow water" d="M98 92 H22"/>
+        <path d="M30 85 L20 92 L30 99 Z" fill="#ef4444"/>
+        <text class="sx-cap" x="24" y="64">${esc(T.supply.toLowerCase())}</text>
+        <text class="sx-val hot" x="24" y="81" data-b="${k('waterOut')}">—</text>
+        <path class="sx-water cold" d="M22 228 H98"/>
+        <path class="sx-flow water" d="M22 228 H98"/>
+        <path d="M88 221 L98 228 L88 235 Z" fill="#3b82f6"/>
+        <text class="sx-cap" x="24" y="251">${esc(T.return.toLowerCase())}</text>
+        <text class="sx-val cold" x="24" y="266" data-b="${k('waterIn')}">—</text>
+        <text class="sx-val cold small sx-detail" x="24" y="281" data-b="${k('flow')}">—</text>
+
+        <rect class="sx-shell" x="98" y="70" width="44" height="178" rx="12"/>
+        <rect x="105" y="80" width="13" height="158" rx="6.5" fill="url(#${unit}-water)"/>
+        <rect x="122" y="80" width="13" height="158" rx="6.5" fill="url(#${unit}-ref)" opacity="0.9"/>
+        <text class="sx-cap" x="152" y="150">${esc(T.capCondensing)}</text>
+        <text class="sx-val ref sx-detail" x="152" y="165" data-b="${k('tCond')}">—</text>
+
+        <path class="sx-ref" d="${discharge}"/>
+        <path class="sx-flow ref" d="${discharge}"/>
+        <text class="sx-cap" x="150" y="64">${esc(T.capDischarge)}</text>
+        <text class="sx-val sx-detail" x="150" y="81"><tspan data-b="${k('discharge')}">—</tspan><tspan class="ref" dx="8" data-b="${k('pHigh')}"></tspan></text>
+
+        <circle class="sx-comp" cx="300" cy="116" r="30"/>
+        <text class="sx-val big" x="300" y="121" text-anchor="middle" data-b="${k('freq')}">—</text>
+        <text class="sx-cap keep" x="300" y="135" text-anchor="middle">Hz</text>
+        <text class="sx-cap" x="300" y="166" text-anchor="middle" data-b="${k('demand')}"></text>
+
+        <path class="sx-ref" d="${suction}"/>
+        <path class="sx-flow ref" d="${suction}"/>
+        <text class="sx-cap" x="432" y="64" text-anchor="end">${esc(T.capSuction)}</text>
+        <text class="sx-val sx-detail" x="432" y="81" text-anchor="end"><tspan data-b="${k('suction')}">—</tspan><tspan class="ref" dx="8" data-b="${k('pLow')}"></tspan></text>
+
+        <path class="sx-ref" d="${liquid}"/>
+        <path class="sx-flow ref" d="${liquid}"/>
+        <path class="sx-valve" d="M274 214 L300 228 L274 242 Z M326 214 L300 228 L326 242 Z"/>
+        <text class="sx-cap" x="300" y="262" text-anchor="middle" data-b="${k('eev')}"></text>
+
+        <text class="sx-cap" x="432" y="196" text-anchor="end">${esc(T.capEvaporating)}</text>
+        <text class="sx-val ref sx-detail" x="432" y="211" text-anchor="end" data-b="${k('tEvap')}">—</text>
+
+        <rect class="sx-shell" x="440" y="70" width="40" height="178" rx="10"/>
+        ${fins.join('')}
+        <rect x="453" y="80" width="14" height="158" rx="7" fill="url(#${unit}-ref)" opacity="0.85"/>
+        <g class="sx-snow" transform="translate(460 159)" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round">
+          <path d="M0 -14V14M-12 -7 12 7M-12 7 12 -7"/>
+        </g>
+        <text class="sx-cap" x="460" y="266" text-anchor="middle">${esc(T.capCoil)}</text>
+        <text class="sx-val sx-detail" x="460" y="281" text-anchor="middle" data-b="${k('coil')}">—</text>
+
+        <text class="sx-cap" x="536" y="84" text-anchor="middle">${esc(T.capAir)}</text>
+        <text class="sx-val" x="536" y="102" text-anchor="middle" data-b="${k('outside')}">—</text>
+        <circle class="sx-fan-ring" cx="536" cy="159" r="36"/>
+        <g transform="translate(536 159)">
+          <g class="spin">${blades}</g>
+          <circle r="5" fill="#0f172a" stroke="#94a3b8"/>
+        </g>
+        <text class="sx-val" x="536" y="220" text-anchor="middle" data-b="${k('fan')}">—</text>
+      </svg>`;
+    }
+
+    // --- Charts ----------------------------------------------------------------
+
+    function niceScale(min, max, ticks = 4, includeZero = false) {
+      let lo = includeZero ? Math.min(0, min) : min;
+      let hi = max;
+      if (lo === hi) { lo -= 1; hi += 1; }
+      const raw = (hi - lo) / ticks;
+      const power = 10 ** Math.floor(Math.log10(raw));
+      const unit = raw / power;
+      const step = (unit <= 1 ? 1 : unit <= 2 ? 2 : unit <= 5 ? 5 : 10) * power;
+      lo = Math.floor(lo / step) * step;
+      hi = Math.ceil(hi / step) * step;
+      const values = [];
+      for (let v = lo; v <= hi + step / 2; v += step) values.push(Math.round(v * 1000) / 1000);
+      return { lo, hi, values, step };
+    }
+
+    function gridLines(scale, y, width, pad) {
+      const decimals = scale.step < 1 ? 1 : 0;
+      return scale.values.map(v => `<line class="grid" x1="${pad.l}" x2="${width - pad.r}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`
+        + `<text class="axis" x="${pad.l - 8}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${esc(nf(v, decimals))}</text>`).join('');
+    }
+
+    function placeTip(tip, anchor, boxWidth) {
+      const right = anchor + 12;
+      tip.style.left = `${right + tip.offsetWidth > boxWidth ? Math.max(0, anchor - tip.offsetWidth - 12) : right}px`;
+    }
+
+    // Lines over time, broken where values are missing, with a crosshair and
+    // a tooltip. Series: { label, color, values, dashed, area }.
+    function lineChart(container, {
+      times, series, start, end, height = 210, unit = '', decimals = 0, zero = false,
+    }) {
+      const width = Math.max(280, container.clientWidth || 600);
+      const pad = { l: 44, r: 12, t: 10, b: 24 };
+      const all = series.flatMap(s => s.values).filter(v => num(v) !== null);
+      if (!all.length) {
+        container.innerHTML = `<p class="empty">${esc(T.trendsBuilding)}</p>`;
+        return;
+      }
+      const scale = niceScale(Math.min(...all), Math.max(...all), 4, zero);
+      const x = t => pad.l + ((t - start) / (end - start)) * (width - pad.l - pad.r);
+      const y = v => pad.t + (1 - (v - scale.lo) / (scale.hi - scale.lo)) * (height - pad.t - pad.b);
+      const gapMs = ((times[1] - times[0]) || 300000) * 1.6;
+      const base = y(Math.max(scale.lo, 0));
+
+      const paths = series.map(s => {
+        let line = '';
+        let area = '';
+        let run = [];
+        const flush = () => {
+          if (!run.length) return;
+          const points = run.map(([px, py], i) => `${i ? 'L' : 'M'}${px.toFixed(1)} ${py.toFixed(1)}`).join('');
+          line += points;
+          if (s.area) area += `${points}L${run[run.length - 1][0].toFixed(1)} ${base.toFixed(1)}L${run[0][0].toFixed(1)} ${base.toFixed(1)}Z`;
+          run = [];
+        };
+        s.values.forEach((v, i) => {
+          if (num(v) === null || (i && times[i] - times[i - 1] > gapMs)) flush();
+          if (num(v) !== null) run.push([x(times[i]), y(v)]);
+        });
+        flush();
+        return `${area ? `<path d="${area}" fill="${s.color}" opacity="0.12"/>` : ''}`
+          + `<path d="${line}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${s.dashed ? ' stroke-dasharray="5 5"' : ''}/>`;
+      }).join('');
+
+      const labels = [];
+      const stepHours = width < 520 ? 6 : 3;
+      const first = new Date(start);
+      first.setMinutes(0, 0, 0);
+      for (let t = first.getTime() + 3600000; t <= end; t += 3600000) {
+        const hour = new Date(t).getHours();
+        if (hour % stepHours === 0) labels.push(`<text class="axis" x="${x(t).toFixed(1)}" y="${height - 6}" text-anchor="middle">${String(hour).padStart(2, '0')}:00</text>`);
+      }
+
+      container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img">${gridLines(scale, y, width, pad)}${labels.join('')}${paths}`
+        + `<line class="cross" x1="0" x2="0" y1="${pad.t}" y2="${height - pad.b}"/><g class="dots"></g>`
+        + `<rect x="${pad.l}" y="0" width="${width - pad.l - pad.r}" height="${height}" fill="transparent"/></svg><div class="tip"></div>`;
+
+      const svg = container.querySelector('svg');
+      const cross = container.querySelector('.cross');
+      const dots = container.querySelector('.dots');
+      const tip = container.querySelector('.tip');
+      const show = event => {
+        const box = svg.getBoundingClientRect();
+        const t = start + ((((event.clientX - box.left) / box.width) * width - pad.l) / (width - pad.l - pad.r)) * (end - start);
+        let index = 0;
+        times.forEach((time, i) => { if (Math.abs(time - t) < Math.abs(times[index] - t)) index = i; });
+        const cx = x(times[index]);
+        cross.setAttribute('x1', cx);
+        cross.setAttribute('x2', cx);
+        dots.innerHTML = series.map(s => (num(s.values[index]) === null ? ''
+          : `<circle cx="${cx}" cy="${y(s.values[index])}" r="3.5" fill="${s.color}" stroke="var(--card)" stroke-width="2"/>`)).join('');
+        tip.innerHTML = `<b>${esc(clock(new Date(times[index]), false))}</b>${series.map(s => `<div><span><i class="dot" style="background:${s.color}"></i>${esc(s.label)}</span><strong>${esc(qty(s.values[index], unit, decimals))}</strong></div>`).join('')}`;
+        placeTip(tip, (cx / width) * box.width, box.width);
+        container.classList.add('is-hover');
+      };
+      svg.addEventListener('pointermove', show);
+      svg.addEventListener('pointerdown', show);
+      svg.addEventListener('pointerleave', () => container.classList.remove('is-hover'));
+    }
+
+    // Bars per hour or day: heat output stacked with cooling and boiler heat,
+    // and in front the electricity it took, so the difference is what came
+    // from the outside air.
+    function barChart(container, { items, height = 220 }) {
+      const width = Math.max(280, container.clientWidth || 600);
+      const pad = { l: 40, r: 8, t: 12, b: 24 };
+      const kwh = wh => (num(wh) === null ? 0 : wh / 1000);
+      const max = Math.max(0.5, ...items.map(item => Math.max(kwh(item.heat) + kwh(item.cooling) + kwh(item.boiler), kwh(item.electrical))));
+      const scale = niceScale(0, max, 4, true);
+      const slot = (width - pad.l - pad.r) / items.length;
+      const barW = clamp(slot * 0.64, 3, 34);
+      const y = v => pad.t + (1 - v / scale.hi) * (height - pad.t - pad.b);
+      const h = v => (v / scale.hi) * (height - pad.t - pad.b);
+      const every = items.length > 24 ? Math.ceil(items.length / 10) : items.length > 12 ? 3 : 1;
+      const bars = items.map((item, i) => {
+        const cx = pad.l + slot * (i + 0.5);
+        const left = (cx - barW / 2).toFixed(1);
+        let top = y(0);
+        const stack = [[kwh(item.heat), 'var(--emerald)'], [kwh(item.cooling), 'var(--blue)'], [kwh(item.boiler), 'var(--slate)']]
+          .filter(([v]) => v > 0)
+          .map(([v, color]) => {
+            top -= h(v);
+            return `<rect x="${left}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${h(v).toFixed(1)}" rx="2" fill="${color}"/>`;
+          }).join('');
+        const e = kwh(item.electrical);
+        const elec = e > 0 ? `<rect x="${left}" y="${y(e).toFixed(1)}" width="${barW.toFixed(1)}" height="${h(e).toFixed(1)}" rx="2" fill="var(--amber)"/>` : '';
+        const label = i % every === 0 ? `<text class="axis" x="${cx.toFixed(1)}" y="${height - 6}" text-anchor="middle">${esc(item.short)}</text>` : '';
+        return `${stack}${elec}${label}`;
+      }).join('');
+      container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img">${gridLines(scale, y, width, pad)}${bars}`
+        + `<rect class="hl" x="0" y="${pad.t}" width="0" height="${height - pad.t - pad.b}" fill="var(--accent)" opacity="0.08"/>`
+        + `<rect x="${pad.l}" y="0" width="${width - pad.l - pad.r}" height="${height}" fill="transparent"/></svg><div class="tip"></div>`;
+
+      const svg = container.querySelector('svg');
+      const hl = container.querySelector('.hl');
+      const tip = container.querySelector('.tip');
+      const show = event => {
+        const box = svg.getBoundingClientRect();
+        const index = clamp(Math.floor((((event.clientX - box.left) / box.width) * width - pad.l) / slot), 0, items.length - 1);
+        const item = items[index];
+        hl.setAttribute('x', pad.l + slot * index);
+        hl.setAttribute('width', slot);
+        const line = (color, label, value) => `<div><span><i class="dot" style="background:${color}"></i>${esc(label)}</span><strong>${esc(qty(kwh(value), 'kWh', 2))}</strong></div>`;
+        const cop = num(item.heatingInput) > 0 && num(item.heat) !== null ? item.heat / item.heatingInput : null;
+        tip.innerHTML = `<b>${esc(item.title)}</b>${line('var(--emerald)', T.legendHeat, item.heat)}`
+          + `${num(item.cooling) ? line('var(--blue)', T.legendCool, item.cooling) : ''}`
+          + `${num(item.boiler) ? line('var(--slate)', T.legendBoiler, item.boiler) : ''}`
+          + `${line('var(--amber)', T.legendElectric, item.electrical)}`
+          + `${cop !== null ? `<div><span>${esc(T.cop)}</span><strong>${esc(nf(cop, 1))}</strong></div>` : ''}`;
+        placeTip(tip, ((pad.l + slot * (index + 0.5)) / width) * box.width, box.width);
+        container.classList.add('is-hover');
+      };
+      svg.addEventListener('pointermove', show);
+      svg.addEventListener('pointerdown', show);
+      svg.addEventListener('pointerleave', () => container.classList.remove('is-hover'));
+    }
+
+    // --- Views ---------------------------------------------------------------
+
+    const VIEWS = {};
+
+    VIEWS.overview = {
+      entities: () => [...CORE_IDS, ID.strategy, ID.targetSource, ID.capacity, ID.silentMode, ID.heatingSource],
+      build() {
+        const unitCards = ['hp1', 'hp2'].map(unit => `
+          <article class="panel unit" data-b="${unit}.card" hidden>
+            <div class="unit-head">
+              <h3>${unit.toUpperCase()}</h3>
+              <span class="pill" data-b="${unit}.badge">—</span>
+            </div>
+            <div class="unit-art" data-b="${unit}.art">
+              ${outdoorUnit(unit)}
+              <div class="unit-water">
+                <span class="hot">${esc(T.supply)} <b data-b="${unit}.waterOut">—</b></span>
+                <span class="cold">${esc(T.return)} <b data-b="${unit}.waterIn">—</b></span>
+                <span>${esc(T.flow)} <b data-b="${unit}.flow">—</b></span>
+              </div>
+            </div>
+            <div class="stats">
+              ${stat(`${unit}.freq`, T.compressor, '')}
+              ${stat(`${unit}.fan`, T.fan, '')}
+              ${stat(`${unit}.power`, T.powerIn, 'blue')}
+              ${stat(`${unit}.eff`, T.cop, 'green')}
+            </div>
+            <p class="unit-foot" data-b="${unit}.foot"></p>
+          </article>`).join('');
+
+        return `<div class="stack">
+          <section class="panel">
+            <p class="kicker">${esc(T.overviewKicker)}</p>
+            <h2>${esc(T.overviewTitle)}</h2>
+            <p class="panel-lead">${esc(T.overviewLead)}</p>
+            <div class="live-grid">
+              <div>
+                <h3 class="sub">${esc(T.keyFigures)}</h3>
+                <div class="stats">
+                  ${stat('elec', T.electrical, 'blue')}
+                  ${stat('out', T.heatOutput, 'orange')}
+                  ${stat('eff', T.cop, 'green')}
+                  ${stat('flow', T.flow, 'sky')}
+                </div>
+                <h3 class="sub">${esc(T.systemStatus)}</h3>
+                <div class="stats">
+                  ${stat('strategy', T.strategy, 'orange', 'is-text')}
+                  ${stat('mode', T.controlMode, 'orange', 'is-text')}
+                  ${stat('regulation', T.regulation, 'orange', 'is-text')}
+                  ${stat('system', T.system, 'orange', 'is-text')}
+                </div>
+              </div>
+              <div>
+                <h3 class="sub">${esc(T.status)}</h3>
+                <div class="controls" id="controls"></div>
+              </div>
+            </div>
+          </section>
+          <div class="row">
+            <section class="panel">
+              <h3>${esc(T.curveTitle)}</h3>
+              <p class="panel-lead">${esc(T.curveLead)}</p>
+              <div class="target">
+                <p class="stat-label">${esc(T.target)}</p>
+                <p class="target-value" data-b="target">—</p>
+                <p class="stat-note" data-b="target.note"></p>
+                <div class="gauge" data-b="gauge"></div>
+                <div class="gauge-scale" data-b="gauge.scale"></div>
+              </div>
+              <div class="stats three">
+                ${stat('supply', T.measuredSupply, 'orange', 'accented')}
+                ${stat('deviation', T.deviation, 'blue', 'accented')}
+                ${stat('capacity', T.capacity, 'sky', 'accented')}
+              </div>
+            </section>
+            <section class="panel">
+              <h3>${esc(T.temperatures)}</h3>
+              <p class="panel-lead">${esc(T.temperaturesLead)}</p>
+              <div class="list" id="temps" style="margin-top:8px"></div>
+            </section>
+          </div>
+        </div>
+        <div class="units-head">
+          <div>
+            <h3>${esc(T.heatpumps)}</h3>
+            <p data-b="units.summary"></p>
+          </div>
+          <button class="ghost-btn" type="button" data-go="heatpumps">${esc(T.showScheme)} ${icon('arrow')}</button>
+        </div>
+        <div class="units">${unitCards}</div>`;
+      },
+      update() {
+        const code = tele('controlModeCode');
+        const cooling = code === 'CM5';
+        const supply = num(cap('measure_temperature.supply'));
+        const target = num(cap('measure_temperature.supply_target'));
+        const ret = num(cap('measure_temperature.return'));
+
+        setHtml('elec', qtyHtml(cap('measure_power'), 'W'));
+        setText('elec.note', T.electricalNote);
+        setText('out.label', cooling ? T.coolOutput : T.heatOutput);
+        setHtml('out', qtyHtml(cooling ? cap('oq_cool_power') : cap('oq_heat_power'), 'W'));
+        setText('out.note', T.thermalNote);
+        setText('eff.label', cooling ? T.eer : T.cop);
+        setHtml('eff', qtyHtml(cooling ? cap('oq_eer') : cap('oq_cop'), '', 1));
+        setText('eff.note', T.efficiencyNote);
+        setHtml('flow', qtyHtml(cap('oq_flow'), 'L/h'));
+        setText('flow.note', T.flowNote);
+
+        const strategy = et(ID.strategy);
+        let strategyText = strategy || '—';
+        if (strategy && /heating curve/i.test(strategy)) strategyText = T.strategyCurve;
+        else if (strategy && /power/i.test(strategy)) strategyText = T.strategyPower;
+        setText('strategy', strategyText);
+        setText('strategy.note', T.strategyNote);
+        setText('mode', cap('oq_control_mode') || '—');
+        setText('mode.note', T.controlModeNote);
+
+        let regulation = '—';
+        if (code && MODES[code] && !MODES[code].cls) regulation = T.noDemand;
+        else if (supply !== null && target !== null && !cooling) {
+          const diff = supply - target;
+          regulation = diff < -1.5 ? T.belowTarget : diff > 1.5 ? T.aboveTarget : T.onTarget;
+        }
+        setText('regulation', regulation);
+        setText('regulation.note', T.regulationNote);
+
+        const list = problems();
+        let system = T.normal;
+        if (list.length) system = T.faultCount(list.length);
+        else if (units().some(unit => unitMode(unitData(unit)).defrosting)) system = T.defrost;
+        else if (eb(ID.boiler)) system = T.boilerActive;
+        else if (eb(ID.silent)) system = T.silentActive;
+        setText('system', system);
+        setText('system.note', T.systemNote);
+
+        const silentSetting = et(ID.silentMode);
+        const heatingSource = et(ID.heatingSource);
+        const coolingBlock = tele('coolingBlockReason');
+        const cards = [
+          [T.openquatt, cap('onoff.openquatt'), cap('onoff.openquatt') === false ? T.openquattOff : T.openquattOn, T.active],
+          [T.heatingPermission, cap('oq_heating_permitted'), heatingSource ? T.source(heatingSource) : ''],
+          [T.coolingPermission, cap('oq_cooling_permitted'), coolingBlock && coolingBlock !== 'None' ? coolingBlock : ''],
+          [T.silentMode, eb(ID.silent), silentSetting ? T.setting(silentSetting) : ''],
+          [T.auxRelay, cap('onoff.aux_relay'), cap('oq_aux_status') || ''],
+        ];
+        patch($('controls'), cards.map(([name, value, note, onLabel]) => `
+          <div class="control ${value ? 'is-on' : ''}">
+            <div class="control-head">
+              <span class="control-name">${esc(name)}</span>
+              <span class="pill ${value ? 'on' : ''}">${esc(value === null || value === undefined ? '—' : value ? (onLabel || T.on) : T.off)}</span>
+            </div>
+            ${note ? `<p class="control-note">${esc(note)}</p>` : ''}
+          </div>`).join(''));
+
+        setHtml('target', qtyHtml(target, '°C', target !== null && target % 1 ? 1 : 0));
+        const source = et(ID.targetSource);
+        setText('target.note', source ? T.targetSource(source === 'curve' ? T.targetSourceCurve : T.targetSourceExternal) : '');
+        const marks = [[ret, 'is-return'], [supply, 'is-supply'], [target, 'is-target']].filter(([v]) => v !== null);
+        if (marks.length) {
+          const lo = Math.floor(Math.min(...marks.map(([v]) => v)) / 5) * 5 - 5;
+          const hi = Math.ceil(Math.max(...marks.map(([v]) => v)) / 5) * 5 + 5;
+          setHtml('gauge', marks.map(([v, cls]) => `<i class="${cls}" style="left:${(((v - lo) / (hi - lo)) * 100).toFixed(1)}%"></i>`).join(''));
+          setHtml('gauge.scale', `<span>${lo}°</span><span>`
+            + `<span><i class="dot" style="background:var(--blue)"></i>${esc(T.gaugeReturn)}</span>`
+            + `<span><i class="dot" style="background:var(--orange)"></i>${esc(T.gaugeSupply)}</span>`
+            + `<span><i class="dot" style="background:var(--ink)"></i>${esc(T.gaugeTarget)}</span>`
+            + `</span><span>${hi}°</span>`);
+        }
+        setHtml('supply', qtyHtml(supply, '°C', 1));
+        setText('supply.note', T.measuredSupplyNote);
+        const deviation = supply !== null && target !== null ? supply - target : null;
+        setHtml('deviation', deviation === null ? '—' : `${deviation > 0.05 ? '+' : deviation < -0.05 ? '−' : ''}${nf(Math.abs(deviation), 1)}<span class="u">°C</span>`);
+        setText('deviation.note', T.deviationNote);
+        setHtml('capacity', qtyHtml(ev(ID.capacity), 'W'));
+        setText('capacity.note', T.capacityNote);
+
+        const temps = [
+          [T.room, cap('measure_temperature.room')],
+          [T.roomSetpoint, cap('measure_temperature.setpoint')],
+          [T.supply, supply],
+          [T.return, ret],
+          [T.outside, cap('measure_temperature.outside')],
+        ];
+        if (num(cap('measure_temperature.dew_point')) !== null) temps.push([T.dewPoint, cap('measure_temperature.dew_point')]);
+        patch($('temps'), temps.map(([name, value]) => row(name, qty(value, '°C', 1))).join(''));
+
+        const summary = [];
+        for (const unit of ['hp1', 'hp2']) {
+          const hp = unitData(unit);
+          for (const el of bound.get(`${unit}.card`) || []) el.hidden = !hp;
+          if (!hp) continue;
+          const { defrosting, mode } = unitMode(hp);
+          const coolingUnit = hp.mode === 'Cooling' && !defrosting;
+          const label = mode ? T[mode.key] : (hp.mode || T.unknown);
+          summary.push(T.unitSays(unit.toUpperCase(), label));
+          if (app.snapshot.available === false) setPill(`${unit}.badge`, T.offline, 'off');
+          else setPill(`${unit}.badge`, label, mode ? mode.cls : '');
+          setClass(`${unit}.card`, 'is-heat', mode && mode.cls === 'heat');
+          setClass(`${unit}.card`, 'is-cool', mode && mode.cls === 'cool');
+          setClass(`${unit}.card`, 'is-frost', defrosting);
+          const fan = num(hp.fanSpeed);
+          setClass(`${unit}.art`, 'is-spinning', fan > 0);
+          if (fan) setStyle(`${unit}.art`, '--spin', `${clamp(700 / fan, 0.35, 4).toFixed(1)}s`);
+          setText(`${unit}.waterOut`, qty(hp.waterOut, '°C', 1));
+          setText(`${unit}.waterIn`, qty(hp.waterIn, '°C', 1));
+          setText(`${unit}.flow`, qty(hp.flow, 'L/h'));
+          setHtml(`${unit}.freq`, qtyHtml(hp.frequency, 'Hz'));
+          setHtml(`${unit}.fan`, qtyHtml(fan, 'rpm'));
+          setHtml(`${unit}.power`, qtyHtml(hp.power, 'W'));
+          setText(`${unit}.eff.label`, coolingUnit ? T.eer : T.cop);
+          setHtml(`${unit}.eff`, qtyHtml(coolingUnit ? hp.eer : hp.cop, '', 1));
+          const faults = unitFaults(hp.failures);
+          setText(`${unit}.foot`, faults.length ? faults.join(', ') : T.noFaults);
+          setClass(`${unit}.foot`, 'is-problem', faults.length);
+        }
+        setText('units.summary', summary.length ? summary.join(', ') : T.noUnits);
+      },
+    };
+
+    VIEWS.heatpumps = {
+      entities: () => [...CORE_IDS, ...['hp1', 'hp2'].flatMap(unit => [...Object.keys(UNIT_ENTITIES).map(key => unitId(unit, key)), levelId(unit)])],
+      build() {
+        const list = units();
+        app.viewState.heatpumpUnits = list.join();
+        const intro = `<section class="panel">
+          <p class="kicker">${esc(T.hpKicker)}</p>
+          <h2>${esc(T.hpTitle)}</h2>
+          <p class="panel-lead">${esc(T.hpLead)}</p>
+          ${list.length ? '' : `<p class="empty">${esc(T.noUnits)}</p>`}
+        </section>`;
+        return `<div class="stack">${intro}${list.map(unit => `
+          <section class="panel">
+            <div class="unit-head hp-head">
+              <h3>${unit.toUpperCase()}</h3>
+              <span class="pill" data-b="${unit}.badge">—</span>
+              <span class="muted" data-b="${unit}.runtime"></span>
+            </div>
+            <div class="hp-body">
+            <div class="board" data-b="${unit}.board">
+              ${schematic(unit)}
+              <div class="board-stats">
+                <div class="board-stat"><span>${esc(T.workingMode)}</span><strong data-b="${unit}.mode">—</strong></div>
+                <div class="board-stat"><span>${esc(T.powerUse)}</span><strong data-b="${unit}.power">—</strong></div>
+                <div class="board-stat"><span data-b="${unit}.outLabel">${esc(T.heatUse)}</span><strong data-b="${unit}.out">—</strong></div>
+                <div class="board-stat"><span data-b="${unit}.effLabel">${esc(T.cop)}</span><strong data-b="${unit}.eff">—</strong></div>
+              </div>
+            </div>
+            <div class="details" data-b="${unit}.details"></div>
+            </div>
+          </section>`).join('')}</div>`;
+      },
+      update() {
+        if (units().join() !== app.viewState.heatpumpUnits) {
+          renderView();
+          return;
+        }
+        for (const unit of units()) {
+          const hp = unitData(unit);
+          const u = key => ev(unitId(unit, key));
+          const { defrosting, mode } = unitMode(hp);
+          const coolingUnit = hp.mode === 'Cooling' && !defrosting;
+          const label = mode ? T[mode.key] : (hp.mode || T.unknown);
+          if (app.snapshot.available === false) setPill(`${unit}.badge`, T.offline, 'off');
+          else setPill(`${unit}.badge`, label, mode ? mode.cls : '');
+          const runtime = u('runtime');
+          setText(`${unit}.runtime`, runtime === null ? '' : T.runtime(nf(runtime, 1)));
+
+          const freq = num(hp.frequency);
+          const fan = num(hp.fanSpeed);
+          const flow = num(hp.flow);
+          setClass(`${unit}.board`, 'is-running', freq > 0);
+          setClass(`${unit}.board`, 'is-flowing', flow > 0);
+          setClass(`${unit}.board`, 'is-spinning', fan > 0);
+          setClass(`${unit}.board`, 'is-defrost', defrosting);
+          setClass(`${unit}.board`, 'is-off', !(freq > 0) && !defrosting);
+          if (freq) setStyle(`${unit}.board`, '--speed', `${clamp(60 / freq, 0.5, 2.4).toFixed(1)}s`);
+          if (flow) setStyle(`${unit}.board`, '--water-speed', `${clamp(900 / flow, 0.6, 3).toFixed(1)}s`);
+          if (fan) setStyle(`${unit}.board`, '--spin', `${clamp(700 / fan, 0.35, 4).toFixed(1)}s`);
+
+          setText(`${unit}.waterOut`, deg(hp.waterOut));
+          setText(`${unit}.waterIn`, deg(hp.waterIn));
+          setText(`${unit}.flow`, qty(flow, 'L/h'));
+          setText(`${unit}.freq`, nf(freq, 0) ?? '—');
+          const demand = u('demand');
+          setText(`${unit}.demand`, demand === null ? '' : T.capDemand(qty(demand, 'Hz')));
+          setText(`${unit}.discharge`, deg(u('discharge')));
+          setText(`${unit}.pHigh`, u('pHigh') === null ? '' : qty(u('pHigh'), 'bar', 1));
+          setText(`${unit}.suction`, deg(u('suction')));
+          setText(`${unit}.pLow`, u('pLow') === null ? '' : qty(u('pLow'), 'bar', 1));
+          setText(`${unit}.tCond`, deg(u('tCond')));
+          setText(`${unit}.tEvap`, deg(u('tEvap')));
+          setText(`${unit}.coil`, deg(u('coil')));
+          setText(`${unit}.outside`, deg(hp.outside));
+          setText(`${unit}.fan`, qty(fan, 'rpm'));
+          const eev = u('eev');
+          setText(`${unit}.eev`, eev === null ? '' : T.capEev(`${nf(eev)} ${T.steps}`));
+
+          setText(`${unit}.mode`, label);
+          setText(`${unit}.power`, qty(hp.power, 'W'));
+          setText(`${unit}.outLabel`, coolingUnit ? T.coolUse : T.heatUse);
+          setText(`${unit}.out`, qty(coolingUnit ? hp.coolPower : hp.heatPower, 'W'));
+          setText(`${unit}.effLabel`, coolingUnit ? T.eer : T.cop);
+          setText(`${unit}.eff`, qty(coolingUnit ? hp.eer : hp.cop, '', 1));
+
+          const delta = num(hp.waterOut) !== null && num(hp.waterIn) !== null ? Math.abs(hp.waterOut - hp.waterIn) : null;
+          const fanMax = u('fanMax');
+          const faults = unitFaults(hp.failures);
+          const group = (title, rows) => `<div><h4>${esc(title)}</h4><div class="list compact">${rows.join('')}</div></div>`;
+          const flag = key => {
+            const value = eb(unitId(unit, key));
+            return [onOff(value), value ? 'on' : ''];
+          };
+          setHtml(`${unit}.details`, [
+            group(T.dCompressor, [
+              row(T.frequency, qty(freq, 'Hz')),
+              row(T.demand, qty(demand, 'Hz')),
+              row(T.level, nf(ev(levelId(unit))) ?? '—'),
+              row(T.profile, et(unitId(unit, 'profile')) || '—'),
+            ]),
+            group(T.dRefrigerant, [
+              row(T.highPressure, qty(u('pHigh'), 'bar', 1)),
+              row(T.lowPressure, qty(u('pLow'), 'bar', 1)),
+              row(T.discharge, qty(u('discharge'), '°C', 1)),
+              row(T.suction, qty(u('suction'), '°C', 1)),
+              row(T.condensing, qty(u('tCond'), '°C', 1)),
+              row(T.evaporating, qty(u('tEvap'), '°C', 1)),
+              row(T.innerCoil, qty(u('innerCoil'), '°C', 1)),
+            ]),
+            group(T.dUnit, [
+              row(T.outside, qty(hp.outside, '°C', 1)),
+              row(T.coil, qty(u('coil'), '°C', 1)),
+              row(T.fanSpeed, fanMax ? `${qty(fan, 'rpm')} / ${qty(fanMax, 'rpm')}` : qty(fan, 'rpm')),
+              row(T.eev, eev === null ? '—' : `${nf(eev)} ${T.steps}`),
+            ]),
+            group(T.dWater, [
+              row(T.supply, qty(hp.waterOut, '°C', 1)),
+              row(T.return, qty(hp.waterIn, '°C', 1)),
+              row(T.deltaT, qty(delta, '°C', 1)),
+              row(T.flow, qty(flow, 'L/h')),
+              row(T.pump, qty(u('pump'), 'W', 1)),
+            ]),
+            group(T.dElectric, [
+              row(T.powerIn, qty(hp.power, 'W')),
+              row(T.voltage, qty(u('volt'), 'V')),
+              row(T.current, qty(u('amp'), 'A', 2)),
+            ]),
+            group(T.dStatus, [
+              row(T.runtimeLabel, qty(runtime, 'h', 1)),
+              row(T.fourWay, ...flag('fourWay')),
+              row(T.crankcase, ...flag('crankcase')),
+              row(T.bottomPlate, ...flag('plate')),
+              row(T.oilReturn, ...flag('oilReturn')),
+              row(T.faults, faults.length ? faults.join(', ') : T.noFaults),
+            ]),
+          ].join(''));
+        }
+      },
+    };
+
+    // --- Energy ------------------------------------------------------------------
+
+    const dateKey = date => date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+    const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days, 12);
+    const weekStart = date => addDays(date, -((date.getDay() + 6) % 7));
+    const isoWeek = date => {
+      const thursday = addDays(weekStart(date), 3);
+      const firstThursday = addDays(weekStart(new Date(thursday.getFullYear(), 0, 4, 12)), 3);
+      return 1 + Math.round((thursday - firstThursday) / (7 * 86400000));
+    };
+    const dayMonth = date => date.toLocaleDateString(locale, { day: 'numeric', month: 'short' }).replace('.', '');
+    const capitalize = text => text.charAt(0).toUpperCase() + text.slice(1);
+
+    function period(mode, anchor) {
+      if (mode === 'day') {
+        return { from: anchor, to: anchor, hours: true, label: capitalize(anchor.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })) };
+      }
+      if (mode === 'week') {
+        const from = weekStart(anchor);
+        const to = addDays(from, 6);
+        return { from, to, hours: false, label: T.weekLabel(isoWeek(anchor), `${dayMonth(from)} – ${dayMonth(to)}`) };
+      }
+      const from = new Date(anchor.getFullYear(), anchor.getMonth(), 1, 12);
+      const to = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0, 12);
+      return { from, to, hours: false, label: capitalize(from.toLocaleDateString(locale, { month: 'long', year: 'numeric' })) };
+    }
+
+    function shift(mode, anchor, step) {
+      if (mode === 'day') return addDays(anchor, step);
+      if (mode === 'week') return addDays(anchor, 7 * step);
+      return new Date(anchor.getFullYear(), anchor.getMonth() + step, 1, 12);
+    }
+
+    const results = {
+      mode: 'day', anchor: addDays(new Date(), 0), data: null, error: null, loadedAt: 0, key: '',
+    };
+
+    async function loadEnergy(force = false) {
+      const p = period(results.mode, results.anchor);
+      const key = `${results.mode}:${dateKey(p.from)}`;
+      if (!force && results.key === key && Date.now() - results.loadedAt < SLOW_POLL_MS) return;
+      if (results.key !== key) results.data = null;
+      results.key = key;
+      results.loadedAt = Date.now();
+      results.error = null;
+      VIEWS.energy.renderHistory();
+      try {
+        // A running period is asked up to today: the rest has no data yet.
+        const to = Math.min(dateKey(p.to), dateKey(new Date()));
+        const result = await call('/remote/energy', {
+          token: session.token, from: dateKey(p.from), to, hours: p.hours,
+        });
+        if (results.key !== key) return;
+        if (result.error === 'unauthorized') { signedOut(); return; }
+        results.data = result.energy || null;
+        results.error = result.error ? 'unavailable' : null;
+      } catch (err) {
+        if (results.key !== key) return;
+        results.error = err.status === 404 ? 'update' : 'unavailable';
+      }
+      VIEWS.energy.renderHistory();
+    }
+
+    VIEWS.energy = {
+      entities: () => [...CORE_IDS, ...Object.values(ENERGY_IDS).flatMap(group => Object.values(group))],
+      build() {
+        const seg = ['day', 'week', 'month'].map(mode => `<button type="button" data-mode="${mode}" class="${results.mode === mode ? 'is-active' : ''}">${esc(T[mode])}</button>`).join('');
+        return `<div class="stack">
+          <section class="panel">
+            <p class="kicker">${esc(T.energyKicker)}</p>
+            <h2>${esc(T.energyTitle)}</h2>
+            <p class="panel-lead">${esc(T.energyLead)}</p>
+            <div class="flows" id="flows"></div>
+          </section>
+          <section class="panel">
+            <p class="kicker">${esc(T.resultsKicker)}</p>
+            <h2>${esc(T.resultsTitle)}</h2>
+            <p class="panel-lead">${esc(T.resultsLead)}</p>
+            <div class="history-bar">
+              <div class="seg" id="seg">${seg}</div>
+              <div class="pager">
+                <button class="icon-btn" type="button" id="prev" aria-label="${esc(T.previous)}">${icon('prev')}</button>
+                <strong id="period"></strong>
+                <button class="icon-btn" type="button" id="next" aria-label="${esc(T.nextPeriod)}">${icon('next')}</button>
+              </div>
+            </div>
+            <div id="history"></div>
+          </section>
+        </div>`;
+      },
+      mounted() {
+        $('seg').addEventListener('click', event => {
+          const button = event.target.closest('button[data-mode]');
+          if (!button) return;
+          results.mode = button.dataset.mode;
+          results.anchor = addDays(new Date(), 0);
+          for (const el of $('seg').children) el.classList.toggle('is-active', el === button);
+          loadEnergy(true);
+        });
+        $('prev').addEventListener('click', () => {
+          results.anchor = shift(results.mode, results.anchor, -1);
+          loadEnergy(true);
+        });
+        $('next').addEventListener('click', () => {
+          results.anchor = shift(results.mode, results.anchor, 1);
+          loadEnergy(true);
+        });
+        this.renderHistory();
+        loadEnergy();
+      },
+      update() {
+        const value = (group, key, unit, decimals) => qty(ev(ENERGY_IDS[group][key]), unit, decimals);
+        const column = (group, title, power) => {
+          const u = power ? 'W' : 'kWh';
+          const d = power ? 0 : 1;
+          return `<div class="flow-col">
+            <h4>${esc(title)}</h4>
+            <div class="flow-box">
+              <p>${esc(T.heatingBox)}</p>
+              <h5>${esc(T.heatpump)}</h5>
+              <div class="list">
+                ${row(power ? T.electricalPower : T.electricity, value(group, 'elec', u, d))}
+                ${row(T.heat, value(group, 'heat', u, d))}
+                ${row(T.cop, value(group, 'cop', '', 1))}
+              </div>
+              <h5>${esc(T.boiler)}</h5>
+              <div class="list">${row(T.heat, value(group, 'boiler', u, d))}</div>
+              <h5>${esc(T.systemHeat)}</h5>
+              <div class="list">${row(T.heat, value(group, 'system', u, d))}</div>
+            </div>
+            <div class="flow-box cool">
+              <p>${esc(T.coolingBox)}</p>
+              <h5>${esc(T.heatpump)}</h5>
+              <div class="list">
+                ${row(power ? T.electricalPower : T.electricity, value(group, 'coolElec', u, d))}
+                ${row(T.coolingEnergy, value(group, 'cool', u, d))}
+                ${row(T.eer, value(group, 'eer', '', 1))}
+              </div>
+            </div>
+          </div>`;
+        };
+        patch($('flows'), column('now', T.now, true) + column('today', T.today, false) + column('total', T.cumulative, false));
+        // A running period keeps up with the day.
+        if (dateKey(period(results.mode, results.anchor).to) >= dateKey(new Date())) loadEnergy();
+      },
+      renderHistory() {
+        const target = $('history');
+        if (!target) return;
+        const p = period(results.mode, results.anchor);
+        const today = dateKey(new Date());
+        $('period').textContent = p.label;
+        $('next').disabled = dateKey(p.to) >= today;
+        const bounds = results.data && results.data.bounds;
+        $('prev').disabled = Boolean(bounds && bounds.oldest && dateKey(p.from) <= bounds.oldest);
+        app.viewState.redraw = null;
+
+        if (results.error) {
+          target.innerHTML = `<p class="empty">${esc(results.error === 'update' ? T.needsUpdate : T.historyUnavailable)}</p>`;
+          return;
+        }
+        if (!results.data) {
+          target.innerHTML = `<p class="empty">${esc(T.historyLoading)}</p>`;
+          return;
+        }
+
+        let items;
+        if (results.mode === 'day') {
+          const key = dateKey(p.from);
+          const byHour = new Map(results.data.hours.filter(h => h.date === key).map(h => [h.hour, h]));
+          items = Array.from({ length: 24 }, (_, hour) => ({
+            ...(byHour.get(hour) || {}),
+            short: String(hour),
+            title: `${String(hour).padStart(2, '0')}:00 – ${String((hour + 1) % 24).padStart(2, '0')}:00`,
+          }));
+        } else {
+          const byDay = new Map(results.data.days.map(d => [d.date, d]));
+          items = [];
+          for (let d = p.from; dateKey(d) <= dateKey(p.to); d = addDays(d, 1)) {
+            items.push({
+              ...(byDay.get(dateKey(d)) || {}),
+              short: results.mode === 'week' ? d.toLocaleDateString(locale, { weekday: 'short' }).replace('.', '') : String(d.getDate()),
+              title: capitalize(d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })),
+            });
+          }
+        }
+
+        const sum = key => items.reduce((total, item) => total + (num(item[key]) || 0), 0);
+        const heat = sum('heat');
+        const cooling = sum('cooling');
+        const boiler = sum('boiler');
+        const electrical = sum('electrical');
+        const heatingInput = sum('heatingInput');
+        const coolingInput = sum('coolingInput');
+        if (!heat && !cooling && !boiler && !electrical) {
+          target.innerHTML = `<p class="empty">${esc(T.historyEmpty)}</p>`;
+          return;
+        }
+        const useEer = cooling > heat;
+        const efficiency = useEer ? (coolingInput ? cooling / coolingInput : null) : (heatingInput ? heat / heatingInput : null);
+        const kwh = wh => qtyHtml(wh / 1000, 'kWh', wh >= 100000 ? 0 : 1);
+        const air = heat > 0 && heatingInput > 0 ? clamp((heat - heatingInput) / heat, 0, 1) : null;
+        target.innerHTML = `
+          <div class="stats four">
+            <div class="stat green"><p class="stat-label">${esc(useEer ? T.averageEer : T.averageCop)}</p><p class="stat-value">${qtyHtml(efficiency, '', 2)}</p><p class="stat-note">${esc(p.label)}</p></div>
+            <div class="stat blue"><p class="stat-label">${esc(T.electricUsed)}</p><p class="stat-value">${kwh(electrical)}</p><p class="stat-note">${esc(T.electricUsedNote)}</p></div>
+            <div class="stat orange"><p class="stat-label">${esc(T.hpDelivered)}</p><p class="stat-value">${kwh(heat + cooling)}</p><p class="stat-note">${esc(T.hpDeliveredNote)}</p></div>
+            <div class="stat"><p class="stat-label">${esc(T.boilerDelivered)}</p><p class="stat-value">${kwh(boiler)}</p><p class="stat-note">${esc(T.boilerDeliveredNote)}</p></div>
+          </div>
+          ${air === null ? '' : `<div class="share">
+            <div class="share-bar"><i style="width:${((1 - air) * 100).toFixed(1)}%;background:var(--amber)"></i><i style="width:${(air * 100).toFixed(1)}%;background:var(--emerald)"></i></div>
+            <div class="share-legend">
+              <span><i class="dot" style="background:var(--emerald)"></i>${esc(T.fromAir(`${nf(air * 100)}%`))}</span>
+              <span><i class="dot" style="background:var(--amber)"></i>${esc(T.fromElectric(`${nf((1 - air) * 100)}%`))}</span>
+            </div>
+          </div>`}
+          <div class="chart-card">
+            <div class="chart-head">
+              <h4>${esc(p.label)}</h4>
+              <div class="legend">
+                <span><i style="background:var(--amber)"></i>${esc(T.legendElectric)}</span>
+                <span><i style="background:var(--emerald)"></i>${esc(T.legendHeat)}</span>
+                <span><i style="background:var(--blue)"></i>${esc(T.legendCool)}</span>
+                <span><i style="background:var(--slate)"></i>${esc(T.legendBoiler)}</span>
+              </div>
+            </div>
+            <div class="chart" id="bars"></div>
+          </div>`;
+        const draw = () => barChart($('bars'), { items });
+        draw();
+        app.viewState.redraw = draw;
+      },
+    };
+
+    // --- Trends ------------------------------------------------------------------
+
+    const trends = { data: null, error: null, loadedAt: 0 };
+
+    async function loadTrends(force = false) {
+      if (!force && trends.data && Date.now() - trends.loadedAt < SLOW_POLL_MS) return;
+      trends.loadedAt = Date.now();
+      try {
+        const result = await call('/remote/history', { token: session.token });
+        if (result.error === 'unauthorized') { signedOut(); return; }
+        trends.data = result.history || null;
+        trends.error = null;
+      } catch (err) {
+        trends.error = err.status === 404 ? 'update' : 'unavailable';
+      }
+      if (app.view === 'trends') VIEWS.trends.renderCharts();
+    }
+
+    VIEWS.trends = {
+      entities: () => [...CORE_IDS],
+      build() {
+        const card = (id, title, legend) => `<div class="chart-card">
+          <div class="chart-head"><h4>${esc(title)}</h4><div class="legend">${legend.map(([label, color, dashed]) => `<span><i class="${dashed ? 'dashed' : ''}" style="background:${color};color:${color}"></i>${esc(label)}</span>`).join('')}</div></div>
+          <div class="chart" id="${id}"><p class="empty">${esc(T.loading)}</p></div>
+        </div>`;
+        return `<section class="panel">
+          <p class="kicker">${esc(T.trendsKicker)}</p>
+          <h2>${esc(T.trendsTitle)}</h2>
+          <p class="panel-lead">${esc(T.trendsLead)} <span id="trends-since"></span></p>
+          <div class="stats four" id="trend-stats" style="margin-top:16px"></div>
+          <div id="trend-body">
+            ${card('c-water', T.waterTemps, [[T.supply, '#ea580c'], [T.return, '#2563eb'], [T.supplyTarget, '#f59e0b', true]])}
+            ${card('c-comfort', T.comfort, [[T.room, '#16a34a'], [T.roomSetpoint, '#94a3b8', true], [T.outside, '#0284c7']])}
+            ${card('c-power', T.power, [[T.heatOutput, '#ea580c'], [T.electrical, '#2563eb']])}
+            ${card('c-comp', T.compressors, [['HP1', '#7c3aed'], ['HP2', '#0ea5e9']])}
+          </div>
+        </section>`;
+      },
+      mounted() {
+        if (trends.data) this.renderCharts();
+        loadTrends();
+      },
+      update() { loadTrends(); },
+      renderCharts() {
+        const body = $('trend-body');
+        if (!body) return;
+        app.viewState.redraw = null;
+        if (trends.error && !trends.data) {
+          body.innerHTML = `<p class="empty">${esc(trends.error === 'update' ? T.needsUpdate : T.unreachable)}</p>`;
+          return;
+        }
+        if (!trends.data) return;
+        const { fields, rows, interval } = trends.data;
+        const col = name => rows.map(r => r[fields.indexOf(name) + 1]);
+        const times = rows.map(r => r[0] + interval / 2);
+        const end = Date.now();
+        const start = end - 24 * 3600000;
+        // Only worth saying while the history does not cover the day yet.
+        $('trends-since').textContent = rows.length && rows[0][0] > start + 3600000 ? T.trendsSince(clock(new Date(rows[0][0]), false)) : '';
+
+        const avg = values => {
+          const list = values.filter(v => num(v) !== null);
+          return list.length ? list.reduce((a, b) => a + b, 0) / list.length : null;
+        };
+        const energy = values => (values.reduce((total, v) => total + (num(v) || 0), 0) * (interval / 3600000)) / 1000;
+        const heat = col('heat');
+        const cool = col('cool');
+        const used = energy(col('power'));
+        const delivered = energy(heat) + energy(cool);
+        $('trend-stats').innerHTML = [
+          ['sky', T.avgOutside, qtyHtml(avg(col('outside')), '°C', 1)],
+          ['green', T.avgRoom, qtyHtml(avg(col('room')), '°C', 1)],
+          ['blue', T.energyUsed, qtyHtml(used, 'kWh', 1)],
+          ['orange', T.cop24, used > 0.05 ? qtyHtml(delivered / used, '', 1) : '—'],
+        ].map(([tone, label, value]) => `<div class="stat ${tone}"><p class="stat-label">${esc(label)}</p><p class="stat-value">${value}</p></div>`).join('');
+
+        if (rows.length < 2) {
+          for (const id of ['c-water', 'c-comfort', 'c-power', 'c-comp']) $(id).innerHTML = `<p class="empty">${esc(T.trendsBuilding)}</p>`;
+          return;
+        }
+        const output = heat.map((v, i) => (num(v) === null && num(cool[i]) === null ? null : (v || 0) + (cool[i] || 0)));
+        const draw = () => {
+          lineChart($('c-water'), {
+            times,
+            start,
+            end,
+            unit: '°C',
+            decimals: 1,
+            series: [
+              { label: T.supply, color: '#ea580c', values: col('supply') },
+              { label: T.return, color: '#2563eb', values: col('return') },
+              { label: T.supplyTarget, color: '#f59e0b', values: col('target'), dashed: true },
+            ],
+          });
+          lineChart($('c-comfort'), {
+            times,
+            start,
+            end,
+            unit: '°C',
+            decimals: 1,
+            series: [
+              { label: T.room, color: '#16a34a', values: col('room') },
+              { label: T.roomSetpoint, color: '#94a3b8', values: col('setpoint'), dashed: true },
+              { label: T.outside, color: '#0284c7', values: col('outside') },
+            ],
+          });
+          lineChart($('c-power'), {
+            times,
+            start,
+            end,
+            unit: 'W',
+            zero: true,
+            series: [
+              { label: T.heatOutput, color: '#ea580c', values: output, area: true },
+              { label: T.electrical, color: '#2563eb', values: col('power'), area: true },
+            ],
+          });
+          lineChart($('c-comp'), {
+            times,
+            start,
+            end,
+            unit: 'Hz',
+            zero: true,
+            height: 170,
+            series: [
+              { label: 'HP1', color: '#7c3aed', values: col('hp1') },
+              { label: 'HP2', color: '#0ea5e9', values: col('hp2') },
+            ].filter(s => s.values.some(v => num(v) !== null)),
+          });
+        };
+        draw();
+        app.viewState.redraw = draw;
+      },
+    };
+
+    // --- All values ------------------------------------------------------------------
+
+    const DOMAIN_ORDER = ['sensor', 'binary_sensor', 'text_sensor', 'switch', 'select', 'number'];
+
+    VIEWS.all = {
+      entities: () => true,
+      build() {
+        return `<section class="panel">
+          <p class="kicker">${esc(T.allKicker)}</p>
+          <h2>${esc(T.allTitle)} <span class="muted" style="font-size:1rem;font-weight:600" id="all-count"></span></h2>
+          <p class="panel-lead">${esc(T.allLead)}</p>
+          <input class="search" id="search" type="search" autocomplete="off" placeholder="${esc(T.search)}">
+          <div class="groups" id="groups"><p class="empty">${esc(T.loading)}</p></div>
+        </section>`;
+      },
+      mounted() {
+        $('search').addEventListener('input', () => this.update());
+      },
+      update() {
+        if (!app.entities.size) return;
+        const query = $('search').value.trim().toLowerCase();
+        const groups = {};
+        let total = 0;
+        for (const [id, entity] of app.entities) {
+          if (entity.state === null || entity.state === undefined) continue;
+          const separator = id.indexOf('-');
+          const domain = id.slice(0, separator);
+          const name = entity.name || id.slice(separator + 1);
+          total++;
+          if (query && !`${name} ${entity.state}`.toLowerCase().includes(query)) continue;
+          const key = DOMAIN_ORDER.includes(domain) ? domain : 'other';
+          (groups[key] = groups[key] || []).push([name, entity.state]);
+        }
+        $('all-count').textContent = `· ${total}`;
+        const html = [...DOMAIN_ORDER, 'other'].filter(key => groups[key]).map(key => `<div class="group"><h4>${esc(T.domains[key])}</h4><div class="list compact">${
+          groups[key].sort((a, b) => a[0].localeCompare(b[0], locale, { numeric: true })).map(([name, state]) => row(name, state)).join('')
+        }</div></div>`).join('');
+        patch($('groups'), html || `<p class="empty">${esc(T.nothing)}</p>`);
+      },
+    };
+
+    // --- Shell -------------------------------------------------------------------
+
+    function renderTabs() {
+      $('tabs').innerHTML = Object.keys(VIEWS).map(view => `<button class="tab ${view === app.view ? 'is-active' : ''}" type="button" role="tab" aria-selected="${view === app.view}" data-view="${view}">${icon(view)}${esc(T.tabs[view])}</button>`).join('');
+    }
+
+    function renderView() {
+      const view = VIEWS[app.view];
+      app.viewState.redraw = null;
+      const main = $('view');
+      main.innerHTML = view.build();
+      bind(main);
+      if (view.mounted) view.mounted();
+      if (app.snapshot) view.update();
+    }
+
+    function selectView(name) {
+      if (!VIEWS[name] || name === app.view) return;
+      app.view = name;
+      storage.set(TAB_KEY, name);
+      renderTabs();
+      renderView();
+      window.scrollTo({ top: 0 });
+      poll();
+    }
+
+    document.addEventListener('click', event => {
+      const target = event.target.closest('[data-view], [data-go]');
+      if (target) selectView(target.dataset.view || target.dataset.go);
+    });
+
+    function renderChrome() {
+      const snapshot = app.snapshot;
+      let cls = '';
+      let text = T.liveConnecting;
+      if (app.failing && app.lastOk) {
+        cls = 'is-stale';
+        text = T.liveStale(clock(app.lastOk, false));
+      } else if (snapshot && snapshot.available === false) {
+        cls = 'is-off';
+        text = T.liveOffline;
+      } else if (snapshot) {
+        cls = 'is-ok';
+        text = T.liveOk;
+      }
+      $('live').className = `live ${cls}`;
+      $('live').textContent = text;
+
+      const name = snapshot && snapshot.name && !/^openquatt$/i.test(snapshot.name) ? ` · ${snapshot.name}` : '';
+      $('lead').textContent = `${T.lead}${name}`;
+
+      const banners = [];
+      if (app.failing) banners.push(['', T.staleTitle, [app.lastOk ? T.staleCopy(clock(app.lastOk, false)) : T.unreachable]]);
+      if (snapshot && snapshot.available === false) banners.push(['', T.offlineTitle, [T.offlineCopy]]);
+      const list = snapshot ? problems() : [];
+      if (list.length) banners.push(['is-danger', T.problemsTitle, list]);
+      patch($('banners'), banners.map(([tone, title, lines]) => `<div class="banner ${tone}"><strong>${esc(title)}</strong>${
+        lines.length > 1 ? `<ul>${lines.map(line => `<li>${esc(line)}</li>`).join('')}</ul>` : `<p>${esc(lines[0])}</p>`
+      }</div>`).join(''));
+
+      const version = et(ID.version);
+      $('foot').innerHTML = [
+        esc(version ? `OpenQuatt ${version}` : 'OpenQuatt'),
+        esc(T.readOnly),
+        app.lastOk ? esc(T.updated(clock(app.lastOk))) : '',
+      ].filter(Boolean).join(' · ');
+    }
+
+    // --- Polling -------------------------------------------------------------------
+
+    async function poll() {
+      clearTimeout(app.timer);
+      // A hidden tab does not poll; it catches up when it is shown again.
+      if (!session.token || document.hidden) return;
+      if (app.polling) {
+        app.again = true;
+        return;
+      }
+      app.polling = true;
+      try {
+        const result = await call('/remote/state', { token: session.token, entities: VIEWS[app.view].entities() });
+        if (result.error) {
+          signedOut();
+          return;
+        }
+        app.snapshot = result.state;
+        for (const entity of result.state.entities || []) app.entities.set(entity.id, entity);
+        app.lastOk = new Date();
+        app.failing = false;
+        renderChrome();
+        VIEWS[app.view].update();
+      } catch (err) {
+        app.failing = true;
+        renderChrome();
+      } finally {
+        app.polling = false;
+        if (session.token) app.timer = setTimeout(poll, app.again ? 0 : POLL_MS);
+        app.again = false;
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && session.token) poll();
+    });
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => { if (app.viewState.redraw) app.viewState.redraw(); }, 150);
+    });
+
+    // --- Sign in / out ---------------------------------------------------------------
 
     function showLogin(message = '') {
-      stopPolling();
-      $('dash').hidden = true;
+      clearTimeout(app.timer);
+      $('app').hidden = true;
       $('login').hidden = false;
       $('homey-id').value = session.homeyId || '';
       $('login-error').textContent = message;
       (session.homeyId ? $('username') : $('homey-id')).focus();
     }
 
-    function showDashboard() {
+    function showApp() {
       $('login').hidden = true;
-      $('dash').hidden = false;
+      $('app').hidden = false;
       $('password').value = '';
-      startPolling();
+      renderTabs();
+      renderChrome();
+      renderView();
+      poll();
+    }
+
+    function forget() {
+      session = { homeyId: session.homeyId };
+      storage.set(STORE_KEY, session);
+      app.snapshot = null;
+      app.entities.clear();
+      app.lastOk = null;
+      app.failing = false;
+      results.data = null;
+      results.key = '';
+      trends.data = null;
+    }
+
+    function signedOut() {
+      forget();
+      showLogin(T.expired);
     }
 
     $('login-form').addEventListener('submit', async event => {
       event.preventDefault();
       const homeyId = $('homey-id').value.trim().toLowerCase();
       if (!HOMEY_ID.test(homeyId)) {
-        $('login-error').textContent = t9n.invalidId;
+        $('login-error').textContent = T.invalidId;
         return;
       }
       session = { homeyId };
-
       const button = $('sign-in');
       button.disabled = true;
-      button.textContent = t9n.signingIn;
+      button.textContent = T.signingIn;
       $('login-error').textContent = '';
       try {
-        const result = await call('/remote/login', {
-          username: $('username').value,
-          password: $('password').value,
-        });
+        const result = await call('/remote/login', { username: $('username').value, password: $('password').value });
         if (result.token) {
           session.token = result.token;
-          storage.save(session);
-          showDashboard();
+          storage.set(STORE_KEY, session);
+          showApp();
         } else {
-          $('login-error').textContent = t9n[result.error] || t9n.unauthorized;
+          $('login-error').textContent = T[result.error] || T.unauthorized;
         }
       } catch (err) {
-        $('login-error').textContent = t9n.unreachable;
+        $('login-error').textContent = T.unreachable;
       } finally {
         button.disabled = false;
-        button.textContent = t9n.signIn;
+        button.textContent = T.signIn;
       }
     });
 
     $('sign-out').addEventListener('click', () => {
       call('/remote/logout', { token: session.token }).catch(() => {});
-      session = { homeyId: session.homeyId };
-      storage.save(session);
-      lastState = null;
+      forget();
       showLogin();
     });
 
-    // --- Polling ----------------------------------------------------------
-
-    let pollTimer = null;
-    let polling = false;
-    let lastOk = null;
-    let lastState = null;
-
-    function startPolling() {
-      stopPolling();
-      poll();
-    }
-
-    function stopPolling() {
-      clearTimeout(pollTimer);
-      pollTimer = null;
-    }
-
-    async function poll() {
-      clearTimeout(pollTimer);
-      if (polling || !session.token) return;
-      // A hidden tab does not poll; it catches up when it is shown again.
-      if (document.hidden) return;
-      polling = true;
-      try {
-        const result = await call('/remote/state', { token: session.token, entities: $('all').open });
-        if (result.error) {
-          session = { homeyId: session.homeyId };
-          storage.save(session);
-          lastState = null;
-          showLogin(t9n.expired);
-          return;
-        }
-        lastOk = new Date();
-        lastState = result.state;
-        $('stale').hidden = true;
-        render(result.state);
-      } catch (err) {
-        if (lastOk) {
-          $('stale').textContent = t9n.stale(time(lastOk));
-          $('stale').hidden = false;
-        } else {
-          $('stale').textContent = t9n.unreachable;
-          $('stale').hidden = false;
-        }
-      } finally {
-        polling = false;
-        if (session.token) pollTimer = setTimeout(poll, POLL_MS);
-      }
-    }
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && session.token && !$('dash').hidden) poll();
-    });
-
-    $('all').addEventListener('toggle', () => {
-      if ($('all').open) {
-        $('entities').innerHTML = `<div class="row"><span class="name">${esc(t9n.loading)}</span></div>`;
-        poll();
-      }
-    });
-
-    $('search').addEventListener('input', () => {
-      if (lastState) renderEntities(lastState.entities);
-    });
-
-    // --- Rendering --------------------------------------------------------
-
-    function setBadge(label, cls) {
-      $('badge').textContent = label;
-      $('badge').className = `badge ${cls}`;
-    }
-
-    function render(state) {
-      const cap = id => (state.capabilities && id in state.capabilities ? state.capabilities[id] : null);
-      const t = state.telemetry || {};
-      const code = t.controlModeCode;
-      const cooling = code === 'CM5';
-
-      // The default name would only repeat the logo.
-      $('device-name').textContent = /^openquatt$/i.test(state.name || '') ? '' : state.name;
-      const mode = MODES[code];
-      if (!state.available) setBadge(t9n.offlineBadge, 'off');
-      else setBadge(mode ? t9n[mode.key] : (cap('oq_control_mode') || t9n.unknown), mode ? mode.cls : 'idle');
-      $('offline').textContent = t9n.offline;
-      $('offline').hidden = state.available !== false;
-
-      // Problems: the system-wide faults and each unit's own failures.
-      const problems = [];
-      if (t.lowflowFault) problems.push(t9n.lowflow);
-      if (t.flowMismatch) problems.push(t9n.flowMismatch);
-      if (t.otLinkProblem) problems.push(t9n.otLink);
-      for (const unit of ['hp1', 'hp2']) {
-        const hp = state.heatpumps && state.heatpumps[unit];
-        for (const fault of unitFaults(hp && hp.failures)) problems.push(`${unit.toUpperCase()}: ${fault}`);
-      }
-      $('problems').innerHTML = problems.length
-        ? `${esc(t9n.problems)}<ul>${problems.map(p => `<li>${esc(p)}</li>`).join('')}</ul>` : '';
-      $('problems').hidden = problems.length === 0;
-
-      $('system').innerHTML = [
-        stat(t9n.supply, fmt(cap('measure_temperature.supply'), '°C', 1)),
-        stat(t9n.return, fmt(cap('measure_temperature.return'), '°C', 1)),
-        stat(t9n.target, fmt(cap('measure_temperature.supply_target'), '°C', 1)),
-        stat(t9n.outside, fmt(cap('measure_temperature.outside'), '°C', 1)),
-        stat(t9n.room, fmt(cap('measure_temperature.room'), '°C', 1)),
-        stat(t9n.setpoint, fmt(cap('measure_temperature.setpoint'), '°C', 1)),
-        stat(t9n.flow, fmt(cap('oq_flow'), 'L/h', 0)),
-        stat(t9n.dewPoint, fmt(cap('measure_temperature.dew_point'), '°C', 1)),
-      ].join('');
-
-      // Output is heat or cold, whichever is delivered right now; efficiency
-      // the EER while cooling and the COP otherwise.
-      const heat = num(cap('oq_heat_power'));
-      const cool = num(cap('oq_cool_power'));
-      const output = heat === null && cool === null ? null : Math.max(heat || 0, cool || 0);
-      let daily = num(t.copDaily);
-      let dailyLabel = t9n.cop;
-      if ((cooling || daily === null) && num(t.eerDaily) !== null) {
-        daily = num(t.eerDaily);
-        dailyLabel = t9n.eer;
-      }
-      const delivered = num(t.thermalDaily) === null && num(t.coolingDaily) === null
-        ? null : (num(t.thermalDaily) || 0) + (num(t.coolingDaily) || 0);
-      $('power').innerHTML = [
-        `<div class="sub">${esc(t9n.now)}</div>`,
-        stat(t9n.powerIn, fmt(cap('measure_power'), 'W', 0)),
-        stat(t9n.output, fmt(output, 'W', 0)),
-        stat(cooling ? t9n.eer : t9n.cop, fmt(cooling ? cap('oq_eer') : cap('oq_cop'), '', 1)),
-        `<div class="sub">${esc(t9n.today)}</div>`,
-        stat(t9n.delivered, fmt(delivered, 'kWh', 1)),
-        stat(t9n.used, fmt(t.electricDaily, 'kWh', 1)),
-        stat(dailyLabel, fmt(daily, '', 1)),
-      ].join('');
-
-      for (const unit of ['hp1', 'hp2']) renderUnit(unit, state.heatpumps && state.heatpumps[unit]);
-
-      const pill = value => {
-        if (value === null || value === undefined) return ['—', ''];
-        return value ? [t9n.on, 'on'] : [t9n.off, ''];
-      };
-      const rows = [
-        [t9n.mode, cap('oq_control_mode') || '—', ''],
-        [t9n.openquatt, ...pill(cap('onoff.openquatt'))],
-        [t9n.heatingPermission, ...pill(cap('oq_heating_permitted'))],
-        [t9n.coolingPermission, ...pill(cap('oq_cooling_permitted'))],
-        [t9n.manualCooling, ...pill(cap('onoff.cooling'))],
-        [t9n.auxRelay, ...pill(cap('onoff.aux_relay'))],
-      ];
-      if (cap('oq_aux_status')) rows.push([t9n.auxStatus, cap('oq_aux_status'), '']);
-      if (t.coolingBlockReason && t.coolingBlockReason !== 'None') {
-        rows.push([t9n.coolingBlock, t.coolingBlockReason, '']);
-      }
-      $('status').innerHTML = rows.map(([name, value, cls]) => row(name, value, cls)).join('');
-
-      if ($('all').open && state.entities) renderEntities(state.entities);
-      $('updated').textContent = t9n.updated(time(new Date()));
-    }
-
-    function renderUnit(unit, hp) {
-      const card = $(`unit-${unit}`);
-      card.hidden = !hp;
-      if (!hp) return;
-
-      const defrosting = hp.defrost === true || hp.mode === 'Defrost';
-      const mode = UNIT_MODES[defrosting ? 'Defrost' : hp.mode];
-      const cooling = hp.mode === 'Cooling' && !defrosting;
-      const heat = num(hp.heatPower);
-      const cool = num(hp.coolPower);
-      const output = heat === null && cool === null ? null : Math.max(heat || 0, cool || 0);
-      const faults = unitFaults(hp.failures);
-
-      card.innerHTML = `
-        <div class="card-head">
-          <h2>${unit.toUpperCase()}</h2>
-          <span class="badge small ${mode ? mode.cls : 'idle'}">${esc(mode ? t9n[mode.key] : (hp.mode || t9n.unknown))}</span>
-        </div>
-        <div class="grid">
-          ${stat(t9n.supply, fmt(hp.waterOut, '°C', 1))}
-          ${stat(t9n.return, fmt(hp.waterIn, '°C', 1))}
-          ${stat(t9n.flow, fmt(hp.flow, 'L/h', 0))}
-          ${stat(t9n.compressor, fmt(hp.frequency, 'Hz', 0))}
-          ${stat(t9n.fan, fmt(hp.fanSpeed, 'RPM', 0))}
-          ${stat(t9n.air, fmt(hp.outside, '°C', 1))}
-          ${stat(t9n.powerIn, fmt(hp.power, 'W', 0))}
-          ${stat(t9n.output, fmt(output, 'W', 0))}
-          ${stat(cooling ? t9n.eer : t9n.cop, fmt(cooling ? hp.eer : hp.cop, '', 1))}
-        </div>
-        <div class="faults ${faults.length ? 'problem' : ''}">
-          <span class="dot"></span><span>${esc(faults.length ? faults.join(', ') : t9n.noFaults)}</span>
-        </div>`;
-    }
-
-    // Every entity the controller reports, grouped by kind, as it formats them.
-    function renderEntities(entities) {
-      if (!Array.isArray(entities)) return;
-      const query = $('search').value.trim().toLowerCase();
-      const groups = {};
-      let total = 0;
-      for (const entity of entities) {
-        if (entity.state === null || entity.state === undefined) continue;
-        const separator = entity.id.indexOf('-');
-        const domain = entity.id.slice(0, separator);
-        const name = entity.name || entity.id.slice(separator + 1);
-        total++;
-        if (query && !`${name} ${entity.state}`.toLowerCase().includes(query)) continue;
-        const key = DOMAIN_ORDER.includes(domain) ? domain : 'other';
-        (groups[key] = groups[key] || []).push({ name, state: entity.state });
-      }
-      $('all-count').textContent = String(total);
-
-      const html = [...DOMAIN_ORDER, 'other']
-        .filter(key => groups[key])
-        .map(key => `<div class="group"><h3>${esc(t9n.domains[key])}</h3><div class="rows">${
-          groups[key]
-            .sort((a, b) => a.name.localeCompare(b.name, lang, { numeric: true }))
-            .map(entity => row(entity.name, entity.state))
-            .join('')
-        }</div></div>`)
-        .join('');
-      $('entities').innerHTML = html || `<div class="row"><span class="name">${esc(t9n.nothing)}</span></div>`;
-    }
-
-    // --- Start ------------------------------------------------------------
+    // --- Start ---------------------------------------------------------------------
 
     for (const logo of document.querySelectorAll('[data-logo]')) logo.innerHTML = LOGO;
-    $('t-intro').textContent = t9n.intro;
-    $('t-homey').textContent = t9n.homey;
-    $('t-username').textContent = t9n.username;
-    $('t-password').textContent = t9n.password;
-    $('sign-in').textContent = t9n.signIn;
-    $('sign-out').textContent = t9n.signOut;
-    $('t-readonly').textContent = t9n.readOnly;
-    $('t-system').textContent = t9n.system;
-    $('t-power').textContent = t9n.power;
-    $('t-status').textContent = t9n.status;
-    $('t-all').textContent = t9n.all;
-    $('search').placeholder = t9n.search;
+    for (const el of document.querySelectorAll('[data-t]')) el.textContent = T[el.dataset.t];
+    $('sign-out').innerHTML = icon('signOut', T.signOut);
+    $('sign-out').title = T.signOut;
+    if (!VIEWS[app.view]) app.view = 'overview';
 
-    if (session.homeyId && session.token) showDashboard();
+    if (session.homeyId && session.token) showApp();
     else showLogin();
   </script>
 </body>
