@@ -125,13 +125,13 @@ Away from home, you can still look at the controller: a read-only page shows the
 
 It is off by default. To switch it on:
 
-1. Set a login on the controller in the OpenQuatt web app, and fill in the same username and password under *Controller login* in the device settings. Remote access needs a password of at least 8 characters.
+1. Fill in a username and password under *Controller login* in the device settings; remote access needs a password of at least 8 characters. Has the controller a login of its own, use that one. If not, the login only guards the remote page. (A first login on the controller itself is set through its physical recovery button, see the OpenQuatt docs.)
 2. Tick *View the controller from outside the home* under *Remote access*.
-3. Open the address shown under *Page* there and sign in with the controller login. The address holds your Homey's ID, so the page knows which Homey to ask.
+3. Open the address shown under *Page* there and sign in with that login. The address holds your Homey's ID, so the page knows which Homey to ask.
 
 The page lives in this repository (`docs/remote`, served by GitHub Pages) and calls three public endpoints of the app through your Homey's cloud connection, `https://<homey-id>.connect.athom.com/api/app/nl.openquatt/remote/…`. Public means Homey asks for no Homey account, so the app guards them itself:
 
-- Signing in checks the controller login in constant time and hands out a random session token, so the password is not sent again. The page keeps the token in the browser and stays signed in.
+- Signing in checks the login in constant time and hands out a random session token, so the password is not sent again. The page keeps the token in the browser and stays signed in.
 - After 10 failed sign-ins within 15 minutes, every sign-in is refused until the window has passed. Pages that are already signed in keep working.
 - A session ends after 30 days without use, when the app restarts, when you sign out, and as soon as you switch remote access off or change the password.
 - The endpoints only read: nothing on the page can switch or change the controller.

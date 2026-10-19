@@ -2,9 +2,9 @@
 
 // Public endpoints for the remote page (docs/remote), reached through the
 // Homey's cloud connection. They are public because the page has no Homey
-// account to sign in with: lib/RemoteAccess guards them with the controller's
-// own login instead. Errors are answered as { error } with HTTP 200, so the
-// page does not depend on how Homey maps thrown errors to status codes.
+// account to sign in with: lib/RemoteAccess guards them with the login from
+// the device settings instead. Errors are answered as { error } with HTTP 200,
+// so the page does not depend on how Homey maps thrown errors to status codes.
 module.exports = {
 
   async remoteLogin({ homey, body }) {
