@@ -21,7 +21,9 @@ function fakeDevice(settings) {
   return {
     settings,
     energyRanges: [],
+    refreshed: [],
     getSettings() { return this.settings; },
+    async refreshPolledEntities(entities) { this.refreshed.push(entities); },
     getRemoteSnapshot: options => ({ name: 'OpenQuatt', options }),
     getRemoteHistory: () => ({ rows: [] }),
     async getEnergyHistory(range) {
@@ -90,6 +92,15 @@ test('state carries the entities asked for: all, a list, or none', async () => {
   assert.deepEqual(await options('all'), { entities: false });
   assert.deepEqual(await options([1, 2]), { entities: false });
   assert.deepEqual(await options(new Array(401).fill('sensor-a')), { entities: false });
+});
+
+test('state first brings the entities kept off the event stream up to date', async () => {
+  const device = fakeDevice(ENABLED);
+  const homey = await makeHomey([device]);
+  const token = await signIn(homey);
+  await api.remoteState({ homey, body: { token, entities: ['sensor-hp1_-_compressor_starts_2h'] } });
+  await api.remoteState({ homey, body: { token } });
+  assert.deepEqual(device.refreshed, [['sensor-hp1_-_compressor_starts_2h'], false]);
 });
 
 test('history and energy need a session', async () => {

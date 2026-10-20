@@ -161,6 +161,22 @@ const HISTORY_SPAN_MS = 24 * 60 * 60 * 1000;
 const HISTORY_SAVE_MS = 30 * 60 * 1000;
 const HISTORY_STORE_KEY = 'history';
 
+// Entities the firmware keeps off the event stream (`internal: true`), read
+// through its bulk endpoint while the remote page asks for them, at most once
+// a minute: the compressor start counters and their warning limits.
+const POLLED_ENTITIES = [
+  ...['HP1', 'HP2'].flatMap(unit => [
+    ...['2h', '6h', '24h', '72h'].map(window => ['sensor', `${unit} - Compressor starts ${window}`]),
+    ['sensor', `${unit} - Compressor last start age`],
+  ]),
+  ['number', 'Compressor starts 2h warning limit'],
+  ['number', 'Compressor starts 72h warning limit'],
+  ['binary_sensor', 'Compressor cycling alert latched'],
+];
+const POLLED_ENTITY_IDS = new Set(POLLED_ENTITIES.map(([domain, name]) => (
+  `${domain}-${name.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}`)));
+const POLLED_MAX_AGE_MS = 60 * 1000;
+
 // The energy history comes from the controller on request; a short cache keeps
 // a remote viewer paging back and forth from loading the ESP.
 const ENERGY_CACHE_MS = 2 * 60 * 1000;
@@ -173,12 +189,17 @@ const INPUT_STORE_KEY = 'inputs';
 /**
  * The value behind a state frame, typed by the entity domain rather than by
  * what it feeds: `sensor-` is numeric (the firmware sends "NA" when it has
- * nothing to report), binary sensors and switches are booleans, and the
- * remaining text entities carry their state as a string.
+ * nothing to report), `number-` too (sent as a string), binary sensors and
+ * switches are booleans, and the remaining text entities carry their state as
+ * a string.
  */
 function entityValue(state) {
   if (state.id.startsWith('sensor-')) {
     return typeof state.value === 'number' && Number.isFinite(state.value) ? state.value : null;
+  }
+  if (state.id.startsWith('number-')) {
+    const value = state.value === '' || state.value === null ? NaN : Number(state.value);
+    return Number.isFinite(value) ? value : null;
   }
   if (state.id.startsWith('binary_sensor-') || state.id.startsWith('switch-')) {
     return state.value === true || state.state === 'ON';
@@ -195,6 +216,7 @@ class OpenQuattDevice extends Homey.Device {
     this._binary = {};
     this._numeric = {};
     this._entities = {};
+    this._polledAt = 0;
     this._energyCache = new Map();
     this._faultActive = null;
     this._deliveryProblems = {};
@@ -618,6 +640,27 @@ class OpenQuattDevice extends Homey.Device {
     return snapshot;
   }
 
+  /**
+   * Bring the entities kept off the event stream up to date when the remote
+   * page asks for any of them (or for everything) and they are older than a
+   * minute. Concurrent viewers share one read; a failed read leaves the last
+   * values, as firmware without these entities simply never has them.
+   */
+  async refreshPolledEntities(entities) {
+    const wanted = entities === true || (Array.isArray(entities) && entities.some(id => POLLED_ENTITY_IDS.has(id)));
+    if (!wanted || Date.now() - this._polledAt < POLLED_MAX_AGE_MS) return;
+    if (!this._polling) {
+      this._polling = this.client.getEntities(POLLED_ENTITIES)
+        .then(states => {
+          for (const state of states) this._storeEntity(state);
+          this._polledAt = Date.now();
+        })
+        .catch(err => this.log(`internal entities unavailable: ${err.message}`))
+        .finally(() => { this._polling = null; });
+    }
+    await this._polling;
+  }
+
   getRemoteHistory() {
     return this._history.toJSON(Date.now());
   }
@@ -667,14 +710,18 @@ class OpenQuattDevice extends Homey.Device {
     this.setStoreValue(HISTORY_STORE_KEY, this._history.toJSON(Date.now())).catch(this.error);
   }
 
-  _onState(state) {
-    // Every entity, for the remote page's full list. Web server v2 frames carry
-    // no display name; the page then falls back to the id.
+  // Every entity, for the remote page. Web server v2 frames carry no display
+  // name; the page then falls back to the id.
+  _storeEntity(state) {
     this._entities[state.id] = {
       name: state.name || null,
       state: typeof state.state === 'string' ? state.state : null,
       value: entityValue(state),
     };
+  }
+
+  _onState(state) {
+    this._storeEntity(state);
 
     const telemetryKey = TELEMETRY_ENTITIES[state.id];
     if (telemetryKey) {

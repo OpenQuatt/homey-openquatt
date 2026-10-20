@@ -31,7 +31,9 @@ module.exports = {
     const { token, entities } = body || {};
     const device = homey.app.remote.session(token);
     if (!device) return { error: 'unauthorized' };
-    return { state: device.getRemoteSnapshot({ entities: entityRequest(entities) }) };
+    const request = entityRequest(entities);
+    await device.refreshPolledEntities(request);
+    return { state: device.getRemoteSnapshot({ entities: request }) };
   },
 
   async remoteHistory({ homey, body }) {

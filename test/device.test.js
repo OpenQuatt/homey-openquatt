@@ -59,6 +59,8 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
   };
   device.hasCapability = cap => capabilities.includes(cap);
   device.getCapabilities = () => capabilities;
+  device.getName = () => 'OpenQuatt';
+  device.getAvailable = () => true;
   device.getCapabilityValue = cap => (cap in device.capabilityValues ? device.capabilityValues[cap] : null);
   device.setCapabilityValue = (cap, value) => {
     device.capabilityValues[cap] = value;
@@ -712,4 +714,61 @@ test('energy history is parsed, and cached briefly per range', async () => {
 
   await device.getEnergyHistory({ ...range, hours: true });
   assert.equal(paths[1], '/energy/history?from=20261018&to=20261019&hours=1');
+});
+
+test('number entities carry a numeric value', () => {
+  const device = makeDevice();
+  device._onState({ id: 'number-minimum_runtime', value: '300', state: '300 s' });
+  device._onState({ id: 'number-unset', value: '', state: 'NA' });
+  const { entities } = device.getRemoteSnapshot({ entities: ['number-minimum_runtime', 'number-unset'] });
+  assert.deepEqual(entities.map(entity => entity.value), [300, null]);
+});
+
+test('internal entities are read only when asked for, at most once a minute, shared', async () => {
+  const device = makeDevice();
+  device._polledAt = 0;
+  const reads = [];
+  let fail = false;
+  device.client = {
+    getEntities: async list => {
+      reads.push(list.length);
+      if (fail) throw new Error('HTTP 404 on /openquatt/entities');
+      return [
+        {
+          id: 'sensor-hp1_-_compressor_starts_2h', name: 'HP1 - Compressor starts 2h', value: 4, state: '4',
+        },
+        {
+          id: 'number-compressor_starts_2h_warning_limit', name: 'Compressor starts 2h warning limit', value: '6', state: '6',
+        },
+      ];
+    },
+  };
+
+  // Not asked for: no read.
+  await device.refreshPolledEntities(['sensor-total_power_input']);
+  await device.refreshPolledEntities(false);
+  assert.equal(reads.length, 0);
+
+  // Two viewers at once share one read.
+  await Promise.all([
+    device.refreshPolledEntities(['sensor-hp1_-_compressor_starts_2h']),
+    device.refreshPolledEntities(true),
+  ]);
+  assert.equal(reads.length, 1);
+  assert.deepEqual(
+    device.getRemoteSnapshot({ entities: ['sensor-hp1_-_compressor_starts_2h', 'number-compressor_starts_2h_warning_limit'] })
+      .entities.map(entity => entity.value),
+    [4, 6],
+  );
+
+  // Fresh enough: no new read.
+  await device.refreshPolledEntities(true);
+  assert.equal(reads.length, 1);
+
+  // A failed read keeps the last values and does not throw.
+  device._polledAt = 0;
+  fail = true;
+  await device.refreshPolledEntities(true);
+  assert.equal(reads.length, 2);
+  assert.equal(device.getRemoteSnapshot({ entities: ['sensor-hp1_-_compressor_starts_2h'] }).entities[0].value, 4);
 });

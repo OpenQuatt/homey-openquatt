@@ -308,3 +308,70 @@ test('a new login reconnects the stream with it', async () => {
     }
   });
 });
+
+// Serves the firmware's bulk endpoint: answers the entities it knows, by the
+// key each request line carries, and lists the others as missing.
+function bulkHandler(known, bodies) {
+  return (req, res) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      bodies.push(body);
+      const params = new URLSearchParams(body);
+      const entities = {};
+      const missing = [];
+      for (const line of params.get('entities').split('\n')) {
+        const [key, domain, name] = line.split('\t');
+        const value = known[`${domain}/${name}`];
+        if (value === undefined) missing.push(key);
+        else entities[key] = { id: `${domain}/${name}`, value, state: String(value) };
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        ok: true, detail: params.get('detail'), entities, missing, errors: [],
+      }));
+    });
+  };
+}
+
+test('getEntities reads internal entities through the bulk endpoint', async () => {
+  const bodies = [];
+  const known = {
+    'sensor/HP1 - Compressor starts 2h': 4,
+    'number/Compressor starts 2h warning limit': '6',
+  };
+  await withServer(bulkHandler(known, bodies), async (host, requests) => {
+    const client = new OpenQuattClient(host, { username: 'admin', password: 'pw' });
+    const states = await client.getEntities([
+      ['sensor', 'HP1 - Compressor starts 2h'],
+      ['sensor', 'HP2 - Compressor starts 2h'],
+      ['number', 'Compressor starts 2h warning limit'],
+    ]);
+
+    assert.deepEqual(states, [
+      {
+        id: 'sensor-hp1_-_compressor_starts_2h', name: 'HP1 - Compressor starts 2h', value: 4, state: '4',
+      },
+      {
+        id: 'number-compressor_starts_2h_warning_limit', name: 'Compressor starts 2h warning limit', value: '6', state: '6',
+      },
+    ]);
+    assert.equal(requests[0].method, 'POST');
+    assert.equal(requests[0].url, '/openquatt/entities');
+    assert.equal(requests[0].headers['content-type'], 'application/x-www-form-urlencoded');
+    assert.equal(requests[0].headers.authorization, `Basic ${Buffer.from('admin:pw').toString('base64')}`);
+    assert.equal(new URLSearchParams(bodies[0]).get('detail'), 'state');
+  });
+});
+
+test('getEntities splits long requests into bodies the firmware accepts', async () => {
+  const bodies = [];
+  const names = Array.from({ length: 30 }, (_, i) => `HP1 - Some rather long entity name number ${i}`);
+  const known = Object.fromEntries(names.map((name, i) => [`sensor/${name}`, i]));
+  await withServer(bulkHandler(known, bodies), async host => {
+    const states = await new OpenQuattClient(host).getEntities(names.map(name => ['sensor', name]));
+    assert.equal(states.length, 30);
+    assert.ok(bodies.length > 1);
+    for (const body of bodies) assert.ok(body.length <= 900, `body of ${body.length} characters`);
+  });
+});

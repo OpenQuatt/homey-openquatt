@@ -67,5 +67,9 @@
   "1.13.0": {
     "en": "The remote page now looks and works like the OpenQuatt web app: tabs for the overview, each heat pump's refrigerant circuit, energy with the controller's history per day, week or month, the last 24 hours as charts, and every value.",
     "nl": "De pagina op afstand lijkt en werkt nu als de OpenQuatt web-app: tabbladen voor het overzicht, de koudemiddelkring van elke warmtepomp, energie met de historie van de controller per dag, week of maand, de afgelopen 24 uur in grafieken, en alle waarden."
+  },
+  "1.14.0": {
+    "en": "The remote page shows the compressor starts per heat pump over 2, 6, 24 and 72 hours, with the alarm limits and any start warning, as the OpenQuatt web app does.",
+    "nl": "De pagina op afstand toont de compressorstarts per warmtepomp over 2, 6, 24 en 72 uur, met de alarmgrenzen en eventuele startwaarschuwingen, zoals de OpenQuatt web-app."
   }
 }

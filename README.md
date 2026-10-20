@@ -122,7 +122,7 @@ The supply target goes further: it replaces the heating curve's own target, room
 Away from home, you can still look at the controller: a read-only page in the style of the OpenQuatt web app, refreshed every five seconds.
 
 - **Overview** — key figures, system status, the heating curve with its supply target, the temperatures, and both outdoor units with fans that turn at their real speed
-- **Heat pumps** — each unit's refrigerant circuit live: water through the condenser, compressor, expansion valve and evaporator, with pressures and temperatures, and every unit detail next to it
+- **Heat pumps** — the compressor starts per unit over 2, 6, 24 and 72 hours against the alarm limits, and each unit's refrigerant circuit live: water through the condenser, compressor, expansion valve and evaporator, with pressures and temperatures, and every unit detail next to it
 - **Energy** — power now, today and since the start, and the controller's energy history per day, week or month, with the average COP and how much heat came from the outside air
 - **Trends** — the last 24 hours of water temperatures, comfort, power and compressors, as five-minute averages your Homey keeps
 - **All values** — everything the controller reports, searchable
@@ -145,7 +145,7 @@ The page lives in this repository (`docs/remote`, served by GitHub Pages) and ca
 - Signing in checks the login in constant time and hands out a random session token, so the password is not sent again. The page keeps the token in the browser and stays signed in.
 - After 10 failed sign-ins within 15 minutes, every sign-in is refused until the window has passed. Pages that are already signed in keep working.
 - A session ends after 30 days without use, when the app restarts, when you sign out, and as soon as you switch remote access off or change the password.
-- The endpoints only read: nothing on the page can switch or change the controller. Each tab asks only for the values it shows, and the controller's energy history is cached for two minutes, so paging through periods does not load the ESP.
+- The endpoints only read: nothing on the page can switch or change the controller. Each tab asks only for the values it shows, and the controller's energy history is cached for two minutes, so paging through periods does not load the ESP. The compressor start counters are kept off the controller's event stream; the app reads them through its bulk entity endpoint while the page shows them, at most once a minute.
 
 This is the only part of the app that goes through the cloud, and only while it is switched on.
 

@@ -528,6 +528,27 @@
     .details > div + div h4 { margin-top: 14px; }
     .details h4 { margin: 0 0 2px; color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 
+    /* Compressor starts, after the web app's monitoring card */
+    .panel.muted-panel { background: var(--card-muted); }
+    .starts-head { display: flex; align-items: center; gap: 10px; }
+    .starts-head h3 { color: var(--soft); font-size: 0.86rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .starts-wrap { margin-top: 14px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+    .starts { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .starts th, .starts td { padding: 12px 16px; text-align: right; white-space: nowrap; }
+    .starts th:first-child { text-align: left; }
+    .starts thead th { color: var(--faint); font-size: 0.8rem; font-weight: 700; }
+    .starts thead th.alarm { color: var(--ink); }
+    .starts tbody tr { border-top: 1px solid var(--line); }
+    .starts tbody th { font-size: 1.05rem; font-weight: 750; }
+    .starts tbody td { color: var(--soft); font-size: 1.05rem; }
+    .starts tbody td.last { font-size: 0.98rem; }
+    .starts tbody td.alarm { color: var(--ink); font-weight: 750; }
+    .starts tbody td.over { color: var(--danger); }
+    .starts .last-inline, .starts .short { display: none; }
+    .starts-foot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 12px 16px; border-top: 1px solid var(--line); color: var(--soft); }
+    .starts-foot strong { color: var(--ink); }
+    .starts-warnings { margin: 12px 0 0 18px; color: var(--danger); font-size: 0.9rem; }
+
     /* Energy */
     .flows { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px; }
     .flow-col { padding: 14px; border: 1px solid var(--line); border-radius: var(--r-md); }
@@ -685,6 +706,13 @@
       .units { grid-template-columns: minmax(0, 1fr); }
       .board { padding: 8px; border-radius: 16px; }
       .details { columns: 1; }
+      .starts th, .starts td { padding: 10px 6px; }
+      .starts th:first-child { padding-left: 12px; }
+      .starts th:last-child, .starts td:last-child { padding-right: 12px; }
+      .starts tbody th { white-space: normal; }
+      .starts .last, .starts .full { display: none; }
+      .starts .short { display: inline; }
+      .starts .last-inline { display: block; color: var(--faint); font-size: 0.75rem; font-weight: 500; }
       /* On a phone the scheme keeps its main readings, in larger type; the
          list below carries the rest. */
       .sx-cap:not(.keep), .sx-detail { display: none; }
@@ -953,6 +981,23 @@
         oilReturn: 'Olieretour',
         faults: 'Storingen',
         noUnits: 'Nog geen gegevens van de buitenunits.',
+        startsTitle: 'Compressorstarts',
+        startsLead: 'Starts sinds de laatste controllerherstart.',
+        startsUnit: n => `Warmtepomp ${n}`,
+        startsLast: 'Laatste',
+        startsWindow: hours => `${hours} uur`,
+        startsLimits: 'Alarmgrenzen',
+        startsLimitsSummary: (short, long) => `${short} / 2 uur · ${long} / 72 uur`,
+        lastStartNever: 'Nog niet gemeten',
+        lastStartJust: 'Zojuist',
+        lastStartMinutes: minutes => `${minutes} min geleden`,
+        lastStartHours: (hours, minutes) => `${hours}u ${minutes}m geleden`,
+        startsOk: 'OK',
+        startsAttention: 'Aandacht',
+        cycling2h: 'Te veel compressorstarts in 2 uur',
+        cycling72h: 'Te veel compressorstarts in 72 uur',
+        alternating: 'Warmtepompen starten opvallend vaak om en om',
+        cyclingLatched: 'Een eerdere startwaarschuwing staat vast tot je hem bevestigt in de OpenQuatt web-app',
         energyKicker: 'Energie',
         energyTitle: 'Energiestromen',
         energyLead: 'Wat er nu stroomt, wat het vandaag opleverde en de tellers sinds het begin.',
@@ -1193,6 +1238,23 @@
         oilReturn: 'Oil return',
         faults: 'Faults',
         noUnits: 'No data from the outdoor units yet.',
+        startsTitle: 'Compressor starts',
+        startsLead: 'Starts since the controller last restarted.',
+        startsUnit: n => `Heat pump ${n}`,
+        startsLast: 'Last',
+        startsWindow: hours => `${hours} hours`,
+        startsLimits: 'Alarm limits',
+        startsLimitsSummary: (short, long) => `${short} / 2 hours · ${long} / 72 hours`,
+        lastStartNever: 'Not measured yet',
+        lastStartJust: 'Just now',
+        lastStartMinutes: minutes => `${minutes} min ago`,
+        lastStartHours: (hours, minutes) => `${hours}h ${minutes}m ago`,
+        startsOk: 'OK',
+        startsAttention: 'Attention',
+        cycling2h: 'Too many compressor starts in 2 hours',
+        cycling72h: 'Too many compressor starts in 72 hours',
+        alternating: 'Heat pumps alternate starts unusually often',
+        cyclingLatched: 'An earlier start warning holds until you acknowledge it in the OpenQuatt web app',
         energyKicker: 'Energy',
         energyTitle: 'Energy flows',
         energyLead: 'What flows right now, what today brought and the counters since the start.',
@@ -1479,6 +1541,31 @@
     };
 
     const CORE_IDS = [ID.version, ID.cycling, ID.silent, ID.boiler];
+
+    // Compressor start counters; the app reads them from the controller on
+    // request, as the firmware keeps them off its event stream.
+    const STARTS = {
+      windows: [2, 6, 24, 72],
+      count: (unit, hours) => `sensor-${unit}_-_compressor_starts_${hours}h`,
+      last: unit => `sensor-${unit}_-_compressor_last_start_age`,
+      limit2h: 'number-compressor_starts_2h_warning_limit',
+      limit72h: 'number-compressor_starts_72h_warning_limit',
+      warn2h: 'binary_sensor-compressor_cycling_warning_2h',
+      warn72h: 'binary_sensor-compressor_cycling_warning_72h',
+      alternating: 'binary_sensor-alternating_compressor_starts_warning',
+      latched: 'binary_sensor-compressor_cycling_alert_latched',
+    };
+    const STARTS_IDS = [
+      ...['hp1', 'hp2'].flatMap(unit => [...STARTS.windows.map(hours => STARTS.count(unit, hours)), STARTS.last(unit)]),
+      STARTS.limit2h, STARTS.limit72h, STARTS.warn2h, STARTS.warn72h, STARTS.alternating, STARTS.latched,
+    ];
+
+    function lastStart(minutes) {
+      if (minutes === null) return T.lastStartNever;
+      if (minutes < 1) return T.lastStartJust;
+      if (minutes < 60) return T.lastStartMinutes(nf(minutes));
+      return T.lastStartHours(nf(Math.floor(minutes / 60)), nf(Math.round(minutes % 60)));
+    }
 
     // System and unit modes, as in the widgets.
     const MODES = {
@@ -2092,7 +2179,11 @@
     };
 
     VIEWS.heatpumps = {
-      entities: () => [...CORE_IDS, ...['hp1', 'hp2'].flatMap(unit => [...Object.keys(UNIT_ENTITIES).map(key => unitId(unit, key)), levelId(unit)])],
+      entities: () => [
+        ...CORE_IDS,
+        ...STARTS_IDS,
+        ...['hp1', 'hp2'].flatMap(unit => [...Object.keys(UNIT_ENTITIES).map(key => unitId(unit, key)), levelId(unit)]),
+      ],
       build() {
         const list = units();
         app.viewState.heatpumpUnits = list.join();
@@ -2102,7 +2193,16 @@
           <p class="panel-lead">${esc(T.hpLead)}</p>
           ${list.length ? '' : `<p class="empty">${esc(T.noUnits)}</p>`}
         </section>`;
-        return `<div class="stack">${intro}${list.map(unit => `
+        const starts = `<section class="panel muted-panel" data-b="starts.card" hidden>
+          <div class="starts-head">
+            <h3>${esc(T.startsTitle)}</h3>
+            <span class="pill" data-b="starts.badge"></span>
+          </div>
+          <p class="panel-lead">${esc(T.startsLead)}</p>
+          <div class="starts-wrap" data-b="starts.table"></div>
+          <ul class="starts-warnings" data-b="starts.warnings"></ul>
+        </section>`;
+        return `<div class="stack">${intro}${starts}${list.map(unit => `
           <section class="panel">
             <div class="unit-head hp-head">
               <h3>${unit.toUpperCase()}</h3>
@@ -2128,6 +2228,7 @@
           renderView();
           return;
         }
+        this.updateStarts();
         for (const unit of units()) {
           const hp = unitData(unit);
           const u = key => ev(unitId(unit, key));
@@ -2229,6 +2330,45 @@
           ].join(''));
         }
       },
+    };
+
+    VIEWS.heatpumps.updateStarts = function updateStarts() {
+      const list = units().filter(unit => STARTS.windows.some(hours => ev(STARTS.count(unit, hours)) !== null));
+      // Firmware without the counters gets no empty card.
+      for (const el of bound.get('starts.card') || []) el.hidden = !list.length;
+      if (!list.length) return;
+
+      const limit2h = ev(STARTS.limit2h);
+      const limit72h = ev(STARTS.limit72h);
+      const limits = { 2: limit2h, 72: limit72h };
+      const duo = list.includes('hp2');
+      const warnings = [
+        [eb(STARTS.warn2h), T.cycling2h],
+        [eb(STARTS.warn72h), T.cycling72h],
+        [duo && eb(STARTS.alternating), T.alternating],
+        [eb(STARTS.latched), T.cyclingLatched],
+      ].filter(([active]) => active).map(([, text]) => text);
+      setPill('starts.badge', warnings.length ? T.startsAttention : T.startsOk, warnings.length ? 'off' : 'on');
+      setHtml('starts.warnings', warnings.map(text => `<li>${esc(text)}</li>`).join(''));
+
+      const count = value => (value === null ? '—' : nf(Math.max(0, Math.round(value))));
+      const rows = list.map(unit => {
+        const last = lastStart(ev(STARTS.last(unit)));
+        const cells = STARTS.windows.map(hours => {
+          const value = ev(STARTS.count(unit, hours));
+          const alarm = hours in limits;
+          const over = alarm && value !== null && limits[hours] !== null && value >= limits[hours];
+          return `<td class="${alarm ? 'alarm' : ''}${over ? ' over' : ''}">${esc(count(value))}</td>`;
+        }).join('');
+        return `<tr><th scope="row"><span class="full">${esc(T.startsUnit(unit.slice(2)))}</span><span class="short">${unit.toUpperCase()}</span>`
+          + `<span class="last-inline">${esc(last)}</span></th><td class="last">${esc(last)}</td>${cells}</tr>`;
+      }).join('');
+      const head = STARTS.windows.map(hours => `<th class="${hours in limits ? 'alarm' : ''}">${esc(T.startsWindow(hours))}</th>`).join('');
+      setHtml('starts.table', `<table class="starts">
+        <thead><tr><th><span class="full">${esc(T.heatpump)}</span></th><th class="last">${esc(T.startsLast)}</th>${head}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="starts-foot"><strong>${esc(T.startsLimits)}</strong><span>${esc(T.startsLimitsSummary(count(limit2h), count(limit72h)))}</span></div>`);
     };
 
     // --- Energy ------------------------------------------------------------------
