@@ -1,0 +1,13 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Compressor starts (24 h)",
+    "nl": "Compressorstarts (24 uur)"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/icon.svg"
+}

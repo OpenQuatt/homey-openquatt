@@ -34,7 +34,9 @@ const ALL_CAPABILITIES = [
 
 // Builds a device around the prototype without running onInit, so the state
 // handling can be exercised without a Homey runtime or a live connection.
-function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
+function makeDevice({ capabilities: initial = ALL_CAPABILITIES } = {}) {
+  // A copy, as capabilities may be added along the way.
+  const capabilities = [...initial];
   const device = Object.create(OpenQuattDevice.prototype);
   device._controlModeCode = null;
   device._telemetry = {};
@@ -59,6 +61,10 @@ function makeDevice({ capabilities = ALL_CAPABILITIES } = {}) {
   };
   device.hasCapability = cap => capabilities.includes(cap);
   device.getCapabilities = () => capabilities;
+  device.addCapability = cap => {
+    capabilities.push(cap);
+    return Promise.resolve();
+  };
   device.getName = () => 'OpenQuatt';
   device.getAvailable = () => true;
   device.getCapabilityValue = cap => (cap in device.capabilityValues ? device.capabilityValues[cap] : null);
@@ -771,4 +777,67 @@ test('internal entities are read only when asked for, at most once a minute, sha
   await device.refreshPolledEntities(true);
   assert.equal(reads.length, 2);
   assert.equal(device.getRemoteSnapshot({ entities: ['sensor-hp1_-_compressor_starts_2h'] }).entities[0].value, 4);
+});
+
+const HP1_UNIT_CAPABILITIES = [
+  'oq_compressor_frequency.hp1',
+  'oq_compressor_starts_2h.hp1',
+  'oq_compressor_starts_24h.hp1',
+  'oq_runtime_hours.hp1',
+];
+
+test('each unit\'s compressor frequency, running hours and starts feed their capabilities', async () => {
+  const device = makeDevice({ capabilities: [...ALL_CAPABILITIES, ...HP1_UNIT_CAPABILITIES] });
+  device._polledAt = 0;
+  device.client = {
+    getEntities: async () => [
+      {
+        id: 'sensor-hp1_-_compressor_starts_2h', name: 'HP1 - Compressor starts 2h', value: 4, state: '4',
+      },
+      {
+        id: 'sensor-hp1_-_compressor_starts_24h', name: 'HP1 - Compressor starts 24h', value: 8, state: '8',
+      },
+      {
+        id: 'sensor-hp1_-_compressor_starts_6h', name: 'HP1 - Compressor starts 6h', value: 7, state: '7',
+      },
+    ],
+  };
+
+  device._onState({ id: 'sensor-hp1_-_compressor_frequency', value: 48, state: '48 Hz' });
+  device._onState({ id: 'sensor-hp1_-_runtime_hours', value: 8.7, state: '8.7 h' });
+  await device.refreshPolledEntities(true);
+
+  assert.equal(device.capabilityValues['oq_compressor_frequency.hp1'], 48);
+  assert.equal(device.capabilityValues['oq_runtime_hours.hp1'], 8.7);
+  assert.equal(device.capabilityValues['oq_compressor_starts_2h.hp1'], 4);
+  assert.equal(device.capabilityValues['oq_compressor_starts_24h.hp1'], 8);
+  // The other windows stay on the remote page only.
+  assert.deepEqual(Object.keys(device.capabilityValues).filter(cap => cap.includes('starts')).sort(), [
+    'oq_compressor_starts_24h.hp1', 'oq_compressor_starts_2h.hp1',
+  ]);
+});
+
+test('HP2 capabilities come with the first HP2 frame, filled with what is known', async () => {
+  const device = makeDevice({ capabilities: [...ALL_CAPABILITIES, ...HP1_UNIT_CAPABILITIES] });
+  const capabilities = device.getCapabilities();
+
+  // Not a unit reading the widget keeps, so no sign of HP2 yet.
+  device._onState({ id: 'sensor-hp2_-_runtime_hours', value: 9.1, state: '9.1 h' });
+  assert.ok(!capabilities.includes('oq_runtime_hours.hp2'));
+
+  device._onState({ id: 'sensor-hp2_-_compressor_frequency', value: 39, state: '39 Hz' });
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.deepEqual(capabilities.filter(cap => cap.endsWith('.hp2')), [
+    'oq_compressor_frequency.hp2',
+    'oq_compressor_starts_2h.hp2',
+    'oq_compressor_starts_24h.hp2',
+    'oq_runtime_hours.hp2',
+  ]);
+  assert.equal(device.capabilityValues['oq_compressor_frequency.hp2'], 39);
+  assert.equal(device.capabilityValues['oq_runtime_hours.hp2'], 9.1);
+
+  // From then on HP2 frames feed them directly.
+  device._onState({ id: 'sensor-hp2_-_compressor_frequency', value: 52, state: '52 Hz' });
+  assert.equal(device.capabilityValues['oq_compressor_frequency.hp2'], 52);
 });

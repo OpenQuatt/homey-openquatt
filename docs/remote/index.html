@@ -452,6 +452,10 @@
     .unit .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
     .unit .stat { padding: 10px 12px; }
     .unit .stat-value { font-size: 1.05rem; }
+    .unit-meta { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 12px; color: var(--soft); font-size: 0.86rem; }
+    .unit-meta:empty { display: none; }
+    .unit-meta b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .unit-meta b.over { color: var(--danger); }
     .unit-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--soft); font-size: 0.86rem; }
     .unit-foot::before { content: ""; width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #22c55e; }
     .unit-foot.is-problem { color: var(--danger); }
@@ -921,6 +925,8 @@
         compressor: 'Compressor',
         fan: 'Ventilator',
         powerIn: 'Opname',
+        unitRuntime: 'Draaiuren',
+        unitStarts: hours => `Starts ${hours} uur`,
         noFaults: 'Geen storingen',
         standby: 'Standby',
         heating: 'Verwarmen',
@@ -1178,6 +1184,8 @@
         compressor: 'Compressor',
         fan: 'Fan',
         powerIn: 'Power in',
+        unitRuntime: 'Running hours',
+        unitStarts: hours => `Starts ${hours} h`,
         noFaults: 'No faults',
         standby: 'Standby',
         heating: 'Heating',
@@ -1963,7 +1971,10 @@
     const VIEWS = {};
 
     VIEWS.overview = {
-      entities: () => [...CORE_IDS, ID.strategy, ID.targetSource, ID.capacity, ID.silentMode, ID.heatingSource],
+      entities: () => [
+        ...CORE_IDS, ID.strategy, ID.targetSource, ID.capacity, ID.silentMode, ID.heatingSource, STARTS.limit2h,
+        ...['hp1', 'hp2'].flatMap(unit => [unitId(unit, 'runtime'), STARTS.count(unit, 2), STARTS.count(unit, 24)]),
+      ],
       build() {
         const unitCards = ['hp1', 'hp2'].map(unit => `
           <article class="panel unit" data-b="${unit}.card" hidden>
@@ -1985,6 +1996,7 @@
               ${stat(`${unit}.power`, T.powerIn, 'blue')}
               ${stat(`${unit}.eff`, T.cop, 'green')}
             </div>
+            <p class="unit-meta" data-b="${unit}.meta"></p>
             <p class="unit-foot" data-b="${unit}.foot"></p>
           </article>`).join('');
 
@@ -2170,6 +2182,16 @@
           setHtml(`${unit}.power`, qtyHtml(hp.power, 'W'));
           setText(`${unit}.eff.label`, coolingUnit ? T.eer : T.cop);
           setHtml(`${unit}.eff`, qtyHtml(coolingUnit ? hp.eer : hp.cop, '', 1));
+          const runtime = ev(unitId(unit, 'runtime'));
+          const starts2h = ev(STARTS.count(unit, 2));
+          const starts24h = ev(STARTS.count(unit, 24));
+          const limit = ev(STARTS.limit2h);
+          const over = starts2h !== null && limit !== null && starts2h >= limit;
+          setHtml(`${unit}.meta`, [
+            runtime === null ? '' : `<span>${esc(T.unitRuntime)} <b>${esc(nf(runtime, 1))}</b></span>`,
+            starts2h === null ? '' : `<span>${esc(T.unitStarts(2))} <b class="${over ? 'over' : ''}">${esc(nf(starts2h))}</b></span>`,
+            starts24h === null ? '' : `<span>${esc(T.unitStarts(24))} <b>${esc(nf(starts24h))}</b></span>`,
+          ].join(''));
           const faults = unitFaults(hp.failures);
           setText(`${unit}.foot`, faults.length ? faults.join(', ') : T.noFaults);
           setClass(`${unit}.foot`, 'is-problem', faults.length);

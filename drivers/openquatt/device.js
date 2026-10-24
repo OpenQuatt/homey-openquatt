@@ -10,6 +10,20 @@ const { remoteLogin, MIN_PASSWORD_LENGTH } = require('../../lib/RemoteAccess');
 const { History } = require('../../lib/History');
 const { parseEnergyHistory } = require('../../lib/energyHistory');
 
+// Per outdoor unit, the figures that tell how a compressor runs and cycles,
+// as `<capability>.hp1` and `.hp2`: entity suffix -> capability. The starts
+// are kept off the event stream and read from the controller (see
+// POLLED_ENTITIES).
+const UNIT_CAPABILITIES = {
+  compressor_frequency: 'oq_compressor_frequency',
+  compressor_starts_2h: 'oq_compressor_starts_2h',
+  compressor_starts_24h: 'oq_compressor_starts_24h',
+  runtime_hours: 'oq_runtime_hours',
+};
+
+const unitCapabilities = unit => Object.entries(UNIT_CAPABILITIES)
+  .map(([suffix, capability]) => [`sensor-${unit}_-_${suffix}`, `${capability}.${unit}`]);
+
 // Entity id (as seen on the /events stream) -> Homey capability. Every
 // capability here is also an Insights log, which is the point of exposing the
 // numbers and booleans below rather than keeping them widget-only telemetry.
@@ -38,6 +52,7 @@ const ENTITY_CAPABILITIES = {
   'switch-aux_relay__r2_': 'onoff.aux_relay',
   'text_sensor-control_mode__label_': 'oq_control_mode',
   'text_sensor-aux_relay_status': 'oq_aux_status',
+  ...Object.fromEntries([...unitCapabilities('hp1'), ...unitCapabilities('hp2')]),
 };
 
 // Capabilities added after the first release; devices paired earlier get them
@@ -58,6 +73,8 @@ const MIGRATED_CAPABILITIES = [
   'onoff.openquatt',
   'measure_temperature.return',
   'measure_temperature.supply_target',
+  // HP2's come with the first frame the controller reports for it.
+  ...unitCapabilities('hp1').map(([, capability]) => capability),
 ];
 
 // Devices paired before v1.12.0 were thermostats, a class for which Homey does
@@ -162,8 +179,9 @@ const HISTORY_SAVE_MS = 30 * 60 * 1000;
 const HISTORY_STORE_KEY = 'history';
 
 // Entities the firmware keeps off the event stream (`internal: true`), read
-// through its bulk endpoint while the remote page asks for them, at most once
-// a minute: the compressor start counters and their warning limits.
+// through its bulk endpoint: the compressor start counters and their warning
+// limits. Every five minutes for the start capabilities, and while the remote
+// page asks for them at most once a minute.
 const POLLED_ENTITIES = [
   ...['HP1', 'HP2'].flatMap(unit => [
     ...['2h', '6h', '24h', '72h'].map(window => ['sensor', `${unit} - Compressor starts ${window}`]),
@@ -176,6 +194,7 @@ const POLLED_ENTITIES = [
 const POLLED_ENTITY_IDS = new Set(POLLED_ENTITIES.map(([domain, name]) => (
   `${domain}-${name.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}`)));
 const POLLED_MAX_AGE_MS = 60 * 1000;
+const POLLED_INTERVAL_MS = 5 * 60 * 1000;
 
 // The energy history comes from the controller on request; a short cache keeps
 // a remote viewer paging back and forth from loading the ESP.
@@ -267,6 +286,12 @@ class OpenQuattDevice extends Homey.Device {
       () => this._refreshAuxFunction(),
       AUX_FUNCTION_POLL_MS,
     );
+    this._polledTimer = this.homey.setInterval(
+      () => this.refreshPolledEntities(true),
+      POLLED_INTERVAL_MS,
+    );
+    // A first read once the event stream's replay has settled.
+    this._polledStartTimer = this.homey.setTimeout(() => this.refreshPolledEntities(true), 30000);
 
     this._dewPointSources = new DewPointSources();
     this._inputs = this._restoreInputs();
@@ -411,6 +436,11 @@ class OpenQuattDevice extends Homey.Device {
       this._historyTimer = null;
       if (saveHistory) this._saveHistory();
     }
+    if (this._polledTimer) {
+      this.homey.clearInterval(this._polledTimer);
+      this.homey.clearTimeout(this._polledStartTimer);
+      this._polledTimer = null;
+    }
     if (this._auxPollTimer) {
       this.homey.clearInterval(this._auxPollTimer);
       this._auxPollTimer = null;
@@ -433,6 +463,17 @@ class OpenQuattDevice extends Homey.Device {
   // Devices keep the class they were paired with; move older ones over.
   async _migrateClass() {
     if (this.getClass() !== DEVICE_CLASS) await this.setClass(DEVICE_CLASS).catch(this.error);
+  }
+
+  // HP2 only exists on duo installations, so its capabilities are added with
+  // the first frame the controller reports for it, filled with what is known.
+  async _addUnitCapabilities(unit) {
+    for (const [id, capability] of unitCapabilities(unit)) {
+      if (this.hasCapability(capability)) continue;
+      await this.addCapability(capability);
+      const entity = this._entities[id];
+      if (entity && entity.value !== null) await this.setCapabilityValue(capability, entity.value);
+    }
   }
 
   // Devices paired with an older app version keep their original capability
@@ -641,10 +682,11 @@ class OpenQuattDevice extends Homey.Device {
   }
 
   /**
-   * Bring the entities kept off the event stream up to date when the remote
-   * page asks for any of them (or for everything) and they are older than a
-   * minute. Concurrent viewers share one read; a failed read leaves the last
-   * values, as firmware without these entities simply never has them.
+   * Bring the entities kept off the event stream up to date when asked for
+   * any of them (or for everything) and they are older than a minute. They
+   * feed capabilities like any frame. Concurrent callers share one read; a
+   * failed read leaves the last values, as firmware without these entities
+   * simply never has them.
    */
   async refreshPolledEntities(entities) {
     const wanted = entities === true || (Array.isArray(entities) && entities.some(id => POLLED_ENTITY_IDS.has(id)));
@@ -652,7 +694,7 @@ class OpenQuattDevice extends Homey.Device {
     if (!this._polling) {
       this._polling = this.client.getEntities(POLLED_ENTITIES)
         .then(states => {
-          for (const state of states) this._storeEntity(state);
+          for (const state of states) this._onState(state);
           this._polledAt = Date.now();
         })
         .catch(err => this.log(`internal entities unavailable: ${err.message}`))
@@ -733,7 +775,10 @@ class OpenQuattDevice extends Homey.Device {
     const unit = HEATPUMP_ENTITY_ID.exec(state.id);
     const heatpumpKey = unit && HEATPUMP_ENTITIES[`${unit[1]}-${unit[3]}`];
     if (heatpumpKey) {
-      if (!this._heatpumps[unit[2]]) this._heatpumps[unit[2]] = {};
+      if (!this._heatpumps[unit[2]]) {
+        this._heatpumps[unit[2]] = {};
+        this._addUnitCapabilities(unit[2]).catch(this.error);
+      }
       this._heatpumps[unit[2]][heatpumpKey] = entityValue(state);
       // No early return here either: the HP1 water inlet is also the return
       // temperature capability, and the defrost entities fire triggers.

@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "nl.openquatt",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -1367,7 +1367,11 @@
         "oq_cooling_permitted",
         "onoff.openquatt",
         "onoff.cooling",
-        "onoff.aux_relay"
+        "onoff.aux_relay",
+        "oq_compressor_frequency.hp1",
+        "oq_compressor_starts_2h.hp1",
+        "oq_compressor_starts_24h.hp1",
+        "oq_runtime_hours.hp1"
       ],
       "capabilitiesOptions": {
         "measure_temperature.supply": {
@@ -1455,6 +1459,54 @@
           "insightsTitleFalse": {
             "en": "Aux relay off",
             "nl": "Hulprelais uit"
+          }
+        },
+        "oq_compressor_frequency.hp1": {
+          "title": {
+            "en": "HP1 compressor frequency",
+            "nl": "HP1 compressorfrequentie"
+          }
+        },
+        "oq_compressor_starts_2h.hp1": {
+          "title": {
+            "en": "HP1 compressor starts (2 h)",
+            "nl": "HP1 compressorstarts (2 uur)"
+          }
+        },
+        "oq_compressor_starts_24h.hp1": {
+          "title": {
+            "en": "HP1 compressor starts (24 h)",
+            "nl": "HP1 compressorstarts (24 uur)"
+          }
+        },
+        "oq_runtime_hours.hp1": {
+          "title": {
+            "en": "HP1 running hours",
+            "nl": "HP1 draaiuren"
+          }
+        },
+        "oq_compressor_frequency.hp2": {
+          "title": {
+            "en": "HP2 compressor frequency",
+            "nl": "HP2 compressorfrequentie"
+          }
+        },
+        "oq_compressor_starts_2h.hp2": {
+          "title": {
+            "en": "HP2 compressor starts (2 h)",
+            "nl": "HP2 compressorstarts (2 uur)"
+          }
+        },
+        "oq_compressor_starts_24h.hp2": {
+          "title": {
+            "en": "HP2 compressor starts (24 h)",
+            "nl": "HP2 compressorstarts (24 uur)"
+          }
+        },
+        "oq_runtime_hours.hp2": {
+          "title": {
+            "en": "HP2 running hours",
+            "nl": "HP2 draaiuren"
           }
         }
       },
@@ -1772,6 +1824,49 @@
       "uiComponent": "sensor",
       "icon": "/assets/icon.svg"
     },
+    "oq_compressor_frequency": {
+      "type": "number",
+      "title": {
+        "en": "Compressor frequency",
+        "nl": "Compressorfrequentie"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg",
+      "units": {
+        "en": "Hz",
+        "nl": "Hz"
+      }
+    },
+    "oq_compressor_starts_24h": {
+      "type": "number",
+      "title": {
+        "en": "Compressor starts (24 h)",
+        "nl": "Compressorstarts (24 uur)"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg"
+    },
+    "oq_compressor_starts_2h": {
+      "type": "number",
+      "title": {
+        "en": "Compressor starts (2 h)",
+        "nl": "Compressorstarts (2 uur)"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg"
+    },
     "oq_control_mode": {
       "type": "string",
       "title": {
@@ -1912,6 +2007,23 @@
         "nl": "Verwarmen niet toegestaan"
       },
       "icon": "/assets/icon.svg"
+    },
+    "oq_runtime_hours": {
+      "type": "number",
+      "title": {
+        "en": "Running hours",
+        "nl": "Draaiuren"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/icon.svg",
+      "units": {
+        "en": "h",
+        "nl": "u"
+      }
     }
   },
   "discovery": {

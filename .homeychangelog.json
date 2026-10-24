@@ -71,5 +71,9 @@
   "1.14.0": {
     "en": "The remote page shows the compressor starts per heat pump over 2, 6, 24 and 72 hours, with the alarm limits and any start warning, as the OpenQuatt web app does.",
     "nl": "De pagina op afstand toont de compressorstarts per warmtepomp over 2, 6, 24 en 72 uur, met de alarmgrenzen en eventuele startwaarschuwingen, zoals de OpenQuatt web-app."
+  },
+  "1.15.0": {
+    "en": "Each outdoor unit's compressor frequency, running hours and compressor starts over 2 and 24 hours are now on the device and in Insights, to follow how the compressors run and cycle. HP2's appear on a duo installation. The remote page shows the running hours and starts on its overview too.",
+    "nl": "Per buitenunit staan de compressorfrequentie, de draaiuren en de compressorstarts over 2 en 24 uur nu op het apparaat en in Insights, om te volgen hoe de compressoren draaien en pendelen. Die van HP2 verschijnen bij een duo-installatie. De pagina op afstand toont de draaiuren en starts ook op het overzicht."
   }
 }

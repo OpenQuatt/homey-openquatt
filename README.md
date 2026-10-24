@@ -37,6 +37,8 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | COP and EER | live |
 | Water flow | live, in L/h |
 | Control mode (CM0…CM100) | live, as label and as a number for Insights |
+| Compressor frequency and running hours, per outdoor unit | live |
+| Compressor starts over 2 and 24 hours, per outdoor unit | read from the controller every five minutes |
 | Heating and cooling permission | live |
 | Aux relay (R2) function picker | all five firmware modes, switchable from Homey |
 | Aux relay status | live status text from the control loop |
@@ -44,7 +46,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 
 The device is a heat pump in Homey, so you pick which of these values its tile shows as **status indicator**: a temperature, the power, the COP, the flow and so on (device settings → *Status indicator*).
 
-Every number and switch above is a capability, so Homey logs it in **Insights** — the control mode included, charted as its bare CM code next to the readable label. Room humidity is the one thing that is missing: OpenQuatt itself has no room humidity value, it only works with the dew point, so chart the humidity sensor in Homey instead.
+Every number and switch above is a capability, so Homey logs it in **Insights** — the control mode included, charted as its bare CM code next to the readable label. The per-unit figures show how each compressor runs and cycles; HP2's appear once the controller reports HP2, so only on a duo installation. Room humidity is the one thing that is missing: OpenQuatt itself has no room humidity value, it only works with the dew point, so chart the humidity sensor in Homey instead.
 
 Set a login on the controller? Fill in the same username and password under *Controller login* in the device settings. The controller then asks for it on every request, the live stream included, and the device tells you when it rejects the login.
 
@@ -121,7 +123,7 @@ The supply target goes further: it replaces the heating curve's own target, room
 
 Away from home, you can still look at the controller: a read-only page in the style of the OpenQuatt web app, refreshed every five seconds.
 
-- **Overview** — key figures, system status, the heating curve with its supply target, the temperatures, and both outdoor units with fans that turn at their real speed
+- **Overview** — key figures, system status, the heating curve with its supply target, the temperatures, and both outdoor units with fans that turn at their real speed, their running hours and recent compressor starts
 - **Heat pumps** — the compressor starts per unit over 2, 6, 24 and 72 hours against the alarm limits, and each unit's refrigerant circuit live: water through the condenser, compressor, expansion valve and evaporator, with pressures and temperatures, and every unit detail next to it
 - **Energy** — power now, today and since the start, and the controller's energy history per day, week or month, with the average COP and how much heat came from the outside air
 - **Trends** — the last 24 hours of water temperatures, comfort, power and compressors, as five-minute averages your Homey keeps

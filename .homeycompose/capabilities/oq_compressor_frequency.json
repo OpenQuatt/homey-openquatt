@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Compressor frequency",
+    "nl": "Compressorfrequentie"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/icon.svg",
+  "units": {
+    "en": "Hz",
+    "nl": "Hz"
+  }
+}
