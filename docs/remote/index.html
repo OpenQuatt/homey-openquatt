@@ -1519,7 +1519,14 @@
       targetSource: 'text_sensor-heating_supply___target_source',
       capacity: 'sensor-hp_capacity__w_',
       heatingSource: 'text_sensor-heating_enable_effective_source',
+      auxPresent: 'switch-auxiliary_heat_source_connected',
+      boilerAssist: 'switch-boiler_assist_enabled',
     };
+
+    // As in the OpenQuatt web app, the boiler only shows with an auxiliary heat
+    // source connected, or where it delivered heat anyway. Firmware without that
+    // switch goes by boiler assist instead.
+    const auxHeatSource = () => (ent(ID.auxPresent) ? eb(ID.auxPresent) : eb(ID.boilerAssist)) === true;
 
     const ENERGY_IDS = {
       now: {
@@ -2463,7 +2470,10 @@
     }
 
     VIEWS.energy = {
-      entities: () => [...CORE_IDS, ...Object.values(ENERGY_IDS).flatMap(group => Object.values(group))],
+      entities: () => [
+        ...CORE_IDS, ID.auxPresent, ID.boilerAssist,
+        ...Object.values(ENERGY_IDS).flatMap(group => Object.values(group)),
+      ],
       build() {
         const seg = ['day', 'week', 'month'].map(mode => `<button type="button" data-mode="${mode}" class="${results.mode === mode ? 'is-active' : ''}">${esc(T[mode])}</button>`).join('');
         return `<div class="stack">
@@ -2514,6 +2524,10 @@
         const column = (group, title, power) => {
           const u = power ? 'W' : 'kWh';
           const d = power ? 0 : 1;
+          const boiler = auxHeatSource() || ev(ENERGY_IDS[group].boiler) > 0
+            ? `<h5>${esc(T.boiler)}</h5>
+              <div class="list">${row(T.heat, value(group, 'boiler', u, d))}</div>`
+            : '';
           return `<div class="flow-col">
             <h4>${esc(title)}</h4>
             <div class="flow-box">
@@ -2524,8 +2538,7 @@
                 ${row(T.heat, value(group, 'heat', u, d))}
                 ${row(T.cop, value(group, 'cop', '', 1))}
               </div>
-              <h5>${esc(T.boiler)}</h5>
-              <div class="list">${row(T.heat, value(group, 'boiler', u, d))}</div>
+              ${boiler}
               <h5>${esc(T.systemHeat)}</h5>
               <div class="list">${row(T.heat, value(group, 'system', u, d))}</div>
             </div>
@@ -2541,12 +2554,15 @@
           </div>`;
         };
         patch($('flows'), column('now', T.now, true) + column('today', T.today, false) + column('total', T.cumulative, false));
+        // The history below follows the same switch, which may arrive after it.
+        if (results.aux !== auxHeatSource()) this.renderHistory();
         // A running period keeps up with the day.
         if (dateKey(period(results.mode, results.anchor).to) >= dateKey(new Date())) loadEnergy();
       },
       renderHistory() {
         const target = $('history');
         if (!target) return;
+        results.aux = auxHeatSource();
         const p = period(results.mode, results.anchor);
         const today = dateKey(new Date());
         $('period').textContent = p.label;
@@ -2596,16 +2612,17 @@
           target.innerHTML = `<p class="empty">${esc(T.historyEmpty)}</p>`;
           return;
         }
+        const showBoiler = results.aux || boiler > 0;
         const useEer = cooling > heat;
         const efficiency = useEer ? (coolingInput ? cooling / coolingInput : null) : (heatingInput ? heat / heatingInput : null);
         const kwh = wh => qtyHtml(wh / 1000, 'kWh', wh >= 100000 ? 0 : 1);
         const air = heat > 0 && heatingInput > 0 ? clamp((heat - heatingInput) / heat, 0, 1) : null;
         target.innerHTML = `
-          <div class="stats four">
+          <div class="stats ${showBoiler ? 'four' : 'three'}">
             <div class="stat green"><p class="stat-label">${esc(useEer ? T.averageEer : T.averageCop)}</p><p class="stat-value">${qtyHtml(efficiency, '', 2)}</p><p class="stat-note">${esc(p.label)}</p></div>
             <div class="stat blue"><p class="stat-label">${esc(T.electricUsed)}</p><p class="stat-value">${kwh(electrical)}</p><p class="stat-note">${esc(T.electricUsedNote)}</p></div>
             <div class="stat orange"><p class="stat-label">${esc(T.hpDelivered)}</p><p class="stat-value">${kwh(heat + cooling)}</p><p class="stat-note">${esc(T.hpDeliveredNote)}</p></div>
-            <div class="stat"><p class="stat-label">${esc(T.boilerDelivered)}</p><p class="stat-value">${kwh(boiler)}</p><p class="stat-note">${esc(T.boilerDeliveredNote)}</p></div>
+            ${showBoiler ? `<div class="stat"><p class="stat-label">${esc(T.boilerDelivered)}</p><p class="stat-value">${kwh(boiler)}</p><p class="stat-note">${esc(T.boilerDeliveredNote)}</p></div>` : ''}
           </div>
           ${air === null ? '' : `<div class="share">
             <div class="share-bar"><i style="width:${((1 - air) * 100).toFixed(1)}%;background:var(--amber)"></i><i style="width:${(air * 100).toFixed(1)}%;background:var(--emerald)"></i></div>
@@ -2621,7 +2638,7 @@
                 <span><i style="background:var(--amber)"></i>${esc(T.legendElectric)}</span>
                 <span><i style="background:var(--emerald)"></i>${esc(T.legendHeat)}</span>
                 <span><i style="background:var(--blue)"></i>${esc(T.legendCool)}</span>
-                <span><i style="background:var(--slate)"></i>${esc(T.legendBoiler)}</span>
+                ${showBoiler ? `<span><i style="background:var(--slate)"></i>${esc(T.legendBoiler)}</span>` : ''}
               </div>
             </div>
             <div class="chart" id="bars"></div>
