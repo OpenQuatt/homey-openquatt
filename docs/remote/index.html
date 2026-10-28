@@ -6,6 +6,12 @@
   <meta name="robots" content="noindex">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#0f1724">
+  <!-- Inline, as the policy below only allows data: images. The PNG is for
+       browsers without SVG favicons; the home screen icon is a file, which
+       iOS fetches outside the page. -->
+  <link rel="icon" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABj1BMVEUAAAANGiYQGCQPFiQPFyQPFyQPFyQOFiQNGygQFiMPFyQPFyQQFyQPFyQPFyQOHCsQGCQOFiQPGCQPFyQOFiUQFyQNFyUPFyQPFyQmLjpVW2R2fIR8gYludHxBSFIWHSpVW2W/wsf2+Pr4+vzn6u2UmZ8nLzshKTW4u8Hs7vFvdX0uNUHZ3N+RlZwQGCUeJjLS1tni5Odla3VeY213fYW1ub57gIifo6mGi5MXHis3PknKztL09vk9Q044P0r3+ftmbHUYIC3Cxcq2ub+TmJ+doafr7fDe4eP19/koLzyOkpl1e4PGyc5ES1WgpKqjpqwgKDS5vMI2PEgVGSRUMh89KSG4WRr5cxZ8Qh2kqK7c3+EpMD0aGyN9Qh0kLDjT19pzeIGeoqjDXhklLTkwN0MjHiPQYxiBRB2Slp2bn6UXHywfJjPk5umWm6FnbXZ5f4dxdn8sMz+DiJC3usBTWWPp6+4ZIS10Px0jKzd0eYF4foZobndARlEUHCjubxcQFyTaZxggHSOaThysVRs5KCJi13juAAAAGHRSTlMAFIHN8/LMfxNQ8O9O/e4SgH7O8X1PTMsNFfptAAABhUlEQVQ4y4WTZ0PCQAyGD5EhQ1QQ6wYqoCKiIA4cuMWNE8WBinvvvfWHmx4U0kLx/dIk91wvl1wIIUSWJ89nMqRQqtSEqkDDSEiro+t6RlJ6IGQaJocKDaQIueUVlVXVNbWYKCYlKdtitbGc6uyONKAkfP7OejalhsYUYCRJw9XEYrmbeSIJeFq4cKvd62vz04PaRUAHxGydXdQOdIPT0ysA+mBXsJ/fNDAIxJAAGIbISDp1xyj4LgyMsWxoHN1+AoBJBHjAn8LlmYbADAIC4M9iIAyBOQTMI2BhcQmqBgE/AsLoiOVIZIUesYqTjEKSa9Raj4A2NmMsuyW+5nYisEOJeCy4Ky4U66Xm3j5HHMQPhaU+oqU+RoSoFycxrkOnZ+e+i0shwbf7Kppq9bWA4AHGeZOdIOny3VpDdP3OfZ8gHiigQBV+tDw9v7y+8Zm+fzCMhsizv3eO+KSPViUxEV/fP7/wMRG19p/BIaW5Rs/MDaeuUHK/OTHeBpXSmLlqLDPB/8kfRjyK9h7v/o4AAAAASUVORK5CYII=">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f1724'/%3E%3Cg transform='translate(8.6 8.6) scale(.88)'%3E%3Cpath d='M62.118 76.32 A37.25 37.25 0 1 1 77.32 61.118 L67.076 50.874 A23.75 23.75 0 1 0 51.874 66.076 Z' fill='%23f8fafc'/%3E%3Cpath d='M53.5 52.5 L83 82' fill='none' stroke='%23f97316' stroke-width='13.5' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <!-- The page only ever talks to a Homey through Athom's cloud connection. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://*.connect.athom.com; img-src data:; base-uri 'none'; form-action 'none'">
   <title>OpenQuatt</title>
