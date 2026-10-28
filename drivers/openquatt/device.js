@@ -53,8 +53,6 @@ const ENTITY_CAPABILITIES = {
   'switch-manual_cooling_enable': 'onoff.cooling',
   'switch-aux_relay__r2_': 'onoff.aux_relay',
   'switch-power_house_run_extension': 'onoff.run_extension',
-  'number-power_house_run_extension_stop_margin': 'oq_run_extension_stop_margin',
-  'number-power_house_run_extension_restart_cooldown': 'oq_run_extension_cooldown',
   'text_sensor-control_mode__label_': 'oq_control_mode',
   'text_sensor-aux_relay_status': 'oq_aux_status',
   ...Object.fromEntries([...unitCapabilities('hp1'), ...unitCapabilities('hp2')]),
@@ -81,11 +79,24 @@ const MIGRATED_CAPABILITIES = [
   'oq_heating_enable_source',
   'oq_heating_strategy',
   'onoff.run_extension',
-  'oq_run_extension_stop_margin',
-  'oq_run_extension_cooldown',
+  'oq_run_extension_stop',
+  'oq_run_extension_cooling',
   // HP2's come with the first frame the controller reports for it.
   ...unitCapabilities('hp1').map(([, capability]) => capability),
 ];
+
+// v1.19.0 showed the run extension thresholds as sliders, which Homey draws
+// without their value; pickers replaced them. Their definitions stay in the
+// app: Homey cannot load a device whose capability the app no longer defines,
+// so it would never get as far as removing them.
+const RETIRED_CAPABILITIES = ['oq_run_extension_stop_margin', 'oq_run_extension_cooldown'];
+
+// The firmware numbers behind the run extension pickers. The options are whole
+// tenths, "11" for 1.1 °C, from 1 up to the firmware maximum.
+const RUN_EXTENSION_PICKERS = {
+  'number-power_house_run_extension_stop_margin': { capability: 'oq_run_extension_stop', max: 10 },
+  'number-power_house_run_extension_restart_cooldown': { capability: 'oq_run_extension_cooling', max: 30 },
+};
 
 // Devices paired before v1.12.0 were thermostats, a class for which Homey does
 // not let the user pick the status indicator on the device tile.
@@ -284,12 +295,11 @@ class OpenQuattDevice extends Homey.Device {
     this.registerCapabilityListener('onoff.run_extension', async value => {
       await this.client.setSwitch('Power House run extension', value);
     });
-    // A slider can hand over 1.1000000000000001; the firmware steps in tenths.
-    this.registerCapabilityListener('oq_run_extension_stop_margin', async value => {
-      await this.client.setNumber('Power House run extension stop margin', Math.round(value * 10) / 10);
+    this.registerCapabilityListener('oq_run_extension_stop', async value => {
+      await this.client.setNumber('Power House run extension stop margin', Number(value) / 10);
     });
-    this.registerCapabilityListener('oq_run_extension_cooldown', async value => {
-      await this.client.setNumber('Power House run extension restart cooldown', Math.round(value * 10) / 10);
+    this.registerCapabilityListener('oq_run_extension_cooling', async value => {
+      await this.client.setNumber('Power House run extension restart cooldown', Number(value) / 10);
     });
 
     this.client = new OpenQuattClient(this._address(), this._credentials(this.getSettings()));
@@ -559,6 +569,11 @@ class OpenQuattDevice extends Homey.Device {
     for (const capability of MIGRATED_CAPABILITIES) {
       if (!this.hasCapability(capability)) {
         await this.addCapability(capability).catch(this.error);
+      }
+    }
+    for (const capability of RETIRED_CAPABILITIES) {
+      if (this.hasCapability(capability)) {
+        await this.removeCapability(capability).catch(this.error);
       }
     }
   }
@@ -881,6 +896,18 @@ class OpenQuattDevice extends Homey.Device {
       if (this.hasCapability('oq_heating_strategy')) {
         this.setCapabilityValue('oq_heating_strategy', OPTION_TO_STRATEGY[state.state] || null)
           .catch(this.error);
+      }
+      return;
+    }
+
+    // A value off the picker's tenths leaves it empty rather than wrong.
+    const picker = RUN_EXTENSION_PICKERS[state.id];
+    if (picker) {
+      if (this.hasCapability(picker.capability)) {
+        const value = entityValue(state);
+        const tenths = value === null ? null : Math.round(value * 10);
+        const option = tenths !== null && tenths >= 1 && tenths <= picker.max ? String(tenths) : null;
+        this.setCapabilityValue(picker.capability, option).catch(this.error);
       }
       return;
     }

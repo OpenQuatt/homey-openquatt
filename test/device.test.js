@@ -35,8 +35,8 @@ const ALL_CAPABILITIES = [
   'oq_heating_enable_source',
   'oq_heating_strategy',
   'onoff.run_extension',
-  'oq_run_extension_stop_margin',
-  'oq_run_extension_cooldown',
+  'oq_run_extension_stop',
+  'oq_run_extension_cooling',
 ];
 
 // Builds a device around the prototype without running onInit, so the state
@@ -176,19 +176,39 @@ test('the heating strategy maps onto its picker', () => {
   assert.equal(device.capabilityValues.oq_heating_strategy, null);
 });
 
-test('extended heating reads back onto its toggle and sliders', () => {
+test('extended heating reads back onto its toggle and pickers', () => {
   const device = makeDevice();
 
   device._onState({ id: 'switch-power_house_run_extension', value: true, state: 'ON' });
   device._onState({ id: 'number-power_house_run_extension_stop_margin', value: 1, state: '1.0 °C' });
-  device._onState({ id: 'number-power_house_run_extension_restart_cooldown', value: 1.1, state: '1.1 °C' });
+  // The firmware stores a float, so tenths arrive slightly off.
+  device._onState({ id: 'number-power_house_run_extension_restart_cooldown', value: 1.100000024, state: '1.1 °C' });
 
   assert.equal(device.capabilityValues['onoff.run_extension'], true);
-  assert.equal(device.capabilityValues.oq_run_extension_stop_margin, 1);
-  assert.equal(device.capabilityValues.oq_run_extension_cooldown, 1.1);
+  assert.equal(device.capabilityValues.oq_run_extension_stop, '10');
+  assert.equal(device.capabilityValues.oq_run_extension_cooling, '11');
 
   device._onState({ id: 'switch-power_house_run_extension', value: false, state: 'OFF' });
   assert.equal(device.capabilityValues['onoff.run_extension'], false);
+
+  // Outside the picker's range it stays empty instead of showing a wrong value.
+  device._onState({ id: 'number-power_house_run_extension_restart_cooldown', value: 3.5, state: '3.5 °C' });
+  assert.equal(device.capabilityValues.oq_run_extension_cooling, null);
+});
+
+test('the run extension sliders of v1.19.0 make way for the pickers', async () => {
+  const device = makeDevice({ capabilities: ['oq_run_extension_stop_margin', 'oq_run_extension_cooldown'] });
+  const removed = [];
+  device.removeCapability = cap => {
+    removed.push(cap);
+    return Promise.resolve();
+  };
+
+  await device._migrateCapabilities();
+
+  assert.deepEqual(removed, ['oq_run_extension_stop_margin', 'oq_run_extension_cooldown']);
+  assert.ok(device.getCapabilities().includes('oq_run_extension_stop'));
+  assert.ok(device.getCapabilities().includes('oq_run_extension_cooling'));
 });
 
 // A client that records each select it is sent and, unless told otherwise,

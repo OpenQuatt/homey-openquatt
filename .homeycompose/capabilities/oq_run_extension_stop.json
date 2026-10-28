@@ -1,0 +1,82 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Extended heating: stop above the setpoint",
+    "nl": "Langer doorverwarmen: stop boven het setpoint"
+  },
+  "values": [
+    {
+      "id": "1",
+      "title": {
+        "en": "0.1 °C",
+        "nl": "0,1 °C"
+      }
+    },
+    {
+      "id": "2",
+      "title": {
+        "en": "0.2 °C",
+        "nl": "0,2 °C"
+      }
+    },
+    {
+      "id": "3",
+      "title": {
+        "en": "0.3 °C",
+        "nl": "0,3 °C"
+      }
+    },
+    {
+      "id": "4",
+      "title": {
+        "en": "0.4 °C",
+        "nl": "0,4 °C"
+      }
+    },
+    {
+      "id": "5",
+      "title": {
+        "en": "0.5 °C",
+        "nl": "0,5 °C"
+      }
+    },
+    {
+      "id": "6",
+      "title": {
+        "en": "0.6 °C",
+        "nl": "0,6 °C"
+      }
+    },
+    {
+      "id": "7",
+      "title": {
+        "en": "0.7 °C",
+        "nl": "0,7 °C"
+      }
+    },
+    {
+      "id": "8",
+      "title": {
+        "en": "0.8 °C",
+        "nl": "0,8 °C"
+      }
+    },
+    {
+      "id": "9",
+      "title": {
+        "en": "0.9 °C",
+        "nl": "0,9 °C"
+      }
+    },
+    {
+      "id": "10",
+      "title": {
+        "en": "1.0 °C",
+        "nl": "1,0 °C"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker"
+}

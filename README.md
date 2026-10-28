@@ -42,7 +42,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | Heating and cooling permission | live |
 | Heating permission source picker | all six firmware sources, switchable from Homey |
 | Heating strategy picker | Power House or the heating curve, switchable from Homey |
-| Extended heating (Power House) | a toggle plus sliders for the stop margin and the cooling after stopping, read back from the controller |
+| Extended heating (Power House) | a toggle plus pickers for the stop margin and the cooling after stopping, read back from the controller |
 | Aux relay (R2) function picker | all five firmware modes, switchable from Homey |
 | Aux relay status | live status text from the control loop |
 | OpenQuatt control, manual cooling enable & R2 relay toggles | direct control |
@@ -96,7 +96,7 @@ The heating permission only counts while the controller takes it from *API input
 
 The heating strategy picker and the *Set the heating strategy* card switch between Power House and the heating curve, which the web app calls *Water Temperature Control*. They send that one select and nothing else. The heating permission source, the curve points and the Power House settings stay as they were, so switching back gives you the curve exactly as you left it. The card waits until the controller reports the new strategy and fails if that takes more than 15 seconds. The firmware resets the strategies' runtime state on every switch, so asking for the strategy that already runs sends nothing.
 
-The *Set extended heating (Power House)* card turns on the firmware's run extension and sets its two thresholds. It matters when the house needs less heat than one compressor delivers at its minimum, which makes Power House stop as soon as the room reaches the setpoint. With extended heating on, a running heat pump keeps heating at its minimum output up to the setpoint plus the stop margin. It heats again once the room has cooled the chosen amount below that stop temperature, but no lower than Power House's normal start point. A wider band means fewer and longer runs: setpoint 20, stop margin 1.0 and cooling 1.1 heat from 19.9 to 21.0. The card writes the two thresholds before the switch and leaves the strategy and the heating permission source alone. The device shows the same three settings as a toggle and two sliders, so you can also change them there and see what the controller actually uses.
+The *Set extended heating (Power House)* card turns on the firmware's run extension and sets its two thresholds. It matters when the house needs less heat than one compressor delivers at its minimum, which makes Power House stop as soon as the room reaches the setpoint. With extended heating on, a running heat pump keeps heating at its minimum output up to the setpoint plus the stop margin. It heats again once the room has cooled the chosen amount below that stop temperature, but no lower than Power House's normal start point. A wider band means fewer and longer runs: setpoint 20, stop margin 1.0 and cooling 1.1 heat from 19.9 to 21.0. The card writes the two thresholds before the switch and leaves the strategy and the heating permission source alone. The device shows the same three settings as a toggle and two pickers, so you can also change them there and see what the controller actually uses.
 
 For the heating curve offset, explicitly select *API input* or *MQTT* under *Heating curve offset* in the OpenQuatt web app. It adjusts the local heating curve and does not replace the supply target.
 
