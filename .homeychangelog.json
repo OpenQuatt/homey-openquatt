@@ -79,5 +79,9 @@
   "1.16.0": {
     "en": "Choose where the controller takes its heating permission from, right from Homey: a picker on the device, plus a flow card to set it and one to check it. Not used lets the heating strategy decide by itself, so a thermostat switching its heat demand on and off no longer starts and stops the heat pump; API input lets your own flows give the permission.",
     "nl": "Kies vanuit Homey waar de controller zijn warmtetoestemming vandaan haalt: een keuzelijst op het apparaat, plus een flowkaart om hem te zetten en een om hem te controleren. Niet gebruiken laat de verwarmingsstrategie zelf beslissen, zodat een thermostaat die zijn warmtevraag aan en uit zet de warmtepomp niet meer start en stopt; met API-invoer geven je eigen flows de toestemming."
+  },
+  "1.16.1": {
+    "en": "The device has a new picture of the controller in its current enclosure.",
+    "nl": "Het apparaat heeft een nieuwe foto van de controller in de huidige behuizing."
   }
 }
