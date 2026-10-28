@@ -2,6 +2,7 @@
 
 const Homey = require('homey');
 const { ID_TO_OPTION } = require('../../lib/auxFunctions');
+const { SOURCE_TO_OPTION } = require('../../lib/heatingEnableSources');
 const { dewPoint } = require('../../lib/dewPoint');
 
 // Flow dropdown id -> option string as the firmware select expects it.
@@ -46,6 +47,11 @@ class OpenQuattDriver extends Homey.Driver {
     this.homey.flow.getConditionCard('aux_function_is')
       .registerRunListener(async ({ device, mode }) => (
         device.getCapabilityValue('oq_aux_function') === mode
+      ));
+
+    this.homey.flow.getConditionCard('heating_enable_source_is')
+      .registerRunListener(async ({ device, source }) => (
+        device.getCapabilityValue('oq_heating_enable_source') === source
       ));
 
     this.homey.flow.getConditionCard('dew_point_is_available')
@@ -134,6 +140,12 @@ class OpenQuattDriver extends Homey.Driver {
     this.homey.flow.getActionCard('set_heating_permission')
       .registerRunListener(async ({ device, state }) => {
         await device.setInput('heating_enable', state === 'on');
+      });
+
+    this.homey.flow.getActionCard('set_heating_enable_source')
+      .registerRunListener(async ({ device, source }) => {
+        await device.client.setSelect('Heating Enable Source', SOURCE_TO_OPTION[source]);
+        await device.setCapabilityValue('oq_heating_enable_source', source).catch(() => {});
       });
 
     this.homey.flow.getActionCard('set_cooling_permission')

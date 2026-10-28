@@ -6,6 +6,7 @@ const { MqttPublisher } = require('../../lib/MqttPublisher');
 const { DewPointSources } = require('../../lib/dewPoint');
 const { API_INPUTS, formatInput } = require('../../lib/apiInputs');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
+const { SOURCE_TO_OPTION, OPTION_TO_SOURCE } = require('../../lib/heatingEnableSources');
 const { remoteLogin, MIN_PASSWORD_LENGTH } = require('../../lib/RemoteAccess');
 const { History } = require('../../lib/History');
 const { parseEnergyHistory } = require('../../lib/energyHistory');
@@ -73,6 +74,7 @@ const MIGRATED_CAPABILITIES = [
   'onoff.openquatt',
   'measure_temperature.return',
   'measure_temperature.supply_target',
+  'oq_heating_enable_source',
   // HP2's come with the first frame the controller reports for it.
   ...unitCapabilities('hp1').map(([, capability]) => capability),
 ];
@@ -152,6 +154,10 @@ const HEATPUMP_ENTITIES = {
 };
 
 const HEATPUMP_ENTITY_ID = /^([a-z_]+)-(hp[12])_-_(.+)$/;
+
+// Where the controller takes its heating permission from. Unlike the aux relay
+// function, this select is on the event stream, so it needs no polling.
+const HEATING_ENABLE_SOURCE_ID = 'select-heating_enable_source';
 
 // The aux relay function select is `internal: true` in the firmware, so it is
 // absent from the event stream and has to be polled via REST.
@@ -255,6 +261,9 @@ class OpenQuattDevice extends Homey.Device {
     });
     this.registerCapabilityListener('oq_aux_function', async value => {
       await this.client.setSelect('Aux Relay Function', ID_TO_OPTION[value]);
+    });
+    this.registerCapabilityListener('oq_heating_enable_source', async value => {
+      await this.client.setSelect('Heating Enable Source', SOURCE_TO_OPTION[value]);
     });
 
     this.client = new OpenQuattClient(this._address(), this._credentials(this.getSettings()));
@@ -787,6 +796,16 @@ class OpenQuattDevice extends Homey.Device {
     // The raw control mode code drives the flow triggers.
     if (state.id === 'text_sensor-control_mode') {
       this._onControlMode(state.state);
+      return;
+    }
+
+    // An option this app does not know leaves the picker empty rather than
+    // showing a choice the controller did not make.
+    if (state.id === HEATING_ENABLE_SOURCE_ID) {
+      if (this.hasCapability('oq_heating_enable_source')) {
+        this.setCapabilityValue('oq_heating_enable_source', OPTION_TO_SOURCE[state.state] || null)
+          .catch(this.error);
+      }
       return;
     }
 

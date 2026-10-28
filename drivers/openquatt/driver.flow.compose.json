@@ -365,6 +365,67 @@
       ]
     },
     {
+      "id": "heating_enable_source_is",
+      "title": {
+        "en": "The heating permission source !{{is|is not}}",
+        "nl": "De bron van de warmtetoestemming !{{is|is niet}}"
+      },
+      "titleFormatted": {
+        "en": "The heating permission source !{{is|is not}} [[source]]",
+        "nl": "De bron van de warmtetoestemming !{{is|is niet}} [[source]]"
+      },
+      "args": [
+        {
+          "name": "source",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "disabled",
+              "label": {
+                "en": "Not used (the strategy decides)",
+                "nl": "Niet gebruiken (strategie bepaalt zelf)"
+              }
+            },
+            {
+              "id": "ot_thermostat",
+              "label": {
+                "en": "OpenTherm thermostat",
+                "nl": "OT-thermostaat"
+              }
+            },
+            {
+              "id": "cic",
+              "label": {
+                "en": "CIC",
+                "nl": "CIC"
+              }
+            },
+            {
+              "id": "ha_input",
+              "label": {
+                "en": "Home Assistant input",
+                "nl": "HA-invoer"
+              }
+            },
+            {
+              "id": "api_input",
+              "label": {
+                "en": "API input (Homey)",
+                "nl": "API-invoer (Homey)"
+              }
+            },
+            {
+              "id": "mqtt",
+              "label": {
+                "en": "MQTT",
+                "nl": "MQTT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "flow_is_above",
       "title": {
         "en": "The water flow is !{{above|not above}} a value",
@@ -898,8 +959,8 @@
         "nl": "Zet warmtetoestemming [[state]]"
       },
       "hint": {
-        "en": "Tells the controller whether heating is allowed at all. Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart. Pick the source in the OpenQuatt web app under Settings → Sources / integrations → Sensor selection.",
-        "nl": "Vertelt de controller of verwarmen überhaupt is toegestaan. Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw. Kies de bron in de OpenQuatt web-app bij Instellingen → Bronnen / integraties → Sensorselectie."
+        "en": "Tells the controller whether heating is allowed at all. Only counts while the heating permission source is API input (Homey), or MQTT for the fallback: set that with the Set the heating permission source card or on the device. Sent straight to the controller (firmware with API input support; MQTT as fallback via the device settings). The controller keeps this value until you send a new one; the app re-sends it every minute and after a restart.",
+        "nl": "Vertelt de controller of verwarmen überhaupt is toegestaan. Telt alleen mee zolang de bron van de warmtetoestemming API-invoer (Homey) is, of MQTT voor de fallback: zet die met de kaart Zet de bron van de warmtetoestemming of op het apparaat. Gaat rechtstreeks naar de controller (firmware met API-invoer; MQTT als fallback via de apparaatinstellingen). De controller houdt deze waarde vast tot je een nieuwe stuurt; de app verstuurt hem elke minuut en na een herstart opnieuw."
       },
       "args": [
         {
@@ -918,6 +979,71 @@
               "label": {
                 "en": "Off",
                 "nl": "Uit"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_heating_enable_source",
+      "title": {
+        "en": "Set the heating permission source",
+        "nl": "Zet de bron van de warmtetoestemming"
+      },
+      "titleFormatted": {
+        "en": "Set the heating permission source to [[source]]",
+        "nl": "Zet de bron van de warmtetoestemming op [[source]]"
+      },
+      "hint": {
+        "en": "Chooses what decides whether the controller may heat. Not used drops that gate: the heating strategy then decides by itself when heat is needed, so a thermostat switching its heat demand on and off no longer starts and stops the heat pump. Pick API input (Homey) to give or withhold permission yourself with the Set heating permission card.",
+        "nl": "Bepaalt wat beslist of de controller mag verwarmen. Niet gebruiken laat die voorwaarde vallen: de verwarmingsstrategie bepaalt dan zelf wanneer warmte nodig is, zodat een thermostaat die zijn warmtevraag aan en uit zet de warmtepomp niet meer start en stopt. Kies API-invoer (Homey) om zelf toestemming te geven of te weigeren met de kaart Zet warmtetoestemming."
+      },
+      "args": [
+        {
+          "name": "source",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "disabled",
+              "label": {
+                "en": "Not used (the strategy decides)",
+                "nl": "Niet gebruiken (strategie bepaalt zelf)"
+              }
+            },
+            {
+              "id": "ot_thermostat",
+              "label": {
+                "en": "OpenTherm thermostat",
+                "nl": "OT-thermostaat"
+              }
+            },
+            {
+              "id": "cic",
+              "label": {
+                "en": "CIC",
+                "nl": "CIC"
+              }
+            },
+            {
+              "id": "ha_input",
+              "label": {
+                "en": "Home Assistant input",
+                "nl": "HA-invoer"
+              }
+            },
+            {
+              "id": "api_input",
+              "label": {
+                "en": "API input (Homey)",
+                "nl": "API-invoer (Homey)"
+              }
+            },
+            {
+              "id": "mqtt",
+              "label": {
+                "en": "MQTT",
+                "nl": "MQTT"
               }
             }
           ]

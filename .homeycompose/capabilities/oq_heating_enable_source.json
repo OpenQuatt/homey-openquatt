@@ -1,0 +1,54 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Heating permission source",
+    "nl": "Bron warmtetoestemming"
+  },
+  "values": [
+    {
+      "id": "disabled",
+      "title": {
+        "en": "Heat permission: not used",
+        "nl": "Warmtetoestemming: niet gebruiken"
+      }
+    },
+    {
+      "id": "ot_thermostat",
+      "title": {
+        "en": "Heat permission: OpenTherm thermostat",
+        "nl": "Warmtetoestemming: OT-thermostaat"
+      }
+    },
+    {
+      "id": "cic",
+      "title": {
+        "en": "Heat permission: CIC",
+        "nl": "Warmtetoestemming: CIC"
+      }
+    },
+    {
+      "id": "ha_input",
+      "title": {
+        "en": "Heat permission: Home Assistant",
+        "nl": "Warmtetoestemming: HA-invoer"
+      }
+    },
+    {
+      "id": "api_input",
+      "title": {
+        "en": "Heat permission: API input (Homey)",
+        "nl": "Warmtetoestemming: API-invoer (Homey)"
+      }
+    },
+    {
+      "id": "mqtt",
+      "title": {
+        "en": "Heat permission: MQTT",
+        "nl": "Warmtetoestemming: MQTT"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker"
+}

@@ -30,6 +30,7 @@ const ALL_CAPABILITIES = [
   'oq_control_mode_number',
   'oq_aux_status',
   'oq_aux_function',
+  'oq_heating_enable_source',
 ];
 
 // Builds a device around the prototype without running onInit, so the state
@@ -137,6 +138,23 @@ test('the control mode is logged as a number as well as a label', () => {
   // A mode that is not a CM code leaves nothing to graph.
   device._onState({ id: 'text_sensor-control_mode', state: 'Unknown' });
   assert.equal(device.capabilityValues.oq_control_mode_number, null);
+});
+
+test('the heating permission source maps onto its picker', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'select-heating_enable_source', state: 'OT thermostat', value: 1 });
+  assert.equal(device.capabilityValues.oq_heating_enable_source, 'ot_thermostat');
+
+  device._onState({ id: 'select-heating_enable_source', state: 'Disabled', value: 0 });
+  assert.equal(device.capabilityValues.oq_heating_enable_source, 'disabled');
+
+  device._onState({ id: 'select-heating_enable_source', state: 'API input', value: 4 });
+  assert.equal(device.capabilityValues.oq_heating_enable_source, 'api_input');
+
+  // An option from newer firmware leaves the picker empty instead of wrong.
+  device._onState({ id: 'select-heating_enable_source', state: 'Zone controller', value: 6 });
+  assert.equal(device.capabilityValues.oq_heating_enable_source, null);
 });
 
 test('ignores unknown entities and missing capabilities', () => {
