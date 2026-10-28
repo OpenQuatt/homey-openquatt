@@ -426,6 +426,39 @@
       ]
     },
     {
+      "id": "heating_strategy_is",
+      "title": {
+        "en": "The heating strategy !{{is|is not}}",
+        "nl": "De verwarmingsstrategie !{{is|is niet}}"
+      },
+      "titleFormatted": {
+        "en": "The heating strategy !{{is|is not}} [[strategy]]",
+        "nl": "De verwarmingsstrategie !{{is|is niet}} [[strategy]]"
+      },
+      "args": [
+        {
+          "name": "strategy",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "power_house",
+              "label": {
+                "en": "Power House (heat demand and room temperature)",
+                "nl": "Power House (warmtevraag en kamertemperatuur)"
+              }
+            },
+            {
+              "id": "heating_curve",
+              "label": {
+                "en": "Heating curve (water temperature)",
+                "nl": "Stooklijn (watertemperatuur)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "flow_is_above",
       "title": {
         "en": "The water flow is !{{above|not above}} a value",
@@ -1044,6 +1077,43 @@
               "label": {
                 "en": "MQTT",
                 "nl": "MQTT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_heating_strategy",
+      "title": {
+        "en": "Set the heating strategy",
+        "nl": "Zet de verwarmingsstrategie"
+      },
+      "titleFormatted": {
+        "en": "Set the heating strategy to [[strategy]]",
+        "nl": "Zet de verwarmingsstrategie op [[strategy]]"
+      },
+      "hint": {
+        "en": "Switches only the heating strategy. The heating permission source, the heating curve points and the Power House settings stay as they are. The card waits until the controller reports the new strategy and fails if that takes longer than 15 seconds. Asking for the strategy that already runs changes nothing.",
+        "nl": "Wisselt alleen de verwarmingsstrategie. De bron van de warmtetoestemming, de stooklijnpunten en de Power House-instellingen blijven zoals ze zijn. De kaart wacht tot de controller de nieuwe strategie meldt en geeft een fout als dat langer dan 15 seconden duurt. Vraag je de strategie die al draait, dan verandert er niets."
+      },
+      "args": [
+        {
+          "name": "strategy",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "power_house",
+              "label": {
+                "en": "Power House (heat demand and room temperature)",
+                "nl": "Power House (warmtevraag en kamertemperatuur)"
+              }
+            },
+            {
+              "id": "heating_curve",
+              "label": {
+                "en": "Heating curve (water temperature)",
+                "nl": "Stooklijn (watertemperatuur)"
               }
             }
           ]

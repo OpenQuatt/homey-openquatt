@@ -5,6 +5,8 @@ require('./helpers/require-homey');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
+const EventEmitter = require('node:events');
+
 const OpenQuattDevice = require('../drivers/openquatt/device');
 const { History } = require('../lib/History');
 
@@ -31,6 +33,7 @@ const ALL_CAPABILITIES = [
   'oq_aux_status',
   'oq_aux_function',
   'oq_heating_enable_source',
+  'oq_heating_strategy',
 ];
 
 // Builds a device around the prototype without running onInit, so the state
@@ -155,6 +158,93 @@ test('the heating permission source maps onto its picker', () => {
   // An option from newer firmware leaves the picker empty instead of wrong.
   device._onState({ id: 'select-heating_enable_source', state: 'Zone controller', value: 6 });
   assert.equal(device.capabilityValues.oq_heating_enable_source, null);
+});
+
+test('the heating strategy maps onto its picker', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'select-heating_control_mode', state: 'Power House', value: 0 });
+  assert.equal(device.capabilityValues.oq_heating_strategy, 'power_house');
+
+  device._onState({ id: 'select-heating_control_mode', state: 'Water Temperature Control (heating curve)', value: 1 });
+  assert.equal(device.capabilityValues.oq_heating_strategy, 'heating_curve');
+
+  device._onState({ id: 'select-heating_control_mode', state: 'Zone control', value: 2 });
+  assert.equal(device.capabilityValues.oq_heating_strategy, null);
+});
+
+// A client that records each select it is sent and, unless told otherwise,
+// reports it back on the event stream through the device, as the firmware
+// does. Timers are held so a test can expire them.
+function strategyDevice({ report = true, fail = null } = {}) {
+  const device = makeDevice();
+  const client = new EventEmitter();
+  client.selects = [];
+  client.setSelect = async (name, option) => {
+    if (fail) throw fail;
+    client.selects.push([name, option]);
+    if (report) client.emit('state', { id: 'select-heating_control_mode', state: option });
+  };
+  client.on('state', state => device._onState(state));
+  device.client = client;
+  device.timers = [];
+  device.homey.setTimeout = (fn, ms) => {
+    const timer = { fn, ms, cleared: false };
+    device.timers.push(timer);
+    return timer;
+  };
+  device.homey.clearTimeout = timer => { timer.cleared = true; };
+  return device;
+}
+
+test('switching the heating strategy sends only that select and waits for the stream', async () => {
+  const device = strategyDevice();
+  device._onState({ id: 'select-heating_enable_source', state: 'Disabled', value: 0 });
+  device._onState({ id: 'select-heating_control_mode', state: 'Water Temperature Control (heating curve)', value: 1 });
+
+  await device.setHeatingStrategy('power_house');
+  assert.deepEqual(device.client.selects, [['Heating Control Mode', 'Power House']]);
+  assert.equal(device.capabilityValues.oq_heating_strategy, 'power_house');
+
+  await device.setHeatingStrategy('heating_curve');
+  assert.deepEqual(device.client.selects, [
+    ['Heating Control Mode', 'Power House'],
+    ['Heating Control Mode', 'Water Temperature Control (heating curve)'],
+  ]);
+  // The permission source is never part of a strategy switch.
+  assert.equal(device.capabilityValues.oq_heating_enable_source, 'disabled');
+  assert.ok(device.timers.every(timer => timer.cleared));
+  assert.equal(device.client.listenerCount('state'), 1);
+});
+
+test('asking for the running heating strategy sends nothing', async () => {
+  const device = strategyDevice();
+  device._onState({ id: 'select-heating_control_mode', state: 'Power House', value: 0 });
+
+  await device.setHeatingStrategy('power_house');
+  assert.deepEqual(device.client.selects, []);
+});
+
+test('a heating strategy switch the stream does not report fails after the timeout', async () => {
+  const device = strategyDevice({ report: false });
+  device._onState({ id: 'select-heating_control_mode', state: 'Power House', value: 0 });
+
+  const switching = device.setHeatingStrategy('heating_curve');
+  await new Promise(setImmediate);
+  assert.equal(device.timers.length, 1);
+  assert.equal(device.timers[0].ms, 15000);
+  device.timers[0].fn();
+
+  await assert.rejects(switching, /strategy.not_confirmed/);
+  assert.equal(device.client.listenerCount('state'), 1);
+});
+
+test('a heating strategy the controller refused rejects and stops waiting', async () => {
+  const device = strategyDevice({ fail: new Error('HTTP 404 on /select/Heating%20Control%20Mode/set') });
+
+  await assert.rejects(device.setHeatingStrategy('power_house'), /HTTP 404/);
+  assert.ok(device.timers.every(timer => timer.cleared));
+  assert.equal(device.client.listenerCount('state'), 1);
 });
 
 test('ignores unknown entities and missing capabilities', () => {

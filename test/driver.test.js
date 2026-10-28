@@ -86,3 +86,19 @@ test('a heating permission source the controller refused leaves the picker alone
   await assert.rejects(listeners.set_heating_enable_source({ device, source: 'disabled' }), /HTTP 404/);
   assert.deepEqual(values, {});
 });
+
+test('the heating strategy cards switch through the device and read the picker', async () => {
+  const listeners = await runListeners();
+  const switched = [];
+  const values = { oq_heating_strategy: 'heating_curve' };
+  const device = {
+    setHeatingStrategy: async strategy => switched.push(strategy),
+    getCapabilityValue: capability => values[capability],
+  };
+
+  await listeners.set_heating_strategy({ device, strategy: 'power_house' });
+
+  assert.deepEqual(switched, ['power_house']);
+  assert.equal(await listeners.heating_strategy_is({ device, strategy: 'heating_curve' }), true);
+  assert.equal(await listeners.heating_strategy_is({ device, strategy: 'power_house' }), false);
+});

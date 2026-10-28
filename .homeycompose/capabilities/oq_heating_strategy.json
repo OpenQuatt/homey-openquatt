@@ -1,0 +1,26 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Heating strategy",
+    "nl": "Verwarmingsstrategie"
+  },
+  "values": [
+    {
+      "id": "power_house",
+      "title": {
+        "en": "Strategy: Power House",
+        "nl": "Strategie: Power House"
+      }
+    },
+    {
+      "id": "heating_curve",
+      "title": {
+        "en": "Strategy: heating curve",
+        "nl": "Strategie: stooklijn"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker"
+}

@@ -17,5 +17,8 @@
   },
   "remote": {
     "login_required": "Toegang op afstand heeft een login nodig, met een wachtwoord van minstens __length__ tekens"
+  },
+  "strategy": {
+    "not_confirmed": "De controller heeft de nieuwe verwarmingsstrategie niet binnen 15 seconden bevestigd"
   }
 }

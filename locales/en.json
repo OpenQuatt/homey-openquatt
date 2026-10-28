@@ -17,5 +17,8 @@
   },
   "remote": {
     "login_required": "Remote access needs a login, with a password of at least __length__ characters"
+  },
+  "strategy": {
+    "not_confirmed": "The controller did not confirm the new heating strategy within 15 seconds"
   }
 }

@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "nl.openquatt",
-  "version": "1.16.1",
+  "version": "1.17.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -670,6 +670,44 @@
                 "label": {
                   "en": "MQTT",
                   "nl": "MQTT"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "heating_strategy_is",
+        "title": {
+          "en": "The heating strategy !{{is|is not}}",
+          "nl": "De verwarmingsstrategie !{{is|is niet}}"
+        },
+        "titleFormatted": {
+          "en": "The heating strategy !{{is|is not}} [[strategy]]",
+          "nl": "De verwarmingsstrategie !{{is|is niet}} [[strategy]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "strategy",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "power_house",
+                "label": {
+                  "en": "Power House (heat demand and room temperature)",
+                  "nl": "Power House (warmtevraag en kamertemperatuur)"
+                }
+              },
+              {
+                "id": "heating_curve",
+                "label": {
+                  "en": "Heating curve (water temperature)",
+                  "nl": "Stooklijn (watertemperatuur)"
                 }
               }
             ]
@@ -1389,6 +1427,48 @@
         ]
       },
       {
+        "id": "set_heating_strategy",
+        "title": {
+          "en": "Set the heating strategy",
+          "nl": "Zet de verwarmingsstrategie"
+        },
+        "titleFormatted": {
+          "en": "Set the heating strategy to [[strategy]]",
+          "nl": "Zet de verwarmingsstrategie op [[strategy]]"
+        },
+        "hint": {
+          "en": "Switches only the heating strategy. The heating permission source, the heating curve points and the Power House settings stay as they are. The card waits until the controller reports the new strategy and fails if that takes longer than 15 seconds. Asking for the strategy that already runs changes nothing.",
+          "nl": "Wisselt alleen de verwarmingsstrategie. De bron van de warmtetoestemming, de stooklijnpunten en de Power House-instellingen blijven zoals ze zijn. De kaart wacht tot de controller de nieuwe strategie meldt en geeft een fout als dat langer dan 15 seconden duurt. Vraag je de strategie die al draait, dan verandert er niets."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "strategy",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "power_house",
+                "label": {
+                  "en": "Power House (heat demand and room temperature)",
+                  "nl": "Power House (warmtevraag en kamertemperatuur)"
+                }
+              },
+              {
+                "id": "heating_curve",
+                "label": {
+                  "en": "Heating curve (water temperature)",
+                  "nl": "Stooklijn (watertemperatuur)"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
         "id": "set_cooling_permission",
         "title": {
           "en": "Set cooling permission",
@@ -1501,6 +1581,7 @@
         "oq_aux_status",
         "oq_heating_permitted",
         "oq_heating_enable_source",
+        "oq_heating_strategy",
         "oq_cooling_permitted",
         "onoff.openquatt",
         "onoff.cooling",
@@ -2198,6 +2279,32 @@
         "nl": "Verwarmen niet toegestaan"
       },
       "icon": "/assets/icon.svg"
+    },
+    "oq_heating_strategy": {
+      "type": "enum",
+      "title": {
+        "en": "Heating strategy",
+        "nl": "Verwarmingsstrategie"
+      },
+      "values": [
+        {
+          "id": "power_house",
+          "title": {
+            "en": "Strategy: Power House",
+            "nl": "Strategie: Power House"
+          }
+        },
+        {
+          "id": "heating_curve",
+          "title": {
+            "en": "Strategy: heating curve",
+            "nl": "Strategie: stooklijn"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker"
     },
     "oq_runtime_hours": {
       "type": "number",

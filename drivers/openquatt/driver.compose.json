@@ -24,6 +24,7 @@
     "oq_aux_status",
     "oq_heating_permitted",
     "oq_heating_enable_source",
+    "oq_heating_strategy",
     "oq_cooling_permitted",
     "onoff.openquatt",
     "onoff.cooling",

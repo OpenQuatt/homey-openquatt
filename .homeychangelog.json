@@ -83,5 +83,9 @@
   "1.16.1": {
     "en": "The device has a new picture of the controller in its current enclosure.",
     "nl": "Het apparaat heeft een nieuwe foto van de controller in de huidige behuizing."
+  },
+  "1.17.0": {
+    "en": "Switch the heating strategy between Power House and the heating curve from Homey: a picker on the device, a flow card to set it and one to check it. A switch changes only the strategy. The heating permission source, the curve points and the Power House settings stay as they are, and the card waits until the controller confirms the new strategy.",
+    "nl": "Wissel vanuit Homey de verwarmingsstrategie tussen Power House en de stooklijn: een keuzelijst op het apparaat, een flowkaart om hem te zetten en een om hem te controleren. Een wissel verandert alleen de strategie. De bron van de warmtetoestemming, de stooklijnpunten en de Power House-instellingen blijven zoals ze zijn, en de kaart wacht tot de controller de nieuwe strategie bevestigt."
   }
 }

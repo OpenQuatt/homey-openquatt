@@ -7,6 +7,7 @@ const { DewPointSources } = require('../../lib/dewPoint');
 const { API_INPUTS, formatInput } = require('../../lib/apiInputs');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 const { SOURCE_TO_OPTION, OPTION_TO_SOURCE } = require('../../lib/heatingEnableSources');
+const { STRATEGY_TO_OPTION, OPTION_TO_STRATEGY } = require('../../lib/heatingStrategies');
 const { remoteLogin, MIN_PASSWORD_LENGTH } = require('../../lib/RemoteAccess');
 const { History } = require('../../lib/History');
 const { parseEnergyHistory } = require('../../lib/energyHistory');
@@ -75,6 +76,7 @@ const MIGRATED_CAPABILITIES = [
   'measure_temperature.return',
   'measure_temperature.supply_target',
   'oq_heating_enable_source',
+  'oq_heating_strategy',
   // HP2's come with the first frame the controller reports for it.
   ...unitCapabilities('hp1').map(([, capability]) => capability),
 ];
@@ -158,6 +160,11 @@ const HEATPUMP_ENTITY_ID = /^([a-z_]+)-(hp[12])_-_(.+)$/;
 // Where the controller takes its heating permission from. Unlike the aux relay
 // function, this select is on the event stream, so it needs no polling.
 const HEATING_ENABLE_SOURCE_ID = 'select-heating_enable_source';
+
+// The heating strategy select is on the event stream too. A switch counts as
+// done once the stream reports the new option, within this time.
+const HEATING_STRATEGY_ID = 'select-heating_control_mode';
+const STRATEGY_CONFIRM_MS = 15000;
 
 // The aux relay function select is `internal: true` in the firmware, so it is
 // absent from the event stream and has to be polled via REST.
@@ -264,6 +271,9 @@ class OpenQuattDevice extends Homey.Device {
     });
     this.registerCapabilityListener('oq_heating_enable_source', async value => {
       await this.client.setSelect('Heating Enable Source', SOURCE_TO_OPTION[value]);
+    });
+    this.registerCapabilityListener('oq_heating_strategy', async value => {
+      await this.setHeatingStrategy(value);
     });
 
     this.client = new OpenQuattClient(this._address(), this._credentials(this.getSettings()));
@@ -378,6 +388,48 @@ class OpenQuattDevice extends Homey.Device {
 
   isCoolingPermitted() {
     return this._telemetry.coolingPermitted === true;
+  }
+
+  /**
+   * Switch the heating strategy and wait until the controller reports it. Only
+   * the Heating Control Mode select is sent: the heating permission source and
+   * every other setting stay as they are. The firmware resets the strategies'
+   * runtime state on each write, so asking for the running one sends nothing.
+   */
+  async setHeatingStrategy(strategy) {
+    const option = STRATEGY_TO_OPTION[strategy];
+    if (this._entities[HEATING_STRATEGY_ID]?.state === option) return;
+    // Listen before sending: the stream may report the switch before the POST
+    // returns.
+    const confirmation = this._awaitOption(HEATING_STRATEGY_ID, option, STRATEGY_CONFIRM_MS);
+    try {
+      await this.client.setSelect('Heating Control Mode', option);
+    } catch (err) {
+      confirmation.cancel();
+      throw err;
+    }
+    await confirmation.promise;
+  }
+
+  // Settles once the event stream reports `option` for entity `id`, or fails
+  // after `timeoutMs`. A cancelled wait never settles.
+  _awaitOption(id, option, timeoutMs) {
+    let finish;
+    const promise = new Promise((resolve, reject) => {
+      const onState = state => {
+        if (state.id === id && state.state === option) finish(resolve);
+      };
+      const timer = this.homey.setTimeout(() => {
+        finish(reject, new Error(this.homey.__('strategy.not_confirmed')));
+      }, timeoutMs);
+      finish = (settle, value) => {
+        this.client.removeListener('state', onState);
+        this.homey.clearTimeout(timer);
+        settle(value);
+      };
+      this.client.on('state', onState);
+    });
+    return { promise, cancel: () => finish(() => {}) };
   }
 
   /**
@@ -804,6 +856,14 @@ class OpenQuattDevice extends Homey.Device {
     if (state.id === HEATING_ENABLE_SOURCE_ID) {
       if (this.hasCapability('oq_heating_enable_source')) {
         this.setCapabilityValue('oq_heating_enable_source', OPTION_TO_SOURCE[state.state] || null)
+          .catch(this.error);
+      }
+      return;
+    }
+
+    if (state.id === HEATING_STRATEGY_ID) {
+      if (this.hasCapability('oq_heating_strategy')) {
+        this.setCapabilityValue('oq_heating_strategy', OPTION_TO_STRATEGY[state.state] || null)
           .catch(this.error);
       }
       return;

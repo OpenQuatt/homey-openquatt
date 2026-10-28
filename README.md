@@ -41,6 +41,7 @@ Pair your Heatpump Controller Q-edition in seconds — it is discovered automati
 | Compressor starts over 2 and 24 hours, per outdoor unit | read from the controller every five minutes |
 | Heating and cooling permission | live |
 | Heating permission source picker | all six firmware sources, switchable from Homey |
+| Heating strategy picker | Power House or the heating curve, switchable from Homey |
 | Aux relay (R2) function picker | all five firmware modes, switchable from Homey |
 | Aux relay status | live status text from the control loop |
 | OpenQuatt control, manual cooling enable & R2 relay toggles | direct control |
@@ -54,8 +55,8 @@ Set a login on the controller? Fill in the same username and password under *Con
 ### Flow cards
 
 - **Triggers** — control mode changed (with mode token), heating started/stopped, cooling started/stopped, a fault was detected/resolved (with fault description token), defrosting started/stopped (per heat pump), boiler turned on/off, silent mode turned on/off, the dew point became available / was lost, the water flow changed (with flow token), the water flow rose above / dropped below a value you choose
-- **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …, the heating permission source is …, a dew point is available, cooling is permitted, the water flow is above a value you choose
-- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, send a supply target, hand the supply target back to the heating curve, send a heating curve offset, set the heating permission source, set the heating permission, set the cooling permission
+- **Conditions** — is heating, is cooling, a fault is active, is defrosting, the boiler is active, silent mode is active, aux relay function is …, the heating permission source is …, the heating strategy is …, a dew point is available, cooling is permitted, the water flow is above a value you choose
+- **Actions** — set manual cooling enable, force control mode (standby / circulate / anti-freeze / automatic), set silent mode override, set boiler assist, set OpenQuatt control on/off, set aux relay function, switch the R2 relay (external control mode), send a dew point to the controller, update the dew point for a room from temperature + humidity, send the outside temperature / room temperature / room setpoint, send a supply target, hand the supply target back to the heating curve, send a heating curve offset, set the heating permission source, set the heating strategy, set the heating permission, set the cooling permission
 
 ### Dew point & cooling safety
 
@@ -91,6 +92,8 @@ The cooling permission is the regular permission signal, so the controller weigh
 One thing to set on the controller side: in the OpenQuatt web app under *Settings → Sources / integrations → Sensor selection*, the signal has to be allowed to use API input (or MQTT) as its source — `Auto` covers that for most of them.
 
 The heating permission only counts while the controller takes it from *API input* (or *MQTT*). You set that from Homey itself, with the picker on the device or the *Set the heating permission source* card. *Not used* is the other useful choice. It is not "heating off": it drops the permission gate, so the heating strategy decides by itself when heat is needed, and a thermostat that switches its heat demand on and off no longer starts and stops the heat pump.
+
+The heating strategy picker and the *Set the heating strategy* card switch between Power House and the heating curve, which the web app calls *Water Temperature Control*. They send that one select and nothing else. The heating permission source, the curve points and the Power House settings stay as they were, so switching back gives you the curve exactly as you left it. The card waits until the controller reports the new strategy and fails if that takes more than 15 seconds. The firmware resets the strategies' runtime state on every switch, so asking for the strategy that already runs sends nothing.
 
 For the heating curve offset, explicitly select *API input* or *MQTT* under *Heating curve offset* in the OpenQuatt web app. It adjusts the local heating curve and does not replace the supply target.
 

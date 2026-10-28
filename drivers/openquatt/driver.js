@@ -54,6 +54,11 @@ class OpenQuattDriver extends Homey.Driver {
         device.getCapabilityValue('oq_heating_enable_source') === source
       ));
 
+    this.homey.flow.getConditionCard('heating_strategy_is')
+      .registerRunListener(async ({ device, strategy }) => (
+        device.getCapabilityValue('oq_heating_strategy') === strategy
+      ));
+
     this.homey.flow.getConditionCard('dew_point_is_available')
       .registerRunListener(async ({ device }) => device.isDewPointAvailable());
 
@@ -146,6 +151,11 @@ class OpenQuattDriver extends Homey.Driver {
       .registerRunListener(async ({ device, source }) => {
         await device.client.setSelect('Heating Enable Source', SOURCE_TO_OPTION[source]);
         await device.setCapabilityValue('oq_heating_enable_source', source).catch(() => {});
+      });
+
+    this.homey.flow.getActionCard('set_heating_strategy')
+      .registerRunListener(async ({ device, strategy }) => {
+        await device.setHeatingStrategy(strategy);
       });
 
     this.homey.flow.getActionCard('set_cooling_permission')
