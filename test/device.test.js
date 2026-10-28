@@ -34,6 +34,7 @@ const ALL_CAPABILITIES = [
   'oq_aux_function',
   'oq_heating_enable_source',
   'oq_heating_strategy',
+  'oq_room_temperature_source',
   'onoff.run_extension',
   'oq_run_extension_stop',
   'oq_run_extension_cooling',
@@ -161,6 +162,22 @@ test('the heating permission source maps onto its picker', () => {
   // An option from newer firmware leaves the picker empty instead of wrong.
   device._onState({ id: 'select-heating_enable_source', state: 'Zone controller', value: 6 });
   assert.equal(device.capabilityValues.oq_heating_enable_source, null);
+});
+
+test('the room temperature source maps onto its picker', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'select-room_temperature_source', state: 'API input', value: 3 });
+  assert.equal(device.capabilityValues.oq_room_temperature_source, 'api_input');
+
+  device._onState({ id: 'select-room_temperature_source', state: 'OT thermostat', value: 1 });
+  assert.equal(device.capabilityValues.oq_room_temperature_source, 'ot_thermostat');
+
+  // The heating permission source is a different select.
+  assert.equal(device.capabilityValues.oq_heating_enable_source, undefined);
+
+  device._onState({ id: 'select-room_temperature_source', state: 'Zigbee sensor', value: 5 });
+  assert.equal(device.capabilityValues.oq_room_temperature_source, null);
 });
 
 test('the heating strategy maps onto its picker', () => {

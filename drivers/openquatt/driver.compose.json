@@ -24,6 +24,7 @@
     "oq_aux_status",
     "oq_heating_permitted",
     "oq_heating_enable_source",
+    "oq_room_temperature_source",
     "oq_heating_strategy",
     "onoff.run_extension",
     "oq_run_extension_stop",

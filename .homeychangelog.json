@@ -103,5 +103,9 @@
   "1.19.2": {
     "en": "Fixes the controller showing no values after the update to 1.19.1.",
     "nl": "Herstelt dat de controller na de update naar 1.19.1 geen waarden meer toonde."
+  },
+  "1.20.0": {
+    "en": "Choose where the controller takes the room temperature from, right from Homey: a picker on the device, plus a flow card to set it and one to check it. With API input, another sensor in Homey can feed the room temperature through the Send the room temperature card.",
+    "nl": "Kies vanuit Homey waar de controller de kamertemperatuur vandaan haalt: een keuzelijst op het apparaat, plus een flowkaart om hem te zetten en een om hem te controleren. Met API-invoer kan een andere sensor in Homey de kamertemperatuur leveren via de kaart Stuur de kamertemperatuur."
   }
 }

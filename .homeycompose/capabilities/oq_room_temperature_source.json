@@ -1,0 +1,47 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Room temperature source",
+    "nl": "Bron kamertemperatuur"
+  },
+  "values": [
+    {
+      "id": "ot_thermostat",
+      "title": {
+        "en": "Room temperature: OpenTherm thermostat",
+        "nl": "Kamertemperatuur: OT-thermostaat"
+      }
+    },
+    {
+      "id": "cic",
+      "title": {
+        "en": "Room temperature: CIC",
+        "nl": "Kamertemperatuur: CIC"
+      }
+    },
+    {
+      "id": "ha_input",
+      "title": {
+        "en": "Room temperature: Home Assistant",
+        "nl": "Kamertemperatuur: HA-invoer"
+      }
+    },
+    {
+      "id": "api_input",
+      "title": {
+        "en": "Room temperature: API input (Homey)",
+        "nl": "Kamertemperatuur: API-invoer (Homey)"
+      }
+    },
+    {
+      "id": "mqtt",
+      "title": {
+        "en": "Room temperature: MQTT",
+        "nl": "Kamertemperatuur: MQTT"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker"
+}

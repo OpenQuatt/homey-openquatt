@@ -7,6 +7,7 @@ const { DewPointSources } = require('../../lib/dewPoint');
 const { API_INPUTS, formatInput } = require('../../lib/apiInputs');
 const { ID_TO_OPTION, OPTION_TO_ID } = require('../../lib/auxFunctions');
 const { SOURCE_TO_OPTION, OPTION_TO_SOURCE } = require('../../lib/heatingEnableSources');
+const { ROOM_SOURCE_TO_OPTION, OPTION_TO_ROOM_SOURCE } = require('../../lib/roomTemperatureSources');
 const { STRATEGY_TO_OPTION, OPTION_TO_STRATEGY } = require('../../lib/heatingStrategies');
 const { remoteLogin, MIN_PASSWORD_LENGTH } = require('../../lib/RemoteAccess');
 const { History } = require('../../lib/History');
@@ -78,6 +79,7 @@ const MIGRATED_CAPABILITIES = [
   'measure_temperature.supply_target',
   'oq_heating_enable_source',
   'oq_heating_strategy',
+  'oq_room_temperature_source',
   'onoff.run_extension',
   'oq_run_extension_stop',
   'oq_run_extension_cooling',
@@ -177,6 +179,7 @@ const HEATPUMP_ENTITY_ID = /^([a-z_]+)-(hp[12])_-_(.+)$/;
 // Where the controller takes its heating permission from. Unlike the aux relay
 // function, this select is on the event stream, so it needs no polling.
 const HEATING_ENABLE_SOURCE_ID = 'select-heating_enable_source';
+const ROOM_TEMPERATURE_SOURCE_ID = 'select-room_temperature_source';
 
 // The heating strategy select is on the event stream too. A switch counts as
 // done once the stream reports the new option, within this time.
@@ -288,6 +291,9 @@ class OpenQuattDevice extends Homey.Device {
     });
     this.registerCapabilityListener('oq_heating_enable_source', async value => {
       await this.client.setSelect('Heating Enable Source', SOURCE_TO_OPTION[value]);
+    });
+    this.registerCapabilityListener('oq_room_temperature_source', async value => {
+      await this.client.setSelect('Room Temperature Source', ROOM_SOURCE_TO_OPTION[value]);
     });
     this.registerCapabilityListener('oq_heating_strategy', async value => {
       await this.setHeatingStrategy(value);
@@ -887,6 +893,14 @@ class OpenQuattDevice extends Homey.Device {
     if (state.id === HEATING_ENABLE_SOURCE_ID) {
       if (this.hasCapability('oq_heating_enable_source')) {
         this.setCapabilityValue('oq_heating_enable_source', OPTION_TO_SOURCE[state.state] || null)
+          .catch(this.error);
+      }
+      return;
+    }
+
+    if (state.id === ROOM_TEMPERATURE_SOURCE_ID) {
+      if (this.hasCapability('oq_room_temperature_source')) {
+        this.setCapabilityValue('oq_room_temperature_source', OPTION_TO_ROOM_SOURCE[state.state] || null)
           .catch(this.error);
       }
       return;

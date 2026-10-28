@@ -426,6 +426,60 @@
       ]
     },
     {
+      "id": "room_temperature_source_is",
+      "title": {
+        "en": "The room temperature source !{{is|is not}}",
+        "nl": "De bron van de kamertemperatuur !{{is|is niet}}"
+      },
+      "titleFormatted": {
+        "en": "The room temperature source !{{is|is not}} [[source]]",
+        "nl": "De bron van de kamertemperatuur !{{is|is niet}} [[source]]"
+      },
+      "args": [
+        {
+          "name": "source",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "ot_thermostat",
+              "label": {
+                "en": "OpenTherm thermostat",
+                "nl": "OT-thermostaat"
+              }
+            },
+            {
+              "id": "cic",
+              "label": {
+                "en": "CIC",
+                "nl": "CIC"
+              }
+            },
+            {
+              "id": "ha_input",
+              "label": {
+                "en": "Home Assistant input",
+                "nl": "HA-invoer"
+              }
+            },
+            {
+              "id": "api_input",
+              "label": {
+                "en": "API input (Homey)",
+                "nl": "API-invoer (Homey)"
+              }
+            },
+            {
+              "id": "mqtt",
+              "label": {
+                "en": "MQTT",
+                "nl": "MQTT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "heating_strategy_is",
       "title": {
         "en": "The heating strategy !{{is|is not}}",
@@ -1044,6 +1098,64 @@
                 "nl": "Niet gebruiken (strategie bepaalt zelf)"
               }
             },
+            {
+              "id": "ot_thermostat",
+              "label": {
+                "en": "OpenTherm thermostat",
+                "nl": "OT-thermostaat"
+              }
+            },
+            {
+              "id": "cic",
+              "label": {
+                "en": "CIC",
+                "nl": "CIC"
+              }
+            },
+            {
+              "id": "ha_input",
+              "label": {
+                "en": "Home Assistant input",
+                "nl": "HA-invoer"
+              }
+            },
+            {
+              "id": "api_input",
+              "label": {
+                "en": "API input (Homey)",
+                "nl": "API-invoer (Homey)"
+              }
+            },
+            {
+              "id": "mqtt",
+              "label": {
+                "en": "MQTT",
+                "nl": "MQTT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_room_temperature_source",
+      "title": {
+        "en": "Set the room temperature source",
+        "nl": "Zet de bron van de kamertemperatuur"
+      },
+      "titleFormatted": {
+        "en": "Set the room temperature source to [[source]]",
+        "nl": "Zet de bron van de kamertemperatuur op [[source]]"
+      },
+      "hint": {
+        "en": "Chooses where the controller takes the room temperature from. Pick API input (Homey) to feed it from another sensor with the Send the room temperature to the controller card. Power House stops heating while the chosen source has no fresh value, and the app stops re-sending a value after the maximum age in the device settings, so keep a flow sending it. The room setpoint keeps its own source, and the heating permission source and the strategy stay as they are.",
+        "nl": "Bepaalt waar de controller de kamertemperatuur vandaan haalt. Kies API-invoer (Homey) om hem vanuit een andere sensor te voeden met de kaart Stuur de kamertemperatuur naar de controller. Power House verwarmt niet zolang de gekozen bron geen verse waarde heeft, en de app stopt met herhalen na de maximale leeftijd in de apparaatinstellingen, dus laat een flow hem blijven sturen. Het kamersetpoint houdt zijn eigen bron, en de bron van de warmtetoestemming en de strategie blijven zoals ze zijn."
+      },
+      "args": [
+        {
+          "name": "source",
+          "type": "dropdown",
+          "values": [
             {
               "id": "ot_thermostat",
               "label": {

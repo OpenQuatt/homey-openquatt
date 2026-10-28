@@ -87,6 +87,24 @@ test('a heating permission source the controller refused leaves the picker alone
   assert.deepEqual(values, {});
 });
 
+test('the room temperature source card sets only that select and the picker', async () => {
+  const listeners = await runListeners();
+  const selects = [];
+  const values = {};
+  const device = {
+    client: { setSelect: async (name, option) => selects.push([name, option]) },
+    setCapabilityValue: async (capability, value) => { values[capability] = value; },
+    getCapabilityValue: capability => values[capability],
+  };
+
+  await listeners.set_room_temperature_source({ device, source: 'api_input' });
+
+  assert.deepEqual(selects, [['Room Temperature Source', 'API input']]);
+  assert.deepEqual(Object.keys(values), ['oq_room_temperature_source']);
+  assert.equal(await listeners.room_temperature_source_is({ device, source: 'api_input' }), true);
+  assert.equal(await listeners.room_temperature_source_is({ device, source: 'ot_thermostat' }), false);
+});
+
 test('the heating strategy cards switch through the device and read the picker', async () => {
   const listeners = await runListeners();
   const switched = [];
