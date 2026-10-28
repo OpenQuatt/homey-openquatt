@@ -34,6 +34,9 @@ const ALL_CAPABILITIES = [
   'oq_aux_function',
   'oq_heating_enable_source',
   'oq_heating_strategy',
+  'onoff.run_extension',
+  'oq_run_extension_stop_margin',
+  'oq_run_extension_cooldown',
 ];
 
 // Builds a device around the prototype without running onInit, so the state
@@ -171,6 +174,21 @@ test('the heating strategy maps onto its picker', () => {
 
   device._onState({ id: 'select-heating_control_mode', state: 'Zone control', value: 2 });
   assert.equal(device.capabilityValues.oq_heating_strategy, null);
+});
+
+test('extended heating reads back onto its toggle and sliders', () => {
+  const device = makeDevice();
+
+  device._onState({ id: 'switch-power_house_run_extension', value: true, state: 'ON' });
+  device._onState({ id: 'number-power_house_run_extension_stop_margin', value: 1, state: '1.0 °C' });
+  device._onState({ id: 'number-power_house_run_extension_restart_cooldown', value: 1.1, state: '1.1 °C' });
+
+  assert.equal(device.capabilityValues['onoff.run_extension'], true);
+  assert.equal(device.capabilityValues.oq_run_extension_stop_margin, 1);
+  assert.equal(device.capabilityValues.oq_run_extension_cooldown, 1.1);
+
+  device._onState({ id: 'switch-power_house_run_extension', value: false, state: 'OFF' });
+  assert.equal(device.capabilityValues['onoff.run_extension'], false);
 });
 
 // A client that records each select it is sent and, unless told otherwise,

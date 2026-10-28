@@ -91,5 +91,9 @@
   "1.18.0": {
     "en": "New flow card for Power House's extended heating: switch it on or off and set the stop margin above the setpoint and how far the room cools before the heat pump starts again. When the house needs less than the heat pump's minimum output, that turns many short runs into fewer, longer ones.",
     "nl": "Nieuwe flowkaart voor langer doorverwarmen in Power House: zet het aan of uit en stel de stopgrens boven het setpoint in, plus hoeveel de kamer afkoelt voordat de warmtepomp weer start. Vraagt het huis minder dan het minimumvermogen van de warmtepomp, dan worden veel korte runs zo minder en langere."
+  },
+  "1.19.0": {
+    "en": "Extended heating is now on the device as well: a toggle plus sliders for the stop margin and the cooling after stopping. They show the values the controller uses, so you can check and change them without a flow.",
+    "nl": "Langer doorverwarmen staat nu ook op het apparaat: een schakelaar plus schuifjes voor de stopgrens en de afkoeling na stoppen. Ze tonen de waarden die de controller gebruikt, dus je kunt ze zonder flow controleren en aanpassen."
   }
 }

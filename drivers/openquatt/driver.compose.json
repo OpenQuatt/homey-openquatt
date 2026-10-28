@@ -25,6 +25,9 @@
     "oq_heating_permitted",
     "oq_heating_enable_source",
     "oq_heating_strategy",
+    "onoff.run_extension",
+    "oq_run_extension_stop_margin",
+    "oq_run_extension_cooldown",
     "oq_cooling_permitted",
     "onoff.openquatt",
     "onoff.cooling",
@@ -106,6 +109,20 @@
       "insightsTitleFalse": {
         "en": "Cooling disabled",
         "nl": "Koelvrijgave uit"
+      }
+    },
+    "onoff.run_extension": {
+      "title": {
+        "en": "Extended heating (Power House)",
+        "nl": "Langer doorverwarmen (Power House)"
+      },
+      "insightsTitleTrue": {
+        "en": "Extended heating on",
+        "nl": "Langer doorverwarmen aan"
+      },
+      "insightsTitleFalse": {
+        "en": "Extended heating off",
+        "nl": "Langer doorverwarmen uit"
       }
     },
     "onoff.aux_relay": {

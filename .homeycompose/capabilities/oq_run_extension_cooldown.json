@@ -1,0 +1,20 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Extended heating: cooling after stopping",
+    "nl": "Langer doorverwarmen: afkoeling na stoppen"
+  },
+  "min": 0.1,
+  "max": 3,
+  "step": 0.1,
+  "decimals": 1,
+  "units": {
+    "en": "°C",
+    "nl": "°C"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "insights": false,
+  "icon": "/assets/icon.svg"
+}

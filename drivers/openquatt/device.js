@@ -52,6 +52,9 @@ const ENTITY_CAPABILITIES = {
   'switch-openquatt_enabled': 'onoff.openquatt',
   'switch-manual_cooling_enable': 'onoff.cooling',
   'switch-aux_relay__r2_': 'onoff.aux_relay',
+  'switch-power_house_run_extension': 'onoff.run_extension',
+  'number-power_house_run_extension_stop_margin': 'oq_run_extension_stop_margin',
+  'number-power_house_run_extension_restart_cooldown': 'oq_run_extension_cooldown',
   'text_sensor-control_mode__label_': 'oq_control_mode',
   'text_sensor-aux_relay_status': 'oq_aux_status',
   ...Object.fromEntries([...unitCapabilities('hp1'), ...unitCapabilities('hp2')]),
@@ -77,6 +80,9 @@ const MIGRATED_CAPABILITIES = [
   'measure_temperature.supply_target',
   'oq_heating_enable_source',
   'oq_heating_strategy',
+  'onoff.run_extension',
+  'oq_run_extension_stop_margin',
+  'oq_run_extension_cooldown',
   // HP2's come with the first frame the controller reports for it.
   ...unitCapabilities('hp1').map(([, capability]) => capability),
 ];
@@ -274,6 +280,16 @@ class OpenQuattDevice extends Homey.Device {
     });
     this.registerCapabilityListener('oq_heating_strategy', async value => {
       await this.setHeatingStrategy(value);
+    });
+    this.registerCapabilityListener('onoff.run_extension', async value => {
+      await this.client.setSwitch('Power House run extension', value);
+    });
+    // A slider can hand over 1.1000000000000001; the firmware steps in tenths.
+    this.registerCapabilityListener('oq_run_extension_stop_margin', async value => {
+      await this.client.setNumber('Power House run extension stop margin', Math.round(value * 10) / 10);
+    });
+    this.registerCapabilityListener('oq_run_extension_cooldown', async value => {
+      await this.client.setNumber('Power House run extension restart cooldown', Math.round(value * 10) / 10);
     });
 
     this.client = new OpenQuattClient(this._address(), this._credentials(this.getSettings()));

@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "nl.openquatt",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -1646,6 +1646,9 @@
         "oq_heating_permitted",
         "oq_heating_enable_source",
         "oq_heating_strategy",
+        "onoff.run_extension",
+        "oq_run_extension_stop_margin",
+        "oq_run_extension_cooldown",
         "oq_cooling_permitted",
         "onoff.openquatt",
         "onoff.cooling",
@@ -1727,6 +1730,20 @@
           "insightsTitleFalse": {
             "en": "Cooling disabled",
             "nl": "Koelvrijgave uit"
+          }
+        },
+        "onoff.run_extension": {
+          "title": {
+            "en": "Extended heating (Power House)",
+            "nl": "Langer doorverwarmen (Power House)"
+          },
+          "insightsTitleTrue": {
+            "en": "Extended heating on",
+            "nl": "Langer doorverwarmen aan"
+          },
+          "insightsTitleFalse": {
+            "en": "Extended heating off",
+            "nl": "Langer doorverwarmen uit"
           }
         },
         "onoff.aux_relay": {
@@ -2369,6 +2386,46 @@
       "getable": true,
       "setable": true,
       "uiComponent": "picker"
+    },
+    "oq_run_extension_cooldown": {
+      "type": "number",
+      "title": {
+        "en": "Extended heating: cooling after stopping",
+        "nl": "Langer doorverwarmen: afkoeling na stoppen"
+      },
+      "min": 0.1,
+      "max": 3,
+      "step": 0.1,
+      "decimals": 1,
+      "units": {
+        "en": "°C",
+        "nl": "°C"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "slider",
+      "insights": false,
+      "icon": "/assets/icon.svg"
+    },
+    "oq_run_extension_stop_margin": {
+      "type": "number",
+      "title": {
+        "en": "Extended heating: stop above the setpoint",
+        "nl": "Langer doorverwarmen: stop boven het setpoint"
+      },
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "decimals": 1,
+      "units": {
+        "en": "°C",
+        "nl": "°C"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "slider",
+      "insights": false,
+      "icon": "/assets/icon.svg"
     },
     "oq_runtime_hours": {
       "type": "number",
