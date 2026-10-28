@@ -87,5 +87,9 @@
   "1.17.0": {
     "en": "Switch the heating strategy between Power House and the heating curve from Homey: a picker on the device, a flow card to set it and one to check it. A switch changes only the strategy. The heating permission source, the curve points and the Power House settings stay as they are, and the card waits until the controller confirms the new strategy.",
     "nl": "Wissel vanuit Homey de verwarmingsstrategie tussen Power House en de stooklijn: een keuzelijst op het apparaat, een flowkaart om hem te zetten en een om hem te controleren. Een wissel verandert alleen de strategie. De bron van de warmtetoestemming, de stooklijnpunten en de Power House-instellingen blijven zoals ze zijn, en de kaart wacht tot de controller de nieuwe strategie bevestigt."
+  },
+  "1.18.0": {
+    "en": "New flow card for Power House's extended heating: switch it on or off and set the stop margin above the setpoint and how far the room cools before the heat pump starts again. When the house needs less than the heat pump's minimum output, that turns many short runs into fewer, longer ones.",
+    "nl": "Nieuwe flowkaart voor langer doorverwarmen in Power House: zet het aan of uit en stel de stopgrens boven het setpoint in, plus hoeveel de kamer afkoelt voordat de warmtepomp weer start. Vraagt het huis minder dan het minimumvermogen van de warmtepomp, dan worden veel korte runs zo minder en langere."
   }
 }

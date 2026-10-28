@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "nl.openquatt",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -1465,6 +1465,70 @@
                 }
               }
             ]
+          }
+        ]
+      },
+      {
+        "id": "set_run_extension",
+        "title": {
+          "en": "Set extended heating (Power House)",
+          "nl": "Zet langer doorverwarmen (Power House)"
+        },
+        "titleFormatted": {
+          "en": "Set extended heating [[state]], stop [[margin]] °C above the setpoint and heat again after [[cooldown]] °C of cooling",
+          "nl": "Zet langer doorverwarmen [[state]], stop [[margin]] °C boven het setpoint en verwarm weer na [[cooldown]] °C afkoeling"
+        },
+        "hint": {
+          "en": "Only counts while Power House runs. When the house needs less than the heat pump's minimum output, a running heat pump keeps heating at that minimum until the room reaches the setpoint plus the stop margin. It heats again once the room has cooled the given amount below that stop temperature, but never lower than the normal start point (the setpoint minus Power House comfort below setpoint), so a larger cooling restarts there. Example: setpoint 20, stop margin 1.0 and cooling 1.1 heat from 19.9 to 21.0. The controller keeps both values, also while extended heating is off. The heating strategy and the heating permission source stay as they are.",
+          "nl": "Telt alleen zolang Power House draait. Vraagt het huis minder dan het minimumvermogen van de warmtepomp, dan blijft een draaiende warmtepomp op dat minimum verwarmen tot de kamer het setpoint plus de stopgrens haalt. Hij verwarmt weer zodra de kamer zoveel onder die stoptemperatuur is afgekoeld, maar nooit lager dan het normale startpunt (het setpoint min Power House comfort below setpoint), dus bij een grotere afkoeling herstart hij daar. Voorbeeld: setpoint 20, stopgrens 1,0 en afkoeling 1,1 verwarmen van 19,9 tot 21,0. De controller onthoudt beide waarden, ook als langer doorverwarmen uit staat. De verwarmingsstrategie en de bron van de warmtetoestemming blijven zoals ze zijn."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=openquatt"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "on",
+                  "nl": "aan"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "off",
+                  "nl": "uit"
+                }
+              }
+            ]
+          },
+          {
+            "name": "margin",
+            "type": "number",
+            "min": 0.1,
+            "max": 1,
+            "step": 0.1,
+            "placeholder": {
+              "en": "Stop margin (°C)",
+              "nl": "Stopgrens (°C)"
+            }
+          },
+          {
+            "name": "cooldown",
+            "type": "number",
+            "min": 0.1,
+            "max": 3,
+            "step": 0.1,
+            "placeholder": {
+              "en": "Cooling after stopping (°C)",
+              "nl": "Afkoeling na stoppen (°C)"
+            }
           }
         ]
       },

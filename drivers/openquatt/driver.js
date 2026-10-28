@@ -158,6 +158,16 @@ class OpenQuattDriver extends Homey.Driver {
         await device.setHeatingStrategy(strategy);
       });
 
+    // Thresholds first, so switching it on never runs with the old ones.
+    this.homey.flow.getActionCard('set_run_extension')
+      .registerRunListener(async ({
+        device, state, margin, cooldown,
+      }) => {
+        await device.client.setNumber('Power House run extension stop margin', margin);
+        await device.client.setNumber('Power House run extension restart cooldown', cooldown);
+        await device.client.setSwitch('Power House run extension', state === 'on');
+      });
+
     this.homey.flow.getActionCard('set_cooling_permission')
       .registerRunListener(async ({ device, state }) => {
         await device.setInput('cooling_enable', state === 'on');

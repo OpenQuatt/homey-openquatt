@@ -102,3 +102,46 @@ test('the heating strategy cards switch through the device and read the picker',
   assert.equal(await listeners.heating_strategy_is({ device, strategy: 'heating_curve' }), true);
   assert.equal(await listeners.heating_strategy_is({ device, strategy: 'power_house' }), false);
 });
+
+test('the extended heating card writes both thresholds before the switch', async () => {
+  const listeners = await runListeners();
+  const calls = [];
+  const device = {
+    client: {
+      setNumber: async (name, value) => calls.push(['number', name, value]),
+      setSwitch: async (name, on) => calls.push(['switch', name, on]),
+    },
+  };
+
+  await listeners.set_run_extension({
+    device, state: 'on', margin: 1, cooldown: 1.1,
+  });
+  await listeners.set_run_extension({
+    device, state: 'off', margin: 0.5, cooldown: 0.2,
+  });
+
+  assert.deepEqual(calls, [
+    ['number', 'Power House run extension stop margin', 1],
+    ['number', 'Power House run extension restart cooldown', 1.1],
+    ['switch', 'Power House run extension', true],
+    ['number', 'Power House run extension stop margin', 0.5],
+    ['number', 'Power House run extension restart cooldown', 0.2],
+    ['switch', 'Power House run extension', false],
+  ]);
+});
+
+test('a refused threshold leaves extended heating untouched', async () => {
+  const listeners = await runListeners();
+  const switched = [];
+  const device = {
+    client: {
+      setNumber: async () => { throw new Error('HTTP 404 on /number/Power%20House%20run%20extension%20stop%20margin/set'); },
+      setSwitch: async (name, on) => switched.push(on),
+    },
+  };
+
+  await assert.rejects(listeners.set_run_extension({
+    device, state: 'on', margin: 1, cooldown: 1.1,
+  }), /HTTP 404/);
+  assert.deepEqual(switched, []);
+});
