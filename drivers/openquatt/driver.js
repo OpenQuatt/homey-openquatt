@@ -88,6 +88,11 @@ class OpenQuattDriver extends Homey.Driver {
         await device.setCapabilityValue('oq_aux_function', mode).catch(() => {});
       });
 
+    this.homey.flow.getActionCard('set_aux_hysteresis')
+      .registerRunListener(async ({ device, hysteresis }) => {
+        await device.setAuxHysteresis(hysteresis);
+      });
+
     this.homey.flow.getActionCard('set_aux_relay')
       .registerRunListener(async ({ device, state }) => {
         await device.client.setSwitch('Aux relay (R2)', state === 'on');

@@ -228,6 +228,32 @@ test('the run extension sliders of v1.19.0 make way for the pickers', async () =
   assert.ok(device.getCapabilities().includes('oq_run_extension_cooling'));
 });
 
+test('the aux relay hysteresis is written alone and read back', async () => {
+  const device = makeDevice();
+  let stored = 2;
+  const writes = [];
+  device.client = {
+    setNumber: async (name, value) => { writes.push([name, value]); stored = value; },
+    getEntity: async (domain, name) => ({ id: `${domain}-${name}`, value: stored, state: `${stored} °C` }),
+  };
+
+  await device.setAuxHysteresis(3);
+  // A value off the firmware's half degrees is rounded before it is sent.
+  await device.setAuxHysteresis(3.3);
+
+  assert.deepEqual(writes, [['Aux Relay Temp Hysteresis', 3], ['Aux Relay Temp Hysteresis', 3.5]]);
+});
+
+test('an aux relay hysteresis the controller did not keep fails', async () => {
+  const device = makeDevice();
+  device.client = {
+    setNumber: async () => {},
+    getEntity: async () => ({ value: 2, state: '2.0 °C' }),
+  };
+
+  await assert.rejects(device.setAuxHysteresis(3), /aux.hysteresis_not_confirmed/);
+});
+
 // A client that records each select it is sent and, unless told otherwise,
 // reports it back on the event stream through the device, as the firmware
 // does. Timers are held so a test can expire them.

@@ -105,6 +105,16 @@ test('the room temperature source card sets only that select and the picker', as
   assert.equal(await listeners.room_temperature_source_is({ device, source: 'ot_thermostat' }), false);
 });
 
+test('the aux relay hysteresis card goes through the device', async () => {
+  const listeners = await runListeners();
+  const set = [];
+  const device = { setAuxHysteresis: async value => set.push(value) };
+
+  await listeners.set_aux_hysteresis({ device, hysteresis: 3 });
+
+  assert.deepEqual(set, [3]);
+});
+
 test('the heating strategy cards switch through the device and read the picker', async () => {
   const listeners = await runListeners();
   const switched = [];

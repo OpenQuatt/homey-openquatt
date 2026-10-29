@@ -20,5 +20,8 @@
   },
   "strategy": {
     "not_confirmed": "De controller heeft de nieuwe verwarmingsstrategie niet binnen 15 seconden bevestigd"
+  },
+  "aux": {
+    "hysteresis_not_confirmed": "De controller heeft de nieuwe hysterese van het hulprelais niet bevestigd"
   }
 }

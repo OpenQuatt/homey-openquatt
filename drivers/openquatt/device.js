@@ -696,6 +696,21 @@ class OpenQuattDevice extends Homey.Device {
     this.setStoreValue(INPUT_STORE_KEY, stored).catch(this.error);
   }
 
+  /**
+   * Set how far the supply may drop below the aux relay's heating start
+   * temperature before the relay switches off again. The setting is internal,
+   * so not on the event stream: the write counts once a read returns it.
+   */
+  async setAuxHysteresis(value) {
+    // The firmware steps in halves of a degree.
+    const hysteresis = Math.round(value * 2) / 2;
+    await this.client.setNumber('Aux Relay Temp Hysteresis', hysteresis);
+    const entity = await this.client.getEntity('number', 'Aux Relay Temp Hysteresis');
+    if (!(Math.abs(Number(entity.value) - hysteresis) < 0.01)) {
+      throw new Error(this.homey.__('aux.hysteresis_not_confirmed'));
+    }
+  }
+
   async _refreshAuxFunction() {
     if (!this.hasCapability('oq_aux_function')) return;
     try {

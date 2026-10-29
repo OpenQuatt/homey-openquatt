@@ -20,5 +20,8 @@
   },
   "strategy": {
     "not_confirmed": "The controller did not confirm the new heating strategy within 15 seconds"
+  },
+  "aux": {
+    "hysteresis_not_confirmed": "The controller did not confirm the new aux relay hysteresis"
   }
 }

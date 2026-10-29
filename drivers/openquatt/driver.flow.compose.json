@@ -1364,6 +1364,34 @@
           ]
         }
       ]
+    },
+    {
+      "id": "set_aux_hysteresis",
+      "title": {
+        "en": "Set the aux relay temperature hysteresis",
+        "nl": "Zet de temperatuurhysterese van het hulprelais"
+      },
+      "titleFormatted": {
+        "en": "Set the aux relay temperature hysteresis to [[hysteresis]] °C",
+        "nl": "Zet de temperatuurhysterese van het hulprelais op [[hysteresis]] °C"
+      },
+      "hint": {
+        "en": "Counts when the aux relay (R2) waits for the supply temperature, and for a run-on that lasts until the supply temperature. The relay switches on at its heating start temperature and off again once the supply is this much lower. A larger value keeps the relay on through the short dip of cold water at a quick restart. Only this setting changes. The card reads the value back and fails if the controller does not report it.",
+        "nl": "Telt als het hulprelais (R2) wacht op de aanvoertemperatuur, en bij nadraaien tot de aanvoertemperatuur. Het relais gaat aan bij zijn starttemperatuur voor verwarmen en weer uit als de aanvoer zoveel lager is. Een grotere waarde houdt het relais aan tijdens de korte dip van koud water bij een snelle herstart. Alleen deze instelling verandert. De kaart leest de waarde terug en geeft een fout als de controller hem niet meldt."
+      },
+      "args": [
+        {
+          "name": "hysteresis",
+          "type": "number",
+          "min": 0.5,
+          "max": 5,
+          "step": 0.5,
+          "placeholder": {
+            "en": "Hysteresis (°C)",
+            "nl": "Hysterese (°C)"
+          }
+        }
+      ]
     }
   ]
 }
